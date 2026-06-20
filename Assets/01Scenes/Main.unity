@@ -246,7 +246,7 @@ Transform:
   m_GameObject: {fileID: 270382885}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -278,7 +278,7 @@ Transform:
   m_GameObject: {fileID: 381020302}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.8, z: 0}
+  m_LocalPosition: {x: 0.5, y: 1.3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -315,29 +315,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _input: {fileID: 20021027}
-  _cameraRig: {fileID: 400402136}
-  _cameraPivot: {fileID: 270382886}
+  _cameraRigTr: {fileID: 400402138}
+  _cameraPivotTr: {fileID: 270382886}
   _camera: {fileID: 963194227}
-  _currentViewType: 0
-  _backViewOffset: {x: 0, y: 0, z: 0}
+  _followTarget: {fileID: 9056764102366596953}
+  _backViewData: {fileID: 11400000, guid: 02a14e5a0d9cdfd4db190f8d7db422b8, type: 2}
   _minDistance: 0.5
-  _maxDistance: 6
+  _maxDistance: 3
   _zoomSeed: 1
-  _baseFOV: 60
-  _combatFOV: 40
-  _smoothFOVSpeed: 10
+  _smoothFollowSpeed: 10
+  _sensitivity: 15
+  _clampAngle: 70
+  _shoulderViewData: {fileID: 11400000, guid: 88fb433aece8bf94dbeca3fef6e0d8a9, type: 2}
+  _topDownViewData: {fileID: 11400000, guid: 430efc97a3692284bb067ce1bed97335, type: 2}
+  _currentViewType: 0
   _collisionMask:
     serializedVersion: 2
     m_Bits: 1
   _collisionPadding: 0.1
-  _sensitivity: 15
-  _clampAngle: 70
-  _topviewOffset: {x: 0, y: 0, z: 0}
-  _topviewAngleOffset: {x: 0, y: 0, z: 0}
-  _topViewFOV: 70
-  _smoothSpeed: 10
+  _smoothSpeed: 5
   _followSpeed: 100
-  _currentTarget: {fileID: 381020303}
 --- !u!4 &400402138
 Transform:
   m_ObjectHideFlags: 0
@@ -346,14 +343,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 400402136}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.4999996, y: -0, z: -0, w: 0.8660257}
-  m_LocalPosition: {x: 0, y: 6, z: -4}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 270382886}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &601756965
 Material:
   serializedVersion: 8
@@ -647,8 +644,8 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 70
+  far clip plane: 500
+  field of view: 60
   orthographic: 0
   orthographic size: 5
   m_Depth: -1

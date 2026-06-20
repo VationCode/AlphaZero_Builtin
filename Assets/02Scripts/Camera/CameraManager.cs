@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace alpha.camera
@@ -5,8 +6,10 @@ namespace alpha.camera
     public enum EViewType
     {
         BackView,
+        ShoulderView,
         TopDownView
     }
+
     public class CameraManager : MonoBehaviour
     {
         #region Ref Component
@@ -16,176 +19,218 @@ namespace alpha.camera
 
         #region Config 
         [Tooltip("타겟과 동일한 위치 추적만 담당"), SerializeField]
-        private GameObject _cameraRig;
+        private Transform _cameraRigTr;
         [Tooltip("타겟으로부터의 거리와 회전 담당") ,SerializeField]
-        private Transform _cameraPivot;
+        private Transform _cameraPivotTr;
         [SerializeField]
         private Camera _camera;
-
-
         [SerializeField]
-        private EViewType _currentViewType;
+        private Transform _followTarget;        // Player
 
+
+        #region ==================== BackView
         [Header("[ BackView ]")]
         [SerializeField]
-        private Transform _backViewTarget;      // CameraRig가 쫒을 대상
-        [SerializeField]
-        private Vector3 _backViewOffset;
+        private ViewDataSO _backViewData;
         [SerializeField]
         private float _minDistance = 0.5f;
         [SerializeField]
-        private float _maxDistance = 4.0f;
+        private float _maxDistance = 3.0f;
         [SerializeField]
         private float _zoomSeed = 1f;
         [SerializeField]
-        private float _baseFOV = 60f;
-        [SerializeField]
-        private float _combatFOV = 40f;
-        [SerializeField]
-        private float _smoothFOVSpeed = 10f;
+        private float _smoothFollow = 10f;
 
-        [SerializeField]
-        private LayerMask _collisionMask;
-        [SerializeField]
-        private float _collisionPadding = 0.1f;
 
         [Tooltip("감도"), SerializeField]
         private float _sensitivity = 15;
         [Tooltip("각도 제한"), SerializeField]
         private float _clampAngle = 70;
 
-        private float _smoothness = 10f;
+        private float _currentPivotMaxDis;
         [Space(10)]
+        #endregion
 
+        #region ==================== ShouldView (Aim)
+        [Header("[ ShoulderView ]")]
+        [SerializeField]
+        private ViewDataSO _shoulderViewData;
+
+
+        #endregion
+
+        #region ==================== TopDownView
         [Header("[ TopDownView ]")]
         [SerializeField]
-        private Transform _topDownViewTarget;
-        [SerializeField]
-        private Vector3 _topviewOffset;
-        [SerializeField]
-        private Vector3 _topviewAngleOffset;
+        private ViewDataSO _topDownViewData;
+        #endregion
+
 
         [SerializeField]
-        private float _topViewFOV = 70f;
+        private EViewType _currentViewType;
+
+        private ViewDataSO _currentViewData
+        {
+            get
+            {
+                return _currentViewType switch
+                {
+                    EViewType.BackView => _backViewData,
+                    EViewType.ShoulderView => _shoulderViewData,
+                    EViewType.TopDownView => _topDownViewData,
+                    _ => _backViewData
+                };
+            }
+        }
 
         [Header("[ Public ]")]
         [SerializeField]
         private float _smoothSpeed = 5f;
 
         [SerializeField]
-        private float _followSpeed = 100;
+        private LayerMask _collisionMask;
+        [SerializeField]
+        private float _collisionPadding = 0.1f;
 
         [Space(10)]
         #endregion
 
         #region Runtime
-        private Transform _currentTarget;
+
 
         private float _currentX;
         private float _currentY;
         private float _currentDistance;
-        private float _currentFOV;
+
+        private float _targetRigY;
+        private Vector3 _targetPivotPos;
+        private Quaternion _targetRot;
+        private float _targetFOV;
         #endregion
 
         private void Awake()
         {
-            _cameraRig = this.gameObject;
+            _cameraRigTr = this.transform;
         }
 
         private void Start()
         {
             _camera = GetComponentInChildren<Camera>();
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-
-            _currentTarget = _currentViewType == EViewType.BackView ? _backViewTarget : _topDownViewTarget;
-
-            if (_currentTarget == null)
+            if (_followTarget == null)
             {
                 Debug.LogError("CameraMovementModule : Target is not set.");
                 return;
             }
 
-            InitializeCamera();
+            _cameraRigTr.position = Vector3.zero;
+            _cameraPivotTr.position = Vector3.zero;
+            _cameraPivotTr.rotation = Quaternion.identity;
 
-            SetViewTypeFOV(_currentViewType);
-        }
+            _currentPivotMaxDis = _maxDistance;
 
-        private void InitializeCamera()
-        {
-            _cameraRig.transform.position = _currentTarget.position;
-            _cameraPivot.localPosition = Vector3.zero;
-
-            _currentX = _cameraRig.transform.localRotation.eulerAngles.x;
-            _currentY = _cameraRig.transform.localRotation.eulerAngles.y;
+            SetView(_currentViewType);
         }
 
         private void Update()
         {
-            SetViewTypeFOV(_currentViewType);
+            if(Input.GetKeyDown(KeyCode.Alpha8))
+            {
+                SetView(EViewType.BackView);
+            }
+            else if(Input.GetKeyDown(KeyCode.Alpha9))
+            {
+                SetView(EViewType.ShoulderView);
+            }
+            else if(Input.GetKeyDown(KeyCode.Alpha0))
+            {
+                SetView(EViewType.TopDownView);
+            }
+
             Rotation();
         }
 
         private void LateUpdate()
         {
-            Follow();
+            SwitchView();
+
+            if (_currentViewType == EViewType.TopDownView)
+            {
+                RigFollw();
+                return; 
+            }
+            else TPSFollow();
         }
-        public void SetViewType(EViewType p_type)
+
+        public void SetView(EViewType p_viewType)
         {
-            switch (p_type)
+            _currentViewType = p_viewType;
+
+            switch (p_viewType)
             {
                 case EViewType.BackView:
-                    _currentViewType = p_type;
+
+                    _currentPivotMaxDis = _backViewData.PivotOffset.z;
                     break;
-                case EViewType.TopDownView:
-                    _currentViewType = p_type;
+                case EViewType.ShoulderView:
+
+                    _currentPivotMaxDis = _shoulderViewData.PivotOffset.z;
                     break;
+
             }
+
+            _targetRigY = _currentViewData.RigOffsetY;
+            _targetPivotPos = _currentViewData.PivotOffset;
+            _targetRot = Quaternion.Euler(_currentViewData.Angle);
+            _targetFOV = _currentViewData.FOV;
+
         }
 
-        public void SetTarget(Transform target)
+        private void SwitchView()
         {
-            _currentTarget = target;
+           // _cameraRigTr.localPosition = Vector3.Lerp(_cameraRigTr.localPosition, new Vector3(_cameraRigTr.localPosition.x, _targetRigY, _cameraRigTr.localPosition.z), Time.deltaTime * _smoothSpeed);
+
+            _cameraPivotTr.localPosition =
+                Vector3.Lerp(_cameraPivotTr.localPosition, _targetPivotPos, Time.deltaTime * _smoothSpeed);
+
+            _cameraPivotTr.localRotation = 
+                Quaternion.Slerp(_cameraPivotTr.localRotation, _targetRot, Time.deltaTime * _smoothSpeed);
+
+            _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, _targetFOV, Time.deltaTime * _smoothSpeed);
         }
 
-        public void SetViewTypeFOV(EViewType p_viewType = EViewType.BackView)
+        public void RigFollw()
         {
-            if(_currentViewType == EViewType.TopDownView)
+            Vector3 rigPos = _cameraRigTr.transform.position;
+
+            rigPos = Vector3.Lerp(rigPos, _followTarget.position, Time.deltaTime * _smoothSpeed);
+
+            rigPos.y = _targetRigY;
+
+            _cameraRigTr.position = rigPos;
+        }
+
+        public void TPSFollow()
+        {
+            RigFollw();
+
+            if (_currentViewType == EViewType.BackView)
             {
-                _camera.fieldOfView = Mathf.Lerp(_currentFOV, _topViewFOV, Time.deltaTime);
-            }
-            else if(_currentViewType == EViewType.BackView)
-            {
-                _camera.fieldOfView = Mathf.Lerp(_currentFOV, _baseFOV, Time.deltaTime);
-            }
-            _currentFOV = _camera.fieldOfView;
-        }
+                if (Mathf.Abs(_input.MouseScroll.y) > 0.01f)
+                {
+                    float distance = Mathf.Abs(_currentPivotMaxDis);
 
-        public void SetBackViewFOV(bool p_isCombat = false)
-        {
-            if (p_isCombat)
-                _camera.fieldOfView = Mathf.Lerp(_currentFOV, _combatFOV, Time.deltaTime * _smoothFOVSpeed);
-            else
-                _camera.fieldOfView = Mathf.Lerp(_currentFOV, _baseFOV, Time.deltaTime * _smoothFOVSpeed);
-        }
+                    distance -= _input.MouseScroll.y * _zoomSeed;
 
-        public void Follow()
-        {
-           /* _cameraRig.transform.position = Vector3.MoveTowards(_cameraRig.transform.position, _currentTarget.position, _followSpeed * Time.deltaTime);
+                    distance = Mathf.Clamp(distance, _minDistance, _maxDistance);
 
-            if (Mathf.Abs(_input.MouseScroll.y) > 0.01f)
-            {
-                float distance = Mathf.Abs(_backViewOffset.z);
-
-                distance -= _input.MouseScroll.y * _zoomSeed;
-
-                distance = Mathf.Clamp(distance, _minDistance, _maxDistance);
-
-                _backViewOffset.z = -distance;
+                    _currentPivotMaxDis = -distance;
+                }
             }
 
-            Vector3 maxLocalPos = _backViewOffset;
+            Vector3 maxLocalPos = Vector3.zero;
+
+            maxLocalPos.z = _currentPivotMaxDis;
 
             Vector3 targetWorldPos = transform.TransformPoint(maxLocalPos);
 
@@ -204,10 +249,16 @@ namespace alpha.camera
                 finalTargetLocalPos = maxLocalPos;
             }
 
-            _cameraPivot.localPosition = Vector3.Lerp(_cameraPivot.localPosition, finalTargetLocalPos, Time.deltaTime * _smoothness);*/
+            _cameraPivotTr.localPosition = Vector3.Lerp(_cameraPivotTr.localPosition, finalTargetLocalPos, Time.deltaTime * _smoothFollow);
         }
         public void Rotation()
         {
+            if (_currentViewType == EViewType.TopDownView)
+            {
+                _cameraPivotTr.LookAt(_followTarget);
+                return;
+            }
+
             _currentX -= _input.LookInput.y * _sensitivity * Time.deltaTime;
             _currentY += _input.LookInput.x * _sensitivity * Time.deltaTime;
 
@@ -216,7 +267,5 @@ namespace alpha.camera
             Quaternion _rot = Quaternion.Euler(_currentX, _currentY, 0);
             transform.rotation = _rot;
         }
-
-
     }
 }

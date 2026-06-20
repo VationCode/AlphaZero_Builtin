@@ -45,7 +45,7 @@ public class LocomotionModule : MonoBehaviour
         _currentSpeed = _moveSpeed;
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         _isSprint = _inputBoundary.IsSprint;
         _isCombat = _inputBoundary.IsAttack;
@@ -53,7 +53,7 @@ public class LocomotionModule : MonoBehaviour
         if (_isCombat) _isSprint = false;
 
         Move(_isSprint, _isCombat);
-        _cameraManager.SetBackViewFOV(_isCombat);
+        //_cameraManager.SetBackViewFOV(_isCombat);
     }
 
     public void Move(bool p_isSprint = false, bool p_isCombat = false)
@@ -87,7 +87,7 @@ public class LocomotionModule : MonoBehaviour
         }
 
         // 속도 계산
-        Vector3 velocity = moveDir * speed * Time.fixedDeltaTime;
+        Vector3 velocity = moveDir * speed * Time.deltaTime;
 
         Rotate(moveDir, p_isCombat);
         characterCtrl.Move(velocity);
