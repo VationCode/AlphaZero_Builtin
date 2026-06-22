@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7c4a37042c90a4e8d5a0bf3c6541df, type: 3}
   m_Name: BackViewData
   m_EditorClassIdentifier: Assembly-CSharp:alpha.camera:ViewData
-  RigOffsetY: 1.8
-  PivotOffset: {x: 0, y: 0, z: -3}
-  Angle: {x: 0, y: 0, z: 0, w: 0}
+  PivotOffsetY: 1.8
+  RollOffsetX: 0
+  ZoomMinDistance: 0
+  ZoomMaxDistance: 4
+  Angle: {x: 0, y: 0, z: 0}
   FOV: 60

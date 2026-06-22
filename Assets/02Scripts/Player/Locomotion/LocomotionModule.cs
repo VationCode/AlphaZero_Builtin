@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 public class LocomotionModule : MonoBehaviour
 {
     // Ref
-    private CharacterController characterCtrl;
+    private CharacterController _characterCtrl;
     private AnimationBoundary _anim;
     [SerializeField]
     private InputBoundary _inputBoundary;
@@ -32,11 +32,23 @@ public class LocomotionModule : MonoBehaviour
     [SerializeField]
     private bool _isSprint;
 
+    [Header("[Ground]"), SerializeField]
+    private LayerMask _groundLayer;
+    [SerializeField]
+    private float _checkGroundOffset = 0.125f;
+    private bool _isGround;
+
+    [Header("[Gravity]"), SerializeField]
+    private float _gravity = -9.8f;
+
     private float _rotationSmoothVelocity;
     private float _currentSpeed;
+    private Vector3 _currentVelocity;
+    private float _currentVelocityY;
+    private bool _isCombatStart = false;
     private void Awake()
     {
-        characterCtrl = GetComponent<CharacterController>();
+        _characterCtrl = GetComponent<CharacterController>();
         _anim = GetComponent<AnimationBoundary>();
     }
 
@@ -50,10 +62,29 @@ public class LocomotionModule : MonoBehaviour
         _isSprint = _inputBoundary.IsSprint;
         _isCombat = _inputBoundary.IsAttack;
 
-        if (_isCombat) _isSprint = false;
+        if (_isCombat)
+        {
+            if (!_isCombatStart)
+            {
+                _isSprint = false;
+                _isCombatStart = true;
+                _cameraManager.SetView(EViewType.ShoulderView);
+            }
+        }
+        else
+        {
+            if(_isCombatStart)
+            {
+                _cameraManager.SetView(EViewType.BackView);
+                _isCombatStart = false;
+            }
+        }
 
+        CheckedGround();
+
+        ApplyGravity();
+        
         Move(_isSprint, _isCombat);
-        //_cameraManager.SetBackViewFOV(_isCombat);
     }
 
     public void Move(bool p_isSprint = false, bool p_isCombat = false)
@@ -87,10 +118,16 @@ public class LocomotionModule : MonoBehaviour
         }
 
         // 속도 계산
-        Vector3 velocity = moveDir * speed * Time.deltaTime;
+        
+        Vector3 moveVelocity = moveDir * speed;
 
         Rotate(moveDir, p_isCombat);
-        characterCtrl.Move(velocity);
+
+
+        Vector3 finalVelocity = moveVelocity + Vector3.up * _currentVelocityY;
+
+
+        _characterCtrl.Move(finalVelocity * Time.deltaTime);
         
         _anim.MoveAnim(moveInput, p_isSprint, p_isCombat);
     }
@@ -122,11 +159,56 @@ public class LocomotionModule : MonoBehaviour
 
     private void CheckedGround()
     {
+        // _characterCtrl.center는 로컬좌표이기에 현재 월드 위치는 transform을 더해줘야한다.
+        Vector3 center = transform.position + _characterCtrl.center;
 
+        // radius를 해주는 이유는 캡슐형태에서 둥그런 부분의 높이도 함께 포함하여 감지하기 위해서
+        float bottomOffset = (_characterCtrl.height * 0.5f) - _characterCtrl.radius;
+
+        Vector3 ctrlBottom = center;
+        ctrlBottom.y -= bottomOffset;
+        ctrlBottom.y -= _checkGroundOffset;
+
+        if (Physics.CheckSphere(ctrlBottom, _characterCtrl.radius * 1f, _groundLayer))
+        {
+            _isGround = true;
+        }
+        else _isGround = false;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (_characterCtrl == null)
+            _characterCtrl = GetComponent<CharacterController>();
+
+        if (_characterCtrl == null)
+            return;
+
+        Vector3 center = transform.position + _characterCtrl.center;
+
+        float bottomOffset = (_characterCtrl.height * 0.5f) - _characterCtrl.radius;
+
+        Vector3 ctrlBottom = center;
+        ctrlBottom.y -= bottomOffset;
+        ctrlBottom.y -= _checkGroundOffset;
+
+        Gizmos.color = _isGround ? Color.green : Color.red;
+
+        Gizmos.DrawWireSphere(ctrlBottom, _characterCtrl.radius * 1f);
     }
 
     private void ApplyGravity()
     {
-
+        if (_isGround && _currentVelocityY < 0f)
+        {
+            // 바닥에 붙어있도록 약간의 음수값 유지
+            if (_currentVelocityY < 0)
+                _currentVelocityY = -0.5f;
+        }
+        else
+        {
+            // 중력 가속도 누적
+            _currentVelocityY += _gravity * Time.deltaTime;
+        }
     }
 }

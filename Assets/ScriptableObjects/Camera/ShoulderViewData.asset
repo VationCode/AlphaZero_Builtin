@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7c4a37042c90a4e8d5a0bf3c6541df, type: 3}
   m_Name: ShoulderViewData
   m_EditorClassIdentifier: Assembly-CSharp:alpha.camera:ViewData
-  RigOffsetY: 1.3
-  PivotOffset: {x: 2, y: 0, z: -1.5}
+  PivotOffsetY: 1.3
+  ShoulderOffsetX: 0.5
+  ZoomMinDistance: 0
+  ZoomMaxDistance: 1.5
   Angle: {x: 0, y: 0, z: 0}
   FOV: 40

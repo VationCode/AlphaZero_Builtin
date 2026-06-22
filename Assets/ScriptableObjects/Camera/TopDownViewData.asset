@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7c4a37042c90a4e8d5a0bf3c6541df, type: 3}
   m_Name: TopDownViewData
   m_EditorClassIdentifier: Assembly-CSharp:alpha.camera:ViewData
-  RigOffsetY: 5
-  PivotOffset: {x: 0, y: 0, z: -4}
-  Angle: {x: 60, y: 0, z: 0}
+  PivotOffsetY: 6
+  ShoulderOffsetX: 0
+  ZoomMinDistance: 0
+  ZoomMaxDistance: 4
+  Angle: 60
   FOV: 70
