@@ -20,11 +20,11 @@ namespace alpha.camera
 
         #region ==================== Config 
         [Header("[Targets]")]
-        [Tooltip("Å¸°Ù°ú µ¿ÀÏÇÑ À§Ä¡ ÃßÀû¸¸ ´ã´ç")]
+        [Tooltip("íƒ€ê²Ÿê³¼ ë™ì¼í•œ ìœ„ì¹˜ ì¶”ì ë§Œ ë‹´ë‹¹")]
         [SerializeField] private Transform _cameraRigTr;
-        [Tooltip("View¿¡ µû¸¥ ³ôÀÌ¿Í È¸Àü ´ã´ç")]
+        [Tooltip("Viewì— ë”°ë¥¸ ë†’ì´ì™€ íšŒì „ ë‹´ë‹¹")]
         [SerializeField] private Transform _cameraPivotTr;
-        [Tooltip("TopViewÀÏ¶§¸¸ È¸Àü´ã´ç")]
+        [Tooltip("TopViewì¼ë•Œë§Œ íšŒì „ë‹´ë‹¹")]
         [SerializeField] private Transform _cameraTopviewTr;
         [SerializeField] private Transform _cameraShoulderTr;
         [SerializeField] private Transform _cameraZoomHolderTr;
@@ -37,8 +37,8 @@ namespace alpha.camera
         [SerializeField] private ViewDataSO _topDownViewData;
 
         [Header("Rotation")]
-        [SerializeField] private float _sensitivity = 15;       // ¸¶¿ì½º °¨µµ
-        [SerializeField] private float _clampAngle = 70;        // È¸Àü Á¦ÇÑ (XÃà)
+        [SerializeField] private float _sensitivity = 15;       // ë§ˆìš°ìŠ¤ ê°ë„
+        [SerializeField] private float _clampAngle = 70;        // íšŒì „ ì œí•œ (Xì¶•)
 
         [Header("[Follw Speed]")]
         [SerializeField] private float _viewSmoothSpeed = 5f;
@@ -110,17 +110,14 @@ namespace alpha.camera
             if(Input.GetKeyDown(KeyCode.Alpha8))
             {
                 SetView(EViewType.BackView);
-                Debug.Log("8");
             }
             else if(Input.GetKeyDown(KeyCode.Alpha9))
             {
                 SetView(EViewType.ShoulderView);
-                Debug.Log("9");
             }
             else if(Input.GetKeyDown(KeyCode.Alpha0))
             {
                 SetView(EViewType.TopDownView);
-                Debug.Log("0");
             }
 
             if(!_isViewTransition)
@@ -150,7 +147,7 @@ namespace alpha.camera
             _targetFOV = _currentViewData.FOV;
             _currentZoomDis = _currentViewData.ZoomMaxDistance;
 
-            // È¸Àü°ªÀ» º¹±¸½ÃÄÑ³ö¾ß µ¥ÀÌÅÍ°ªÀ¸·Î ÀüÈ¯½Ã È­¸é±¸µµ °è»êÀÌ Á¦´ë·Î ³ª¿È
+            // íšŒì „ê°’ì„ ë³µêµ¬ì‹œì¼œë†”ì•¼ ë°ì´í„°ê°’ìœ¼ë¡œ ì „í™˜ì‹œ í™”ë©´êµ¬ë„ ê³„ì‚°ì´ ì œëŒ€ë¡œ ë‚˜ì˜´
             if (_currentViewType == EViewType.TopDownView)
             {
                 _currentX = 0f;
@@ -160,7 +157,7 @@ namespace alpha.camera
 
         private void SwitchView()
         {
-            Vector3 zoomTarget = Vector3.back * _currentZoomDis;        //À½¼ö·Î ÀüÈ¯
+            Vector3 zoomTarget = Vector3.back * _currentZoomDis;        //ìŒìˆ˜ë¡œ ì „í™˜
             Vector3 pivotTargetPos = new Vector3(0, _targetPivotY, 0);
             Vector3 shoulderTargetPos = new Vector3(_targetRollX, 0, 0);
 
@@ -175,7 +172,7 @@ namespace alpha.camera
             _cameraZoomHolderTr.localPosition = 
                 Vector3.Lerp(_cameraZoomHolderTr.localPosition, zoomTarget, Time.deltaTime * _viewSmoothSpeed);
 
-            // Å¾ºä ÀüÈ¯½Ã _cameraPivotTrÀÇ È¸Àü°ªÀ» Á¤»óÀ¸·Î ¸¸µé°í _cameraTopviewTr·Î¸¸ È¸Àü½ÃÅ´
+            // íƒ‘ë·° ì „í™˜ì‹œ _cameraPivotTrì˜ íšŒì „ê°’ì„ ì •ìƒìœ¼ë¡œ ë§Œë“¤ê³  _cameraTopviewTrë¡œë§Œ íšŒì „ì‹œí‚´
             if (_currentViewType == EViewType.TopDownView)
             {
                 _cameraPivotTr.localRotation =
@@ -199,6 +196,7 @@ namespace alpha.camera
 
             _isViewTransition = !(pivotPosDone && rollPosDone && fovDone && zoomDone);
         }
+
 
         public void RigFollw()
         {
@@ -248,7 +246,7 @@ namespace alpha.camera
             Vector3 desiredWorldPos = _cameraShoulderTr.TransformPoint(desiredLocalPos);
             Vector3 finalLocalPos = desiredLocalPos;
 
-            // Ä«¸Ş¶ó¿Í Å¸°Ù »çÀÌ¿¡ Àå¾Ö¹°ÀÌ ÀÖ´ÂÁö Ã¼Å©
+            // ì¹´ë©”ë¼ì™€ íƒ€ê²Ÿ ì‚¬ì´ì— ì¥ì• ë¬¼ì´ ìˆëŠ”ì§€ ì²´í¬
             RaycastHit hit;
 
             if (Physics.Linecast(_cameraShoulderTr.position, desiredWorldPos, out hit, _collisionMask))
