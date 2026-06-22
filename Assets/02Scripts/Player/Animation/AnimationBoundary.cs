@@ -7,6 +7,7 @@ public class AnimationBoundary : MonoBehaviour
 
     private int _isSprint = Animator.StringToHash("IsSprint");
     private int _isIncombat = Animator.StringToHash("IsInCombat");
+    private int _isGround = Animator.StringToHash("IsGround");
     private void Awake()
     {
         _anim = GetComponent<Animator>();
@@ -24,5 +25,24 @@ public class AnimationBoundary : MonoBehaviour
             _anim.SetFloat("InputX", p_moveInput.x, 0.1f, Time.deltaTime);
             _anim.SetFloat("InputY", p_moveInput.y, 0.1f, Time.deltaTime);
         }
+    }
+
+    public void JumpAnim()
+    {
+        _anim.SetTrigger("Jump");
+    }
+
+    public void DashAnim()
+    {
+        _anim.SetTrigger("Dash");
+    }
+    public void IsDashingAnim(bool p_isDashing)
+    {
+        _anim.SetBool("IsDashing", p_isDashing);
+    }
+
+    public void IsGround(bool p_isGround)
+    {
+        _anim.SetBool(_isGround, p_isGround);
     }
 }

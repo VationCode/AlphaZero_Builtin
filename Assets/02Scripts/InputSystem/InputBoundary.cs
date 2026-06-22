@@ -11,6 +11,13 @@ public class InputBoundary : MonoBehaviour
     public bool IsSprint => _isSprint;
     bool _isSprint;
 
+    public bool IsJump => _isJump;
+    private bool _isJump => _jumpFrame == Time.frameCount;  // 한 프레임 단위만 True로 이후 False
+    private int _jumpFrame;
+
+    public bool IsDash => _isDash;
+    private bool _isDash => _dashFrame == Time.frameCount;
+    private int _dashFrame;
 
     // Combat
     public bool IsAttack => _isAttack;
@@ -36,6 +43,9 @@ public class InputBoundary : MonoBehaviour
 
         _action.Player.Sprint.performed += i => _isSprint = true;
         _action.Player.Sprint.canceled += i => _isSprint = false;
+
+        _action.Player.Jump.performed += i => _jumpFrame = Time.frameCount;
+        _action.Player.Dash.performed += i => _dashFrame = Time.frameCount;
 
         // Combat
         _action.Player.Attack.performed += i => _isAttack = true;

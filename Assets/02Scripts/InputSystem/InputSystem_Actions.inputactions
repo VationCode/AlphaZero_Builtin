@@ -21,7 +21,7 @@
                     "id": "a22a2914-4bad-4d6a-8b62-592aa9c6497b",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Hold(duration=0.15)",
                     "initialStateCheck": false
                 },
                 {
@@ -39,7 +39,7 @@
                     "id": "4cbec347-c0fd-41d9-962f-4198179bd19e",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "MultiTap",
                     "initialStateCheck": false
                 },
                 {
@@ -131,7 +131,7 @@
                 {
                     "name": "",
                     "id": "db4bd288-bfe0-43a2-8979-e9fb745426eb",
-                    "path": "",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -153,7 +153,7 @@
                 {
                     "name": "",
                     "id": "7698e8cb-be92-4c6f-a914-6e5ba3602837",
-                    "path": "",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

@@ -93,7 +93,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             ""id"": ""ef34262f-a60d-4b25-a590-354664c064ed"",
             ""actions"": [
                 {
-                    ""name"": ""Move"",
+                    ""name"": ""GroundMove"",
                     ""type"": ""PassThrough"",
                     ""id"": ""a1cba4d6-c054-4315-9877-f4e9840d8e10"",
                     ""expectedControlType"": ""Vector2"",
@@ -107,7 +107,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""id"": ""a22a2914-4bad-4d6a-8b62-592aa9c6497b"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Hold(duration=0.15)"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -120,12 +120,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Dash"",
+                    ""name"": ""Dashing"",
                     ""type"": ""Button"",
                     ""id"": ""4cbec347-c0fd-41d9-962f-4198179bd19e"",
                     ""expectedControlType"": """",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""MultiTap"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -155,7 +155,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Move"",
+                    ""action"": ""GroundMove"",
                     ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
@@ -166,7 +166,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Move"",
+                    ""action"": ""GroundMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -177,7 +177,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Move"",
+                    ""action"": ""GroundMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -188,7 +188,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Move"",
+                    ""action"": ""GroundMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -199,7 +199,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Move"",
+                    ""action"": ""GroundMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
                 },
@@ -217,7 +217,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""db4bd288-bfe0-43a2-8979-e9fb745426eb"",
-                    ""path"": """",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -239,11 +239,11 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""7698e8cb-be92-4c6f-a914-6e5ba3602837"",
-                    ""path"": """",
+                    ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Dash"",
+                    ""action"": ""Dashing"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -313,10 +313,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
 }");
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
-        m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
+        m_Player_Move = m_Player.FindAction("GroundMove", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
-        m_Player_Dash = m_Player.FindAction("Dash", throwIfNotFound: true);
+        m_Player_Dash = m_Player.FindAction("Dashing", throwIfNotFound: true);
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
         m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
         // Camera

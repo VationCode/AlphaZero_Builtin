@@ -6,48 +6,57 @@ using UnityEngine.UIElements;
 public class LocomotionModule : MonoBehaviour
 {
     // Ref
-    private CharacterController _characterCtrl;
-    private AnimationBoundary _anim;
-    [SerializeField]
-    private InputBoundary _inputBoundary;
-    [SerializeField]
-    private CameraManager _cameraManager;
 
+    [Header("[Ref]")]
+    [SerializeField] private CharacterController _characterCtrl;
+    [SerializeField] private AnimationBoundary _anim;
+    [SerializeField] private InputBoundary _inputBoundary;
+    [SerializeField] private CameraManager _cameraManager;
+    [SerializeField] private LocomotionRule _locoRule = new LocomotionRule();
 
-    [SerializeField]
-    private EViewType _viewType;
+    [Header("GroundMove")]
+    [SerializeField] private float _moveSpeed = 4f;
+    [SerializeField] private float _sprintSpeed = 7f;
+    [SerializeField] private float _combatSpeed = 2.5f;
+    [SerializeField] private float _rotationsmoothTime = 0.1f;
 
-    [SerializeField]
-    private float _moveSpeed = 4f;
-    [SerializeField]
-    private float _sprintSpeed = 7f;
-    [SerializeField]
-    private float _combatSpeed = 2.5f;
+    [Header("[Ground]")]
+    [SerializeField] private LayerMask _groundLayer;
+    [SerializeField] private float _checkGroundOffset = 0.125f;
 
-    [SerializeField]
-    private float _rotationsmoothTime = 0.1f;
+    [Header("[Gravity]")]
+    [SerializeField] private float _gravity = 13f;
 
-    [SerializeField]
-    private bool _isCombat = false;
-    [SerializeField]
-    private bool _isSprint;
+    [Header("[Action]")]
+    [SerializeField] private float _jumpHeight = 8f;
 
-    [Header("[Ground]"), SerializeField]
-    private LayerMask _groundLayer;
-    [SerializeField]
-    private float _checkGroundOffset = 0.125f;
-    private bool _isGround;
+    [SerializeField] private float _dashDistance = 7f;
+    [SerializeField] private float _dashDuration = 0.4f;
 
-    [Header("[Gravity]"), SerializeField]
-    private float _gravity = -9.8f;
+    #region ========== RunTime
+
+    [SerializeField] private bool _isSprint;
+    private bool _isJump;
+    [SerializeField] private bool _isJumping;
+    private bool _isDash;
+    [SerializeField] private bool _isDashing;
+    [SerializeField] private bool _isCombat;
+    [SerializeField] private bool _isCombatStart;
+    [SerializeField] private bool _isAim;
+
+    private Vector3 _inputMoveDir;
 
     private float _rotationSmoothVelocity;
     private float _currentSpeed;
     private Vector3 _currentVelocity;
     private float _currentVelocityY;
-    private bool _isCombatStart = false;
-    private bool _isAim = false;
+    private float m_currentDashDistance;
+    private bool _isGround;
+    private bool _enableGroundCheck = true;
 
+    private Vector3 _dashDir;
+
+    #endregion ========== /RunTime
     private void Awake()
     {
         _characterCtrl = GetComponent<CharacterController>();
@@ -62,38 +71,61 @@ public class LocomotionModule : MonoBehaviour
     private void Update()
     {
         _isSprint = _inputBoundary.IsSprint;
-
+        _isJump = _inputBoundary.IsJump;
+        _isDash = _inputBoundary.IsDash;
         _isAim = _inputBoundary.IsAim;
         _isCombat = _inputBoundary.IsAttack || _isAim;
 
-        if (_isCombat)
+        if (_isDash && !_isJumping && !_isDashing &&  !_isCombat)
+        {
+            _anim.DashAnim();
+            StartDash();
+        }
+
+        ViewTransition(_isCombat, _isAim);
+
+        CheckedGround();
+        _anim.IsGround(_isGround);
+
+       _currentVelocity = ApplyGravity();
+
+        if (_isJump && !_isJumping && !_isDashing)
+            Jump();
+        else if (_isDashing)
+            Dashing();
+        else if (_isGround)
+        {
+            _currentVelocity = GroundMove(_isSprint, _isCombat);
+        }
+
+        Rotate(_inputMoveDir, (_isJumping || _isDashing), _isCombat);
+        _characterCtrl.Move(_currentVelocity * Time.deltaTime);
+    }
+
+    private void ViewTransition(bool p_isCombat, bool p_isAim)
+    {
+        if (p_isCombat)
         {
             if (!_isCombatStart)
             {
-                if(_isAim)
+                if (p_isAim)
                     _cameraManager.SetView(EViewType.ShoulderView);
-                
-                _isSprint = false;
+
                 _isCombatStart = true;
             }
+            _isSprint = false;
         }
         else
         {
-            if(_isCombatStart)
+            if (_isCombatStart)
             {
                 _cameraManager.SetView(EViewType.BackView);
                 _isCombatStart = false;
             }
         }
-
-        CheckedGround();
-
-        ApplyGravity();
-        
-        Move(_isSprint, _isCombat);
     }
 
-    public void Move(bool p_isSprint = false, bool p_isCombat = false)
+    public Vector3 GroundMove(bool p_isSprint = false, bool p_isCombat = false)
     {
         Vector3 camForward = Camera.main.transform.forward;
         Vector3 camRight = Camera.main.transform.right;
@@ -108,11 +140,15 @@ public class LocomotionModule : MonoBehaviour
         var moveInput = _inputBoundary.MoveInput;
 
         if (moveInput.sqrMagnitude > 1) moveInput.Normalize();
-        
+
         // 카메라 방향을 중심으로 방향 계산
         var moveDir = camRight * moveInput.x + camForward * moveInput.y;
 
-        var speed = _currentSpeed;
+
+        _inputMoveDir = moveDir;
+
+        // 속력
+        var speed = 0.0f;
 
         if (p_isCombat)
         {
@@ -122,26 +158,18 @@ public class LocomotionModule : MonoBehaviour
         {
             speed = p_isSprint ? _sprintSpeed : _moveSpeed;
         }
+        _currentSpeed = speed;
 
         // 속도 계산
-        
         Vector3 moveVelocity = moveDir * speed;
 
-        Rotate(moveDir, p_isCombat);
-
-
-        Vector3 finalVelocity = moveVelocity + Vector3.up * _currentVelocityY;
-
-
-        _characterCtrl.Move(finalVelocity * Time.deltaTime);
-        
         _anim.MoveAnim(moveInput, p_isSprint, p_isCombat);
+
+        return moveVelocity + Vector3.up * _currentVelocityY;
     }
 
-    public void Rotate(Vector3 p_dir, bool p_isCombat = false)
+    public void Rotate(Vector3 p_dir, bool instant, bool p_isCombat = false)
     {
-        //if (p_dir.magnitude < 0.01f) return;
-
         Vector3 targetDir;
 
         if (p_isCombat)
@@ -154,17 +182,39 @@ public class LocomotionModule : MonoBehaviour
             targetDir = p_dir;
         }
 
-        Quaternion targetRot = Quaternion.LookRotation(targetDir);
+        Quaternion targetRot = Quaternion.identity;
+
+        if (targetDir != Vector3.zero)
+            targetRot = Quaternion.LookRotation(targetDir);
+
 
         float targetAngle = targetRot.eulerAngles.y;
+        float smoothedAngle = 0;
 
-        float smoothedAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _rotationSmoothVelocity, _rotationsmoothTime);
-        
-        transform.rotation = Quaternion.Euler(0f, smoothedAngle, 0f);
+        if (instant)
+        {
+            transform.rotation = targetRot;
+        }
+        else
+        { 
+            smoothedAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _rotationSmoothVelocity, _rotationsmoothTime);
+            transform.rotation = Quaternion.Euler(0f, smoothedAngle, 0f);
+        }
     }
 
     private void CheckedGround()
     {
+        if (!_enableGroundCheck)
+        {
+            _isGround = false;
+
+            // 하강 시작
+            if (_currentVelocityY <= 0f)
+                _enableGroundCheck = true;
+
+            return;
+        }
+
         // _characterCtrl.center는 로컬좌표이기에 현재 월드 위치는 transform을 더해줘야한다.
         Vector3 center = transform.position + _characterCtrl.center;
 
@@ -178,11 +228,12 @@ public class LocomotionModule : MonoBehaviour
         if (Physics.CheckSphere(ctrlBottom, _characterCtrl.radius * 1f, _groundLayer))
         {
             _isGround = true;
+            _isJumping = false;
         }
         else _isGround = false;
     }
 
-    private void ApplyGravity()
+    private Vector3 ApplyGravity()
     {
         if (_isGround && _currentVelocityY < 0f)
         {
@@ -193,13 +244,50 @@ public class LocomotionModule : MonoBehaviour
         else
         {
             // 중력 가속도 누적
-            _currentVelocityY += _gravity * Time.deltaTime;
+            _currentVelocityY -= _gravity * Time.deltaTime;
         }
+
+        return new Vector3(_currentVelocity.x, _currentVelocityY, _currentVelocity.z);
     }
 
     public void Jump()
     {
+        _isJumping = true;
+        _currentVelocityY = _jumpHeight;
+        _enableGroundCheck = false;
+        _anim.JumpAnim();
+    }
 
+    public void StartDash()
+    {
+        _isDashing = true;
+        m_currentDashDistance = 0f;
+        _dashDir = _inputMoveDir;
+
+        if (_dashDir == Vector3.zero) _dashDir = transform.forward;
+        _currentVelocityY = 0;
+        _dashDir.Normalize();
+        _anim.DashAnim();
+    }
+    public void Dashing()
+    {
+        float dashSpeed = _dashDistance / _dashDuration;
+
+        // 프레임당 이동 단위
+        float moveStep = dashSpeed * Time.deltaTime;
+
+        m_currentDashDistance += moveStep;
+
+        // 거리 초과 방지
+        if (m_currentDashDistance >= _dashDistance)
+        {
+            moveStep -= (m_currentDashDistance - _dashDistance);
+            m_currentDashDistance = 0f;
+            _isDashing = false;
+        }
+
+        _anim.IsDashingAnim(_isDashing);
+        _currentVelocity = _dashDir * dashSpeed; ;
     }
 
     private void OnDrawGizmos()
