@@ -70,14 +70,12 @@ public class StateMachine : MonoBehaviour
         {
             state.Initialize(p_core);
         }
-    }
 
-    private void Start()
-    {
         ChangeLocoState(ELocomotionType.GroundMove);
 
         ChangeCombatState(ECombatType.Normal);
     }
+
 
     private void Update()
     {

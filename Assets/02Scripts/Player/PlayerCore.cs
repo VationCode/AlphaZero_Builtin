@@ -34,7 +34,10 @@ public class PlayerCore : MonoBehaviour
         StateMachine = GetComponent<StateMachine>();
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
+    }
 
+    private void Start()
+    {
         LocoModule.Bind(this);
         CombatModule.Bind(this);
         StateMachine.Bind(this);
