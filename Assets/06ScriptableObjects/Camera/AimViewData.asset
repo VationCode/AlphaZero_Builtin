@@ -10,11 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d7c4a37042c90a4e8d5a0bf3c6541df, type: 3}
-  m_Name: TopDownViewData
+  m_Name: AimViewData
   m_EditorClassIdentifier: Assembly-CSharp:alpha.camera:ViewData
-  PivotOffsetY: 0
-  ShoulderOffsetX: 0
+  ViewType: 1
+  PivotOffsetY: 1.3
+  ShoulderOffsetX: 0.5
   ZoomMinDistance: 0
-  ZoomMaxDistance: 8
-  Angle: 60
-  FOV: 70
+  ZoomMaxDistance: 1.5
+  Angle: 0
+  FOV: 40

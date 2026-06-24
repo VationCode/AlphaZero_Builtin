@@ -21,7 +21,7 @@ public enum ECombatType
     Attack
 }
 
-public class StateMachine : MonoBehaviour
+public class PlayerStateMachine : MonoBehaviour
 {
     private UIModule _uiModule;
 

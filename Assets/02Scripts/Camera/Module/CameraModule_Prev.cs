@@ -4,14 +4,7 @@ using UnityEngine.InputSystem.HID;
 
 namespace alpha.camera
 {
-    public enum EViewType
-    {
-        BackView,
-        ShoulderView,
-        TopDownView
-    }
-
-    public class CameraModule : MonoBehaviour
+    public class CameraModule_Prev : MonoBehaviour
     {
         #region Ref Component
         [SerializeField]
@@ -32,9 +25,9 @@ namespace alpha.camera
         [SerializeField] private Transform _followTarget;        // Player
 
         [Header("[View Data]")]
-        [SerializeField] private ViewDataSO _backViewData;
-        [SerializeField] private ViewDataSO _shoulderViewData;
-        [SerializeField] private ViewDataSO _topDownViewData;
+        [SerializeField] private ViewDataSO _tpsViewData;
+        [SerializeField] private ViewDataSO _aimViewData;
+        [SerializeField] private ViewDataSO _quarterViewData;
 
         [Header("Rotation")]
         [SerializeField] private float _sensitivity = 15;       // 마우스 감도
@@ -60,10 +53,10 @@ namespace alpha.camera
             {
                 return _currentViewType switch
                 {
-                    EViewType.BackView => _backViewData,
-                    EViewType.ShoulderView => _shoulderViewData,
-                    EViewType.TopDownView => _topDownViewData,
-                    _ => _backViewData
+                    EViewType.ThirdPerson => _tpsViewData,
+                    EViewType.Aim => _aimViewData,
+                    EViewType.Quarter => _quarterViewData,
+                    _ => _tpsViewData
                 };
             }
         }
@@ -100,24 +93,24 @@ namespace alpha.camera
             _cameraShoulderTr.localPosition = Vector3.zero;
             _cameraZoomHolderTr.position = Vector3.zero;
 
-            _currentZoomDis = _backViewData.ZoomMaxDistance;
-            _currentViewType = EViewType.TopDownView;
-            SetView(EViewType.BackView);
+            _currentZoomDis = _tpsViewData.ZoomMaxDistance;
+            _currentViewType = EViewType.Quarter;
+            SetView(EViewType.ThirdPerson);
         }
 
         private void Update()
         {
             if(Input.GetKeyDown(KeyCode.Alpha8))
             {
-                SetView(EViewType.BackView);
+                SetView(EViewType.ThirdPerson);
             }
             else if(Input.GetKeyDown(KeyCode.Alpha9))
             {
-                SetView(EViewType.ShoulderView);
+                SetView(EViewType.Aim);
             }
             else if(Input.GetKeyDown(KeyCode.Alpha0))
             {
-                SetView(EViewType.TopDownView);
+                SetView(EViewType.Quarter);
             }
 
             if(!_isViewTransition)
@@ -129,7 +122,7 @@ namespace alpha.camera
             if (_isViewTransition)
                 SwitchView();
 
-            if (_currentViewType == EViewType.TopDownView)
+            if (_currentViewType == EViewType.Quarter)
                 TopViewFollow();
             else
                 TPSFollow();
@@ -148,7 +141,7 @@ namespace alpha.camera
             _currentZoomDis = _currentViewData.ZoomMaxDistance;
 
             // 회전값을 복구시켜놔야 데이터값으로 전환시 화면구도 계산이 제대로 나옴
-            if (_currentViewType == EViewType.TopDownView)
+            if (_currentViewType == EViewType.Quarter)
             {
                 _currentX = 0f;
                 _currentY = 0f;
@@ -173,12 +166,12 @@ namespace alpha.camera
                 Vector3.Lerp(_cameraZoomHolderTr.localPosition, zoomTarget, Time.deltaTime * _viewSmoothSpeed);
 
             // 탑뷰 전환시 _cameraPivotTr의 회전값을 정상으로 만들고 _cameraTopviewTr로만 회전시킴
-            if (_currentViewType == EViewType.TopDownView)
+            if (_currentViewType == EViewType.Quarter)
             {
                 _cameraPivotTr.localRotation =
                     Quaternion.Lerp(_cameraPivotTr.localRotation, Quaternion.identity, Time.deltaTime * _viewSmoothSpeed);
 
-                Quaternion angle = Quaternion.Euler(new Vector3(_topDownViewData.Angle, 0, 0));
+                Quaternion angle = Quaternion.Euler(new Vector3(_quarterViewData.Angle, 0, 0));
                 _cameraTopviewTr.localRotation = 
                     Quaternion.Lerp(_cameraTopviewTr.localRotation, angle, Time.deltaTime * _viewSmoothSpeed);
             }
@@ -209,7 +202,7 @@ namespace alpha.camera
             }
 
 
-            if (_currentViewType == EViewType.BackView)
+            if (_currentViewType == EViewType.ThirdPerson)
                 _cameraRigTr.position = Vector3.Lerp(_cameraRigTr.position, _followTarget.position, Time.deltaTime * speed);
             else
                 _cameraRigTr.position = _followTarget.position;
@@ -232,7 +225,7 @@ namespace alpha.camera
 
         public void ZoomFollow()
         {
-            if (_currentViewType != EViewType.BackView) return;
+            if (_currentViewType != EViewType.ThirdPerson) return;
 
             if (Mathf.Abs(_input.MouseScroll.y) > 0.01f)
             {
@@ -261,7 +254,7 @@ namespace alpha.camera
 
         public void Rotation()
         {
-            if (_currentViewType == EViewType.TopDownView)
+            if (_currentViewType == EViewType.Quarter)
                 return;
 
             _currentX -= _input.LookInput.y * _sensitivity * Time.deltaTime;

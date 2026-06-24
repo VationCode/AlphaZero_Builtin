@@ -18,7 +18,7 @@ public class LocomotionModule : MonoBehaviour
 
     [Header("[Ground]")]
     [SerializeField] private LayerMask _groundLayer;
-    [SerializeField] private float _checkGroundOffset = 0.125f;
+    [SerializeField] private float _checkGroundOffset = 0.07f;
 
     [Header("[Gravity]")]
     [SerializeField] private float _gravity = 13f;
@@ -204,11 +204,11 @@ public class LocomotionModule : MonoBehaviour
             targetDir = p_dir;
         }
 
+        if (targetDir.sqrMagnitude < 0.001f) return;
+
         Quaternion targetRot = Quaternion.identity;
-
-        if (targetDir != Vector3.zero)
-            targetRot = Quaternion.LookRotation(targetDir);
-
+        
+        targetRot = Quaternion.LookRotation(targetDir);
 
         float targetAngle = targetRot.eulerAngles.y;
         float smoothedAngle = 0;
@@ -218,7 +218,7 @@ public class LocomotionModule : MonoBehaviour
             transform.rotation = targetRot;
         }
         else
-        { 
+        {
             smoothedAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _rotationSmoothVelocity, _rotationsmoothTime);
             transform.rotation = Quaternion.Euler(0f, smoothedAngle, 0f);
         }
@@ -330,6 +330,26 @@ public class LocomotionModule : MonoBehaviour
         _currentVelocity = _dashDir * dashSpeed;
 
         PlayCharacterController();
+    }
+
+    // QuarterView시 마우스 위치 좌표
+    public Vector3 GetMouseWorldDirection()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        Plane plane = new Plane(Vector3.up, transform.position);
+
+        if (plane.Raycast(ray, out float distance))
+        {
+            Vector3 hitPoint = ray.GetPoint(distance);
+
+            Vector3 dir = hitPoint - transform.position;
+            dir.y = 0f;
+
+            return dir.normalized;
+        }
+
+        return transform.forward;
     }
 
     private void OnDrawGizmos()
