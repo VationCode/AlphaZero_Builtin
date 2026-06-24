@@ -217,7 +217,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "ClickPos",
+                    "name": "MousePos",
                     "type": "PassThrough",
                     "id": "a4899a4d-dbdd-4587-b1be-9a58961266f8",
                     "expectedControlType": "Vector2",
@@ -256,7 +256,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ClickPos",
+                    "action": "MousePos",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

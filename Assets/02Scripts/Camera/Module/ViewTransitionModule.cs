@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Windows;
 
 public class ViewTransitionModule : MonoBehaviour
 {
@@ -226,11 +225,5 @@ public class ViewTransitionModule : MonoBehaviour
 
         _cameraZoomHolderTr.localPosition =
             Vector3.Lerp(_cameraZoomHolderTr.localPosition, finalLocalPos, Time.deltaTime * _zoomFollowSpeed);
-    }
-
-    // QuarterView에서만 호출
-    public void MouseWorldDirection()
-    {
-
     }
 }

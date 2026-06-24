@@ -303,7 +303,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""ClickPos"",
+                    ""name"": ""MousePos"",
                     ""type"": ""PassThrough"",
                     ""id"": ""a4899a4d-dbdd-4587-b1be-9a58961266f8"",
                     ""expectedControlType"": ""Vector2"",
@@ -342,7 +342,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ClickPos"",
+                    ""action"": ""MousePos"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -364,7 +364,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
         m_Camera_Look = m_Camera.FindAction("Look", throwIfNotFound: true);
         m_Camera_MouseScroll = m_Camera.FindAction("MouseScroll", throwIfNotFound: true);
-        m_Camera_ClickPos = m_Camera.FindAction("ClickPos", throwIfNotFound: true);
+        m_Camera_MousePos = m_Camera.FindAction("MousePos", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -610,7 +610,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private List<ICameraActions> m_CameraActionsCallbackInterfaces = new List<ICameraActions>();
     private readonly InputAction m_Camera_Look;
     private readonly InputAction m_Camera_MouseScroll;
-    private readonly InputAction m_Camera_ClickPos;
+    private readonly InputAction m_Camera_MousePos;
     /// <summary>
     /// Provides access to input actions defined in input action map "Camera".
     /// </summary>
@@ -631,9 +631,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @MouseScroll => m_Wrapper.m_Camera_MouseScroll;
         /// <summary>
-        /// Provides access to the underlying input action "Camera/ClickPos".
+        /// Provides access to the underlying input action "Camera/MousePos".
         /// </summary>
-        public InputAction @ClickPos => m_Wrapper.m_Camera_ClickPos;
+        public InputAction @MousePos => m_Wrapper.m_Camera_MousePos;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -666,9 +666,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @MouseScroll.started += instance.OnMouseScroll;
             @MouseScroll.performed += instance.OnMouseScroll;
             @MouseScroll.canceled += instance.OnMouseScroll;
-            @ClickPos.started += instance.OnClickPos;
-            @ClickPos.performed += instance.OnClickPos;
-            @ClickPos.canceled += instance.OnClickPos;
+            @MousePos.started += instance.OnMousePos;
+            @MousePos.performed += instance.OnMousePos;
+            @MousePos.canceled += instance.OnMousePos;
         }
 
         /// <summary>
@@ -686,9 +686,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @MouseScroll.started -= instance.OnMouseScroll;
             @MouseScroll.performed -= instance.OnMouseScroll;
             @MouseScroll.canceled -= instance.OnMouseScroll;
-            @ClickPos.started -= instance.OnClickPos;
-            @ClickPos.performed -= instance.OnClickPos;
-            @ClickPos.canceled -= instance.OnClickPos;
+            @MousePos.started -= instance.OnMousePos;
+            @MousePos.performed -= instance.OnMousePos;
+            @MousePos.canceled -= instance.OnMousePos;
         }
 
         /// <summary>
@@ -801,11 +801,11 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMouseScroll(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "ClickPos" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "MousePos" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnClickPos(InputAction.CallbackContext context);
+        void OnMousePos(InputAction.CallbackContext context);
     }
 }

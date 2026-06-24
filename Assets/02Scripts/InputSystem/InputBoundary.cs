@@ -32,6 +32,10 @@ public class InputBoundary : MonoBehaviour
     Vector2 _lookInput;
     public Vector2 MouseScroll => _mouseScroll;
     Vector2 _mouseScroll;
+
+
+    public Vector3 MousePos => _mousePos;
+    private Vector3 _mousePos;
     #endregion ==================== /Camera
     private void OnEnable()
     {
@@ -60,6 +64,10 @@ public class InputBoundary : MonoBehaviour
 
         _action.Camera.MouseScroll.performed += i => _mouseScroll = i.ReadValue<Vector2>();
         _action.Camera.MouseScroll.canceled += i => _mouseScroll = Vector2.zero;
+
+
+        _action.Camera.MousePos.performed += i => _mousePos = i.ReadValue<Vector2>();
+        _action.Camera.MousePos.canceled += i => _mousePos = Vector2.zero;
 
         // 활성화해야 동작
         _action.Enable();

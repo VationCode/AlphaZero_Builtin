@@ -32,15 +32,16 @@ public class LocomotionModule : MonoBehaviour
     #region ========== RunTime
 
     [SerializeField] private bool _isSprint;
-    private bool _isJump;
+    public bool IsJumping => _isJumping;
     [SerializeField] private bool _isJumping;
-    private bool _isDash;
     public bool IsDahsing => _isDashing;
     [SerializeField] private bool _isDashing;
+
     [SerializeField] private bool _isCombatStart;
     [SerializeField] private bool _isAim;
 
-    private Vector3 _inputMoveDir;
+    public Vector3 CurrentMoveDir => _currentMoveDir;
+    private Vector3 _currentMoveDir;
 
     private float _rotationSmoothVelocity;
     private float _currentSpeed;
@@ -53,7 +54,6 @@ public class LocomotionModule : MonoBehaviour
     private bool _enableGroundCheck = true;
 
     private Vector3 _dashDir;
-
     #endregion ========== /RunTime
     private void Awake()
     {
@@ -108,7 +108,7 @@ public class LocomotionModule : MonoBehaviour
         // 카메라 방향을 중심으로 방향 계산
         var moveDir = camRight * moveInput.x + camForward * moveInput.y;
 
-        _inputMoveDir = moveDir;
+        _currentMoveDir = moveDir;
 
         // 속력
         var speed = 0.0f;
@@ -121,14 +121,11 @@ public class LocomotionModule : MonoBehaviour
         {
             speed = p_isSprint ? _sprintSpeed : _moveSpeed;
         }
-        _currentSpeed = speed;
 
         // 속도 계산
         Vector3 moveVelocity = moveDir * speed;
 
         _currentVelocity = moveVelocity + Vector3.up * _currentVelocityY;
-
-        Rotate(_inputMoveDir, (_isJumping || _isDashing), p_isCombat);
 
         PlayCharacterController();
 
@@ -137,26 +134,9 @@ public class LocomotionModule : MonoBehaviour
 
     public void Rotate(Vector3 p_dir, bool instant, bool p_isCombat = false)
     {
-        Vector3 targetDir;
+        if (p_dir.sqrMagnitude < 0.001f) return;
 
-        if (p_isCombat)
-        {
-            targetDir = Camera.main.transform.forward;
-            targetDir.y = 0f;
-        }
-        else
-        {
-            targetDir = p_dir;
-        }
-
-        if (targetDir.sqrMagnitude < 0.001f) return;
-
-        Quaternion targetRot = Quaternion.identity;
-        
-        targetRot = Quaternion.LookRotation(targetDir);
-
-        float targetAngle = targetRot.eulerAngles.y;
-        float smoothedAngle = 0;
+        Quaternion targetRot = Quaternion.LookRotation(p_dir);
 
         if (instant)
         {
@@ -164,7 +144,9 @@ public class LocomotionModule : MonoBehaviour
         }
         else
         {
-            smoothedAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref _rotationSmoothVelocity, _rotationsmoothTime);
+            float smoothedAngle = 
+                Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRot.eulerAngles.y, ref _rotationSmoothVelocity, _rotationsmoothTime);
+
             transform.rotation = Quaternion.Euler(0f, smoothedAngle, 0f);
         }
     }
@@ -223,11 +205,10 @@ public class LocomotionModule : MonoBehaviour
         _isJumping = true;
         _currentVelocityY = _jumpHeight;
         _enableGroundCheck = false;
-        var dir = _currentVelocity;
 
-        if (_inputMoveDir != Vector3.zero)
+        if (_currentMoveDir != Vector3.zero)
         {
-            Rotate(_inputMoveDir, true);
+            Rotate(_currentMoveDir, true);
         }
 
         _anim.JumpAnim();
@@ -243,7 +224,7 @@ public class LocomotionModule : MonoBehaviour
     {
         _isDashing = true;
         m_currentDashDistance = 0f;
-        _dashDir = _inputMoveDir;
+        _dashDir = _currentMoveDir;
 
         if (_dashDir == Vector3.zero) _dashDir = transform.forward;
         _currentVelocityY = 0;
@@ -277,25 +258,6 @@ public class LocomotionModule : MonoBehaviour
         PlayCharacterController();
     }
 
-    // QuarterView시 마우스 위치 좌표
-    public Vector3 GetMouseWorldDirection()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        Plane plane = new Plane(Vector3.up, transform.position);
-
-        if (plane.Raycast(ray, out float distance))
-        {
-            Vector3 hitPoint = ray.GetPoint(distance);
-
-            Vector3 dir = hitPoint - transform.position;
-            dir.y = 0f;
-
-            return dir.normalized;
-        }
-
-        return transform.forward;
-    }
 
     private void OnDrawGizmos()
     {
@@ -316,7 +278,6 @@ public class LocomotionModule : MonoBehaviour
         Gizmos.color = _isGround ? Color.green : Color.red;
 
         Gizmos.DrawWireSphere(ctrlBottom, _characterCtrl.radius * 1f);
-
 
         Debug.DrawLine(transform.position, ctrlBottom, Color.blue);
     }

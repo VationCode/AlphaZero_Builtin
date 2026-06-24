@@ -4,7 +4,7 @@ public class AimView : ViewStateBase
 {
     public override void Enter()
     {
-   
+        
     }
 
     public override void LateUpdate()
