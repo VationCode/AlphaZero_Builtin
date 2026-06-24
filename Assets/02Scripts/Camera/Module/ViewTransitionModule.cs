@@ -21,7 +21,8 @@ public class ViewTransitionModule : MonoBehaviour
 
     [Header("[Speed]")]
     [SerializeField] private float[] _rigFollowSpeed;       // View에 따라서 달라지기에
-    [SerializeField] private float _viewSmoothSpeed = 5f;   // 추후 뷰전환 상황에 따라도 SmoothSpeed 구분
+    [SerializeField] private float _TPSAimViewSmoothSpeed = 20f;
+    [SerializeField] private float _QuarterViewSmoothSpeed = 5f;
     [SerializeField] private float _zoomScrollSpeed = 1f;
     [SerializeField] private float _zoomFollowSpeed = 5f;
 
@@ -31,6 +32,7 @@ public class ViewTransitionModule : MonoBehaviour
     [SerializeField] private float _collisionPadding = 0.1f;
 
     // RunTime
+    [SerializeField] private float _currentViewSmoothSpeed;   // 추후 뷰전환 상황에 따라도 SmoothSpeed 구분
     private float _currentMouseX;
     private float _currentMouseY;
     private float _currentZoomDis;
@@ -44,23 +46,29 @@ public class ViewTransitionModule : MonoBehaviour
         _cameraZoomHolderTr.position = Vector3.zero;
     }
 
-    public void Bind(CameraCore p_core)
-    {
-        
-    }
-
-    public bool ViewTransition(ViewDataSO p_viewInfo)
+    public bool ViewTransition(EViewType p_prevView,ViewDataSO p_nextViewInfo)
     {
         RigFollow(true);
 
-        bool isPivotPosDone = TrasitionPivotPosition(p_viewInfo);
+        bool isPivotPosDone = TrasitionPivotPosition(p_nextViewInfo);
         
         bool isPivotRotDone = true;
-        if (p_viewInfo.ViewType == EViewType.Quarter) isPivotRotDone = TrasitionPivotRotation(p_viewInfo);
 
-        bool isShoulderPosDone = TrasitionShoulderPosition(p_viewInfo);
-        bool isZoomPosDone = TrasitionZoom(p_viewInfo);
-        bool isFOVDone = TrasitionFOV(p_viewInfo);
+        if (p_nextViewInfo.ViewType == EViewType.Quarter || p_prevView == EViewType.Quarter)
+        {
+            _currentMouseX = 0;
+            _currentMouseY = 0;
+            _currentViewSmoothSpeed = _QuarterViewSmoothSpeed;
+            isPivotRotDone = TrasitionPivotRotation(p_nextViewInfo);
+        }
+        else if(p_prevView != EViewType.Quarter)
+        {
+            _currentViewSmoothSpeed = _TPSAimViewSmoothSpeed;
+        }
+
+        bool isShoulderPosDone = TrasitionShoulderPosition(p_nextViewInfo);
+        bool isZoomPosDone = TrasitionZoom(p_nextViewInfo);
+        bool isFOVDone = TrasitionFOV(p_nextViewInfo);
 
         return isPivotPosDone && isPivotRotDone && isShoulderPosDone && isZoomPosDone && isFOVDone;
     }
@@ -80,9 +88,9 @@ public class ViewTransitionModule : MonoBehaviour
             new Vector3(_cameraPivotTr.localPosition.x, p_viewInfo.PivotOffsetY, _cameraPivotTr.localPosition.z);
 
         _cameraPivotTr.localPosition =
-                Vector3.Lerp(_cameraPivotTr.localPosition, targetPivot, Time.deltaTime * _viewSmoothSpeed);
+                Vector3.Lerp(_cameraPivotTr.localPosition, targetPivot, Time.deltaTime * _currentViewSmoothSpeed);
 
-        if(Vector3.Distance(_cameraPivotTr.localPosition, targetPivot) < 0.01f)
+        if(Vector3.Distance(_cameraPivotTr.localPosition, targetPivot) < 0.1f)
         {
             _cameraPivotTr.localPosition = targetPivot;
             return true;
@@ -97,7 +105,7 @@ public class ViewTransitionModule : MonoBehaviour
         Quaternion targetAngle = Quaternion.Euler(new Vector3(angleData, 0, 0));
 
         _cameraPivotTr.localRotation =
-            Quaternion.Lerp(_cameraPivotTr.localRotation, targetAngle, Time.deltaTime * _viewSmoothSpeed);
+            Quaternion.Lerp(_cameraPivotTr.localRotation, targetAngle, Time.deltaTime * _currentViewSmoothSpeed);
 
         if(Quaternion.Angle(_cameraPivotTr.localRotation, targetAngle) < 0.1f)
         {
@@ -113,9 +121,9 @@ public class ViewTransitionModule : MonoBehaviour
             new Vector3(p_viewInfo.ShoulderOffsetX, _cameraShoulderTr.localPosition.y, _cameraShoulderTr.localPosition.z);
 
         _cameraShoulderTr.localPosition =
-                Vector3.Lerp(_cameraShoulderTr.localPosition, targetShoulderPos, Time.deltaTime * _viewSmoothSpeed);
+                Vector3.Lerp(_cameraShoulderTr.localPosition, targetShoulderPos, Time.deltaTime * _currentViewSmoothSpeed);
 
-        if(Vector3.Distance(_cameraShoulderTr.localPosition, targetShoulderPos) < 0.01f)
+        if(Vector3.Distance(_cameraShoulderTr.localPosition, targetShoulderPos) < 0.1f)
         {
             _cameraShoulderTr.localPosition = targetShoulderPos;
             return true;
@@ -126,7 +134,7 @@ public class ViewTransitionModule : MonoBehaviour
     {
         var targetFOV = p_viewInfo.FOV;
 
-        _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, targetFOV, Time.deltaTime * _viewSmoothSpeed);
+        _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, targetFOV, Time.deltaTime * _currentViewSmoothSpeed);
 
         if(Mathf.Abs(_camera.fieldOfView - targetFOV) < 0.1f)
         {
@@ -143,9 +151,9 @@ public class ViewTransitionModule : MonoBehaviour
             new Vector3(_cameraZoomHolderTr.localPosition.x, _cameraZoomHolderTr.localPosition.y, -p_viewInfo.ZoomMaxDistance);
 
         _cameraZoomHolderTr.localPosition =
-                Vector3.Lerp(_cameraZoomHolderTr.localPosition, targetZoomPos, Time.deltaTime * _viewSmoothSpeed);
+                Vector3.Lerp(_cameraZoomHolderTr.localPosition, targetZoomPos, Time.deltaTime * _currentViewSmoothSpeed);
 
-        if(Vector3.Distance(_cameraZoomHolderTr.localPosition, targetZoomPos) < 0.01f)
+        if(Vector3.Distance(_cameraZoomHolderTr.localPosition, targetZoomPos) < 0.1f)
         {
             _cameraZoomHolderTr.localPosition = targetZoomPos;
             return true;
@@ -171,6 +179,7 @@ public class ViewTransitionModule : MonoBehaviour
     {
         RigFollow(false, _rigFollowSpeed[(int)EViewType.Quarter]);
     }
+
     public void RunTimePivotRotation(bool p_isFix, Vector2 p_inputLookDir)
     {
         if (p_isFix) return;

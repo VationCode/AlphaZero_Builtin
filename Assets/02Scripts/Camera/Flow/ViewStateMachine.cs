@@ -2,6 +2,8 @@ using alpha.camera;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Flow : CurrentViewState -> TransitionViewState -> NextViewState
+
 public enum EViewType
 {
     ThirdPerson,
@@ -13,14 +15,25 @@ public class ViewStateMachine : MonoBehaviour
 {
     private UIModule _uiModule;
 
-    private TransitionState _transitionState;
+    // ViewType으로 정의하기보단 별도로 관리
+    private TransitionViewState _transitionState;
 
-    private ViewStateBase _currentView;
-    public ViewStateBase NextView => _nextView;
-    private ViewStateBase _nextView;
+    private ViewStateBase _currentViewState;
+    public ViewStateBase NextViewState => _nextViewState;
+    private ViewStateBase _nextViewState;
 
+    // TransitionViewState에서 전달하기 위한 데이터 저장
     public ViewDataSO NextData => _nextData;
     private ViewDataSO _nextData;
+
+    public ViewDataSO CurrentData => _currentData;
+    private ViewDataSO _currentData;
+
+    public EViewType CurrentType => _currentType;
+    private EViewType _currentType;
+
+    public EViewType PrevType => _previousType;
+    private EViewType _previousType;
 
     // 데이터 목록 저장후 타입으로 Value 호출
     private Dictionary<EViewType, ViewStateBase> _viewDic;
@@ -35,7 +48,7 @@ public class ViewStateMachine : MonoBehaviour
             {EViewType.Quarter, new QuarterView() },
         };
 
-        _transitionState = new TransitionState();
+        _transitionState = new TransitionViewState();
     }
 
     public void Bind(CameraCore p_core)
@@ -62,35 +75,37 @@ public class ViewStateMachine : MonoBehaviour
 
     private void LateUpdate()
     {
-        _uiModule.ChangeViewText(($"{_currentView}"));
-        _currentView?.LateUpdate();
+        _uiModule.ChangeViewText(($"{_currentViewState}"));
+        _currentViewState?.LateUpdate();
     }
 
     public Vector3 GetLookDirection()
     {
-        return _currentView?.GetLookDirection()?? transform.forward;
+        return _currentViewState?.GetLookDirection()?? transform.forward;
     }
 
     public void SetView(EViewType type)
     {
+        _previousType = _currentType;
+
         _nextData = _viewDataDic[type];
+        _nextViewState = _viewDic[type];
 
-        _nextView = _viewDic[type];
+        _currentViewState?.Exit();
 
-        _currentView?.Exit();
-
-        _currentView = _transitionState;
-
-        _currentView.Enter();
+        _currentViewState = _transitionState;
+        _currentViewState?.Enter();
     }
 
 
     public void EndTransition()
     {
-        _currentView?.Exit();
+        _currentViewState?.Exit();
 
-        _currentView = _nextView;
+        _currentViewState = _nextViewState;
+        _currentData = _nextData;
+        _currentType = _nextData.ViewType;
 
-        _currentView.Enter();
+        _currentViewState.Enter();
     }
 }

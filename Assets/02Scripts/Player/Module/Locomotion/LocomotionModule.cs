@@ -11,9 +11,9 @@ public class LocomotionModule : MonoBehaviour
     private AnimationBoundary _anim;
 
     [Header("GroundMoveMove")]
-    [SerializeField] private float _moveSpeed = 4f;
-    [SerializeField] private float _sprintSpeed = 7f;
-    [SerializeField] private float _combatSpeed = 2.5f;
+    [SerializeField] private float _moveSpeed = 3f;
+    [SerializeField] private float _sprintSpeed = 5f;
+    [SerializeField] private float _combatSpeed = 2f;
     [SerializeField] private float _rotationsmoothTime = 0.1f;
 
     [Header("[Ground]")]
@@ -21,7 +21,7 @@ public class LocomotionModule : MonoBehaviour
     [SerializeField] private float _checkGroundOffset = 0.07f;
 
     [Header("[Gravity]")]
-    [SerializeField] private float _gravity = 13f;
+    [SerializeField] private float _gravity = 15f;
 
     [Header("[Action]")]
     [SerializeField] private float _jumpHeight = 8f;
@@ -72,38 +72,6 @@ public class LocomotionModule : MonoBehaviour
 
     private void Update()
     {
-        /*_isSprint = _inputBoundary.IsSprint;
-        _isJump = _inputBoundary.IsJump;
-        _isDash = _inputBoundary.IsDash;
-        _isAim = _inputBoundary.IsAim;
-        _isCombat = _inputBoundary.IsAttack || _isAim;
-
-        if (_isDash && !_isJumping && !_isDashing &&  !_isCombat)
-        {
-            _anim.DashAnim();
-            StartDash();
-        }
-
-        if(!_isJumping && !_isDashing)
-            ViewTransition(_isCombat, _isAim);
-
-        CheckedGround();
-        _anim.IsGround(_isGround);
-
-       _currentVelocity = ApplyGravity();
-
-        if (_isJump && !_isJumping && !_isDashing)
-            Jump();
-        else if (_isDashing)
-            Dashing();
-        else if (_isGround)
-        {
-            _currentVelocity = CalculateGroundMoveVelocity(_isSprint, _isCombat);
-        }
-
-        Rotate(_inputMoveDir, (_isJumping || _isDashing), _isCombat);
-        _characterCtrl.Move(_currentVelocity * Time.deltaTime);*/
-
         Tick();
     }
 
@@ -115,29 +83,6 @@ public class LocomotionModule : MonoBehaviour
 
         _anim.IsGround(_isGround);
     }
-
-    /*private void ViewTransition(bool p_isCombat, bool p_isAim)
-    {
-        if (p_isCombat)
-        {
-            if (!_isCombatStart)
-            {
-                if (p_isAim)
-                    _cameraModule.SetView(EViewType.ShoulderView);
-
-                _isCombatStart = true;
-            }
-            _isSprint = false;
-        }
-        else
-        {
-            if (_isCombatStart)
-            {
-                _cameraModule.SetView(EViewType.BackView);
-                _isCombatStart = false;
-            }
-        }
-    }*/
 
     public void PlayCharacterController()
     {

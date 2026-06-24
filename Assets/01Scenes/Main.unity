@@ -587,13 +587,15 @@ MonoBehaviour:
   - 25
   - 50
   - 25
-  _viewSmoothSpeed: 5
+  _TPSAimViewSmoothSpeed: 20
+  _QuarterViewSmoothSpeed: 5
   _zoomScrollSpeed: 1
   _zoomFollowSpeed: 5
   _collisionMask:
     serializedVersion: 2
     m_Bits: 1
   _collisionPadding: 0.1
+  _currentViewSmoothSpeed: 5
 --- !u!114 &400402141
 MonoBehaviour:
   m_ObjectHideFlags: 0

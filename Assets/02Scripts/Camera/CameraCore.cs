@@ -23,11 +23,7 @@ public class CameraCore : MonoBehaviour
     {
         ViewTransitionModule = GetComponent<ViewTransitionModule>();
         State = GetComponent<ViewStateMachine>();
-    }
 
-    private void Start()
-    {
-        ViewTransitionModule.Bind(this);
         State.Bind(this);
     }
 

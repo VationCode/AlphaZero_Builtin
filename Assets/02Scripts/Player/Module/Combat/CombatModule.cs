@@ -12,9 +12,9 @@ public class CombatModule : MonoBehaviour
 
     public void Aim(bool p_isAim)
     {
-        /*if(p_isAim)
-            _cameraModule.SetView(EViewType.Aim);
+        if(p_isAim)
+            _cameraCore.TransitionView(EViewType.Aim);
         else
-            _cameraModule.SetView(EViewType.ThirdPerson);*/
+            _cameraCore.TransitionView(EViewType.ThirdPerson);
     }
 }

@@ -281,7 +281,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             ]
         },
         {
-            ""name"": ""_camera"",
+            ""name"": ""Camera"",
             ""id"": ""bef84d24-c681-44e4-b6af-e11c6afe5978"",
             ""actions"": [
                 {
@@ -361,7 +361,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
         m_Player_Fly = m_Player.FindAction("Fly", throwIfNotFound: true);
         // Camera
-        m_Camera = asset.FindActionMap("_camera", throwIfNotFound: true);
+        m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
         m_Camera_Look = m_Camera.FindAction("Look", throwIfNotFound: true);
         m_Camera_MouseScroll = m_Camera.FindAction("MouseScroll", throwIfNotFound: true);
         m_Camera_ClickPos = m_Camera.FindAction("ClickPos", throwIfNotFound: true);
@@ -370,7 +370,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     ~@InputSystem_Actions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Player.Disable() has not been called.");
-        UnityEngine.Debug.Assert(!m_Camera.enabled, "This will cause a leak and performance issues, InputSystem_Actions._camera.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Camera.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Camera.Disable() has not been called.");
     }
 
     /// <summary>
