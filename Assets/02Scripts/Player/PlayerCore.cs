@@ -22,6 +22,8 @@ public class PlayerCore : MonoBehaviour
     public StateContext Context = new StateContext();
     #endregion
 
+    public Transform PlayerTr;
+
     #region ========== Module
     public LocomotionModule LocoModule;
     public CombatModule CombatModule;
@@ -34,6 +36,8 @@ public class PlayerCore : MonoBehaviour
         StateMachine = GetComponent<PlayerStateMachine>();
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
+
+        PlayerTr = this.transform;
     }
 
     private void Start()
@@ -41,6 +45,7 @@ public class PlayerCore : MonoBehaviour
         LocoModule.Bind(this);
         CombatModule.Bind(this);
         StateMachine.Bind(this);
+        AnimationBoundary.Bind(PlayerTr);
     }
 
     private void Update()

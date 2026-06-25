@@ -103,15 +103,13 @@ public class LocomotionModule : MonoBehaviour
     // ============================== Move
     public void GroundMovement(Vector2 p_moveInput, bool p_isSprint = false, bool p_isCombat = false)
     {
-        var moveInput = p_moveInput;
-
-        _currentMoveDir = GetMoveDirection(moveInput);
+        _currentMoveDir = GetCurrentMoveDirection(p_moveInput);
 
         _currentVelocity = CalculateVelocity(_currentMoveDir, p_isSprint, p_isCombat);
 
         PlayCharacterController(_currentVelocity);
     }
-    public Vector3 GetMoveDirection(Vector2 p_input)
+    public Vector3 GetCurrentMoveDirection(Vector2 p_input)
     {
         // 카메라 기준 좌표
         Vector3 camForward = Camera.main.transform.forward;
@@ -124,15 +122,13 @@ public class LocomotionModule : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
-        var moveInput = p_input;
-
         // 키보드 사용 시 대각선 계산
-        if (moveInput.sqrMagnitude > 1) moveInput.Normalize();
+        if (p_input.sqrMagnitude > 1) p_input.Normalize();
 
         // 카메라 방향을 중심으로 방향 계산
-        var moveDir = camRight * moveInput.x + camForward * moveInput.y;
+        var currentMoveDir = camRight * p_input.x + camForward * p_input.y;
 
-        return moveDir;
+        return currentMoveDir;
     }
 
     private Vector3 CalculateVelocity(Vector2 p_moveDir, bool p_isSprint = false, bool p_isCombat = false)
@@ -154,10 +150,7 @@ public class LocomotionModule : MonoBehaviour
             _anim.MoveAnim(p_moveInput, p_isSprint, false);
         else
         {
-            var animDir = _anim.GetAnimationInput(transform, p_currentMoveDir);
-            
-            animDir = new Vector2(animDir.x, animDir.z);
-            _anim.MoveAnim(animDir, p_isSprint, true);
+            _anim.MoveAnim(p_currentMoveDir, p_isSprint, true);
         }
     }
     // ============================== Rotation

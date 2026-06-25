@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Windows;
 
 [RequireComponent(typeof(Animator))]
 public class AnimationBoundary : MonoBehaviour
@@ -9,33 +10,46 @@ public class AnimationBoundary : MonoBehaviour
     private int _isSprint = Animator.StringToHash("IsSprint");
     private int _isIncombat = Animator.StringToHash("IsInCombat");
     private int _isGround = Animator.StringToHash("IsGround");
+
+    private Transform _playerTr;
     private void Awake()
     {
         _anim = GetComponent<Animator>();
     }
 
-    public void MoveAnim(Vector2 p_moveInput, bool p_isSprint, bool p_isCombat = false)
+    public void Bind(Transform p_playerTr)
+    {
+        _playerTr = p_playerTr;
+    }
+
+    // 비전투 : 그냥 입력키값
+    // 전투 : 플레이어 현재 방향 기준 좌표
+    public void MoveAnim(Vector3 p_moveDir, bool p_isSprint, bool p_isCombat = false)
     {
         _anim.SetBool(_isSprint, p_isSprint);
         _anim.SetBool(_isIncombat, p_isCombat);
 
-        if (p_isCombat)
+        if (!p_isCombat)
         {
-            _anim.SetFloat("InputX", p_moveInput.x, 0.1f, Time.deltaTime);
-            _anim.SetFloat("InputY", p_moveInput.y, 0.1f, Time.deltaTime);
+            _anim.SetFloat("MoveMagnitude", p_moveDir.sqrMagnitude, 0.1f, Time.deltaTime);
+            return;
         }
-        else
-            _anim.SetFloat("MoveMagnitude", p_moveInput.sqrMagnitude, 0.1f, Time.deltaTime);
+
+        // 현재 플레이어가 바라본 방향에서의 입력키를 계산
+        var animDir = CalculateTransformPosInput(p_moveDir);
+
+        _anim.SetFloat("InputX", animDir.x, 0.1f, Time.deltaTime);
+        _anim.SetFloat("InputY", animDir.z, 0.1f, Time.deltaTime);
     }
 
-    public Vector3 GetAnimationInput(Transform playerTr,Vector3 p_moveDir)
+    // 현재 입력받은 값을 Transform 방향 기준에 맞게 변경
+    public Vector3 CalculateTransformPosInput(Vector3 p_moveDir)
     {
         // InverseTransformDirection : 입력값에 대해 플레이어 기준에서으로 방향값을 변환해줌
         // 전투시 오른쪽 보고 있을 때 W키 눌러 위로 가면 캐릭터 기준 왼쪽으로 이동이기에 그값으로 만들어준다는것
-        Vector3 localMove = playerTr.InverseTransformDirection(p_moveDir);
-        localMove.y = 0f;
+        Vector3 localDir = _playerTr.InverseTransformDirection(p_moveDir);
 
-        return localMove;
+        return localDir;
     }
 
 
