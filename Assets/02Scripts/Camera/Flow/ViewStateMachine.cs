@@ -29,7 +29,7 @@ public class ViewStateMachine : MonoBehaviour
     public ViewDataSO CurrentData => _currentData;
     private ViewDataSO _currentData;
 
-    public EViewType CurrentType => _currentType;
+    public EViewType CurrentViewType => _currentType;
     private EViewType _currentType;
 
     public EViewType PrevType => _previousType;

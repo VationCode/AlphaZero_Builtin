@@ -19,14 +19,25 @@ public class AnimationBoundary : MonoBehaviour
         _anim.SetBool(_isSprint, p_isSprint);
         _anim.SetBool(_isIncombat, p_isCombat);
 
-        if (!p_isCombat) 
-            _anim.SetFloat("MoveMagnitude", p_moveInput.sqrMagnitude, 0.1f, Time.deltaTime);
-        else
+        if (p_isCombat)
         {
             _anim.SetFloat("InputX", p_moveInput.x, 0.1f, Time.deltaTime);
             _anim.SetFloat("InputY", p_moveInput.y, 0.1f, Time.deltaTime);
         }
+        else
+            _anim.SetFloat("MoveMagnitude", p_moveInput.sqrMagnitude, 0.1f, Time.deltaTime);
     }
+
+    public Vector3 GetAnimationInput(Transform playerTr,Vector3 p_moveDir)
+    {
+        // InverseTransformDirection : 입력값에 대해 플레이어 기준에서으로 방향값을 변환해줌
+        // 전투시 오른쪽 보고 있을 때 W키 눌러 위로 가면 캐릭터 기준 왼쪽으로 이동이기에 그값으로 만들어준다는것
+        Vector3 localMove = playerTr.InverseTransformDirection(p_moveDir);
+        localMove.y = 0f;
+
+        return localMove;
+    }
+
 
     public void JumpAnim()
     {

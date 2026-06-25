@@ -19,6 +19,7 @@ public class MouseUtility : MonoBehaviour
         }
     }
 
+    // QuarterView에서만 호출, 마우스 클릭시에만 적용
     public Vector3 GetTargetMouseDirection(Vector2 p_mousePos, Vector3 p_playerPos)
     {
         Vector3 targetPos = GetMouseWorldPosition(p_mousePos);
@@ -28,9 +29,7 @@ public class MouseUtility : MonoBehaviour
 
         return dir.normalized;
     }
-
-    // QuarterView에서만 호출, 마우스 클릭시에만 적용
-    public Vector3 GetMouseWorldPosition(Vector2 p_mousePos)
+    private Vector3 GetMouseWorldPosition(Vector2 p_mousePos)
     {
          Ray ray = Camera.main.ScreenPointToRay(p_mousePos);
 

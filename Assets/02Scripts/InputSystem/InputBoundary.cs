@@ -34,7 +34,7 @@ public class InputBoundary : MonoBehaviour
     Vector2 _mouseScroll;
 
 
-    public Vector3 MousePos => _mousePos;
+    public Vector3 MouseInputPos => _mousePos;
     private Vector3 _mousePos;
     #endregion ==================== /Camera
     private void OnEnable()

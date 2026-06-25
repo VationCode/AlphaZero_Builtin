@@ -9,7 +9,7 @@ public class FallState : BaseState
     }
     public override void Update()
     {
-        _Core.LocoModule.PlayCharacterController();
+        _Core.LocoModule.PlayCharacterController(_Core.LocoModule.CurrentVelocity);
 
         if (_Core.LocoModule.IsGround)
             _Core.StateMachine.ChangeLocoState(ELocomotionType.GroundMove);

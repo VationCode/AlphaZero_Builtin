@@ -10,7 +10,7 @@ public class JumpState : BaseState
     }
     public override void Update()
     {
-        _Core.LocoModule.PlayCharacterController();
+        _Core.LocoModule.PlayCharacterController(_Core.LocoModule.CurrentVelocity);
 
         if (_Core.LocoModule.IsVelocityYZero())
             _Core.StateMachine.ChangeLocoState(ELocomotionType.Fall);
