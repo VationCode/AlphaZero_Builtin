@@ -1,0 +1,45 @@
+{
+    "Items": [
+        {
+            "Id": 100,
+            "Name": "Potion01",
+            "ItemType": 2,
+            "IconKey": "Potion01_Icon",
+            "PrefabKey": "Potion01_Prefab",
+            "IsStackable": true,
+            "MaxStackCount": 99,
+            "Description": "HP 포션"
+        },
+        {
+            "Id": 1000,
+            "Name": "Sword01",
+            "ItemType": 0,
+            "IconKey": "Sword01_Icon",
+            "PrefabKey": "Sword01_Prefab",
+            "IsStackable": false,
+            "MaxStackCount": 1,
+            "Description": "기본 검"
+        },
+        {
+            "Id": 1001,
+            "Name": "Rifle01",
+            "ItemType": 0,
+            "IconKey": "Rifle01_Icon",
+            "PrefabKey": "Rifle01_Prefab",
+            "IsStackable": false,
+            "MaxStackCount": 1,
+            "Description": "기본 총"
+        },
+        {
+            "Id": 1002,
+            "Name": "Sniper01",
+            "ItemType": 0,
+            "IconKey": "Sniper01_Icon",
+            "PrefabKey": "Sniper01_Prefab",
+            "IsStackable": false,
+            "MaxStackCount": 1,
+            "Description": "기본 스나이퍼"
+        },
+
+    ]
+}

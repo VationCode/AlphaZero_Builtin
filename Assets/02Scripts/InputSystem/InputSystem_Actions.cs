@@ -303,7 +303,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""MouseInputPos"",
+                    ""name"": ""MousePos"",
                     ""type"": ""PassThrough"",
                     ""id"": ""a4899a4d-dbdd-4587-b1be-9a58961266f8"",
                     ""expectedControlType"": ""Vector2"",
@@ -342,7 +342,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MouseInputPos"",
+                    ""action"": ""MousePos"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -364,7 +364,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
         m_Camera_Look = m_Camera.FindAction("Look", throwIfNotFound: true);
         m_Camera_MouseScroll = m_Camera.FindAction("MouseScroll", throwIfNotFound: true);
-        m_Camera_MousePos = m_Camera.FindAction("MouseInputPos", throwIfNotFound: true);
+        m_Camera_MousePos = m_Camera.FindAction("MousePos", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()

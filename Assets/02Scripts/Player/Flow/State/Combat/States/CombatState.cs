@@ -18,11 +18,11 @@ public class CombatState : BaseState
         bool isAim = _Core.InputBoundary.IsAim;
         bool isAttack = _Core.InputBoundary.IsAttack;
 
-        if (isAim)
+        if (isAim && _Core.CombatRule.CanAim(_Core.Context))
         {
             _Core.StateMachine.ChangeCombatState(ECombatType.Aim);
         }
-        else if(isAttack)
+        else if(isAttack && _Core.CombatRule.CanAttack(_Core.Context))
         {
             _Core.StateMachine.ChangeCombatState(ECombatType.Attack);
         }

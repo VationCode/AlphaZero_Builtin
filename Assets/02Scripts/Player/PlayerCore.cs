@@ -7,6 +7,7 @@ public class PlayerCore : MonoBehaviour
     public InputBoundary InputBoundary;
     public CameraCore CameraCore;
     public UIModule UIModule;
+    public ItemDB ItemDB;
     #endregion
 
     #region ========== Boundary
@@ -15,7 +16,10 @@ public class PlayerCore : MonoBehaviour
 
     #region ========== Flow
     public PlayerStateMachine StateMachine;
+    public ItemPickupController ItemPickupController;
+
     public LocomotionRule LocoRule = new LocomotionRule();
+    public CombatRule CombatRule = new CombatRule();
     #endregion
 
     #region ========== Domain
@@ -27,6 +31,7 @@ public class PlayerCore : MonoBehaviour
     #region ========== Module
     public LocomotionModule LocoModule;
     public CombatModule CombatModule;
+    public InventoryModule InventoryModule;
     // Equip
     #endregion
 
@@ -46,6 +51,7 @@ public class PlayerCore : MonoBehaviour
         CombatModule.Bind(this);
         StateMachine.Bind(this);
         AnimationBoundary.Bind(PlayerTr);
+        ItemPickupController.Bind(this);
     }
 
     private void Update()

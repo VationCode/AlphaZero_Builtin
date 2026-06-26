@@ -12,8 +12,9 @@ public class NormalState : BaseState
     {
         bool isAim = _Core.InputBoundary.IsAim;
         bool isAttack = _Core.InputBoundary.IsAttack;
+        bool isInCombat = isAim || isAttack;
 
-        if (isAim || isAttack)
+        if (isInCombat && _Core.CombatRule.CanInCombat(_Core.Context))
         {
             _Core.StateMachine.ChangeCombatState(ECombatType.Combat);
         }

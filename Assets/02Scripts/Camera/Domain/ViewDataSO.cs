@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ViewDataSO", menuName = "ScriptableObj/ViewData")]
+[CreateAssetMenu(fileName = "ViewData", menuName = "ScriptableObj/Camera/ViewData")]
 public class ViewDataSO : ScriptableObject
 {
     public EViewType ViewType;

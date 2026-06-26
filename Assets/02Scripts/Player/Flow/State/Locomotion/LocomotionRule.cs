@@ -1,5 +1,4 @@
 using UnityEngine;
-using static UnityEditor.Timeline.TimelinePlaybackControls;
 
 public class LocomotionRule
 {
