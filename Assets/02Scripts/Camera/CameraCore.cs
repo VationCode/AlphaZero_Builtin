@@ -4,8 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(ViewTransitionModule))]
 public class CameraCore : MonoBehaviour
 {
-    public UIModule UIModule;
-    public InputBoundary Input;
+    public UIManager UIModule;
+    public InputManager Input;
 
     [Header("Ref")]
     // Flow

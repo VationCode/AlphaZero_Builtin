@@ -11,10 +11,10 @@ public class GroundMoveState : BaseState
     public override void Update()
     {
         // ==================== Input
-        bool isSprintPress = _Core.InputBoundary.IsSprint;
-        bool isJumpPress = _Core.InputBoundary.IsJump;
-        bool isDashPress = _Core.InputBoundary.IsDash;
-        Vector2 moveInput = _Core.InputBoundary.MoveInput;
+        bool isSprintPress = _Core.InputManager.IsSprint;
+        bool isJumpPress = _Core.InputManager.IsJump;
+        bool isDashPress = _Core.InputManager.IsDash;
+        Vector2 moveInput = _Core.InputManager.MoveInput;
         EViewType viewType = _Core.CameraCore.State.CurrentViewType;
         // ==================== Move
         _Core.Context.IsGroundMove = moveInput.magnitude > 0;
@@ -30,7 +30,7 @@ public class GroundMoveState : BaseState
         _Core.LocoModule.GroundMovement(moveInput, isSprint, isCombat);
 
         // ==================== Rot
-        Vector2 mouseInput = _Core.InputBoundary.MouseInputPos;
+        Vector2 mouseInput = _Core.InputManager.MouseInputPos;
         Vector3 currentMoveDir = _Core.LocoModule.CurrentMoveDir;
         Vector3 lookDir = CalculateRot(isCombat, _Core.LocoModule.CurrentMoveDir, mouseInput);
 

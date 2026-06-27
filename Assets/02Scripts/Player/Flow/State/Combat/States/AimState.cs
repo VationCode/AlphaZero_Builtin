@@ -12,7 +12,8 @@ public class AimState : BaseState
 
     public override void Update()
     {
-        bool isAining = _Core.InputBoundary.IsAim;
+        bool isAining = _Core.InputManager.IsAim;
+        if (_Core.UIManager.IsCombatBlocked) isAining = false;
 
         if (!isAining) _Core.StateMachine.ChangeCombatState(ECombatType.Combat);
     }

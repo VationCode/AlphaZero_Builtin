@@ -13,7 +13,7 @@ public enum EViewType
 
 public class ViewStateMachine : MonoBehaviour
 {
-    private UIModule _uiModule;
+    private UIManager _uiModule;
 
     // ViewType으로 정의하기보단 별도로 관리
     private TransitionViewState _transitionState;
@@ -75,7 +75,8 @@ public class ViewStateMachine : MonoBehaviour
 
     private void LateUpdate()
     {
-        _uiModule.ChangeViewText(($"{_currentViewState}"));
+        StateUI state = _uiModule.Get<StateUI>();
+        state.ChangeViewText(($"{_currentViewState}"));
         _currentViewState?.LateUpdate();
     }
 

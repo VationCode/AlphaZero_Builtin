@@ -1,11 +1,12 @@
 using TMPro;
 using UnityEngine;
 
-public class UIModule : MonoBehaviour
+public class StateUI : UIWindow
 {
     [SerializeField] private TextMeshProUGUI _locoTMP;
     [SerializeField] private TextMeshProUGUI _combatTMP;
     [SerializeField] private TextMeshProUGUI _viewTMP;
+
     public void ChangeLocoText(string p_text)
     {
         _locoTMP.text = p_text;

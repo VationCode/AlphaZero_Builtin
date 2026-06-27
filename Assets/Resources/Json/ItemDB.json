@@ -39,7 +39,6 @@
             "IsStackable": false,
             "MaxStackCount": 1,
             "Description": "기본 스나이퍼"
-        },
-
+        }
     ]
 }

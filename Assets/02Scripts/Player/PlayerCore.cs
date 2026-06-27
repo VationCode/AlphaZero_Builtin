@@ -4,10 +4,10 @@ using UnityEngine;
 public class PlayerCore : MonoBehaviour
 {
     #region ========== OutSideBind
-    public InputBoundary InputBoundary;
-    public CameraCore CameraCore;
-    public UIModule UIModule;
-    public ItemDB ItemDB;
+    public InputManager InputManager {  get; private set; }
+    public CameraCore CameraCore { get; private set; }
+    public UIManager UIManager { get; private set; }
+    public ItemDB ItemDB { get; private set; }
     #endregion
 
     #region ========== Boundary
@@ -35,12 +35,21 @@ public class PlayerCore : MonoBehaviour
     // Equip
     #endregion
 
+    public void Bind(InputManager p_input, UIManager p_ui, CameraCore p_camera, ItemDB p_item)
+    {
+        InputManager = p_input;
+        UIManager = p_ui;
+        CameraCore = p_camera;
+        ItemDB = p_item;
+    }
+
     private void Awake()
     {
         AnimationBoundary = GetComponent<AnimationBoundary>();
         StateMachine = GetComponent<PlayerStateMachine>();
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
+        InventoryModule = GetComponent<InventoryModule>();
 
         PlayerTr = this.transform;
     }
@@ -52,6 +61,7 @@ public class PlayerCore : MonoBehaviour
         StateMachine.Bind(this);
         AnimationBoundary.Bind(PlayerTr);
         ItemPickupController.Bind(this);
+        InventoryModule.Bind(this);
     }
 
     private void Update()

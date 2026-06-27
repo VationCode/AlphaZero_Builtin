@@ -15,8 +15,16 @@ public class CombatState : BaseState
     public override void Update()
     {
         _normalT -= Time.deltaTime;
-        bool isAim = _Core.InputBoundary.IsAim;
-        bool isAttack = _Core.InputBoundary.IsAttack;
+        bool isAim = _Core.InputManager.IsAim;
+        bool isAttack = _Core.InputManager.IsAttack;
+
+
+        if (_normalT <= 0)
+        {
+            _Core.StateMachine.ChangeCombatState(ECombatType.Normal);
+        }
+
+        if (_Core.UIManager.IsCombatBlocked) return;
 
         if (isAim && _Core.CombatRule.CanAim(_Core.Context))
         {
@@ -25,10 +33,6 @@ public class CombatState : BaseState
         else if(isAttack && _Core.CombatRule.CanAttack(_Core.Context))
         {
             _Core.StateMachine.ChangeCombatState(ECombatType.Attack);
-        }
-        else if (_normalT <= 0)
-        {
-            _Core.StateMachine.ChangeCombatState(ECombatType.Normal);
         }
     }
 

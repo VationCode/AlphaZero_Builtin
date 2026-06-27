@@ -23,7 +23,7 @@ public enum ECombatType
 
 public class PlayerStateMachine : MonoBehaviour
 {
-    private UIModule _uiModule;
+    private UIManager _uiModule;
 
     private BaseState _locoState;
     private BaseState _combatState;
@@ -59,7 +59,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     public void Bind(PlayerCore p_core)
     {
-        _uiModule = p_core.UIModule;
+        _uiModule = p_core.UIManager;
 
         foreach (var state in _locoCreateDic.Values)
         {
@@ -97,7 +97,8 @@ public class PlayerStateMachine : MonoBehaviour
 
         _locoState.Enter();
 
-        _uiModule.ChangeLocoText($"{_currentLocoType}");
+        StateUI stateUI = _uiModule.Get<StateUI>();
+        stateUI.ChangeLocoText($"{_currentLocoType}");
     }
 
     public void ChangeCombatState(ECombatType p_newState)
@@ -113,6 +114,7 @@ public class PlayerStateMachine : MonoBehaviour
 
         _combatState.Enter();
 
-        _uiModule.ChangeCombatText($"{_currentCombatType}");;
+        StateUI stateUI = _uiModule.Get<StateUI>();
+        stateUI.ChangeCombatText($"{_currentCombatType}");;
     }
 }

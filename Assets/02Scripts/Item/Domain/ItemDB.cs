@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,7 +18,17 @@ public class ItemDB : MonoBehaviour
 
     private void Load()
     {
-        ItemTableDTO table = JsonUtility.FromJson<ItemTableDTO>(_json.text);
+        ItemTableDTO table = null;
+        try
+        {
+            table = JsonUtility.FromJson<ItemTableDTO>(_json.text);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"ItemDB Load Failed\n{e}");
+            Debug.Log(_json);
+            return;
+        }
 
         foreach (var item in table.Items)
         {
