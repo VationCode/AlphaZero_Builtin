@@ -8,17 +8,12 @@ public class InventoryUI : UIWindow
 {
     private UIPanel _currentPanel;
 
-    /*[SerializeField] private CategoryInventoryUI CategoryUI;
-    [SerializeField] private WeaponInventoryUI WeaponUI;
-    [SerializeField] private ArmorInventoryUI ArmorUI;
-    [SerializeField] private PotionInventoryUI PotionUI;
-    [SerializeField] private MaterialInventoryUI MaterialUI;
-    [SerializeField] private QuestInventoryUI QuestUI;*/
-
     private Dictionary<Type, UIPanel> _uiDict;
 
     private void Awake()
     {
+        _uiDict = new();
+
         foreach (Transform child in transform)
         {
             UIPanel ui = child.GetComponent<UIPanel>();

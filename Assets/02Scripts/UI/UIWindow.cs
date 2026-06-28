@@ -4,7 +4,7 @@ using UnityEngine;
 
 public enum EUIType
 {
-    CategoryUI,
+    None,
     InventoryUI,
     EquipmentUI,
     StateUI,

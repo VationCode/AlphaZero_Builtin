@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UIOpenAnim: {fileID: 0}
-  UIType: 0
+  UIType: 4
   CloseTargetUIs: 0
   IsBlockCombat: 0
 --- !u!1 &1502705507111577166

@@ -10,6 +10,7 @@ public class InventoryModule : MonoBehaviour
 
     public event Action OnInventoryActivate;
 
+    private bool _isInventoryActive = false;
     private void Awake()
     {
         _itemIdList= new List<int>();
@@ -34,13 +35,26 @@ public class InventoryModule : MonoBehaviour
         _core.UIManager.Open<InventoryUI>();
         //OnInventoryActivate?.Invoke();
     }
+    public void CloseInventory()
+    {
+        _core.UIManager.Close<InventoryUI>();
+    }
 
     private void Update()
     {
         if(_core.InputManager.IsInventory)
         {
-            _core.CameraCore.Cursour(true);
-            OnInventory();
+            _isInventoryActive = !_isInventoryActive;
+            if (_isInventoryActive)
+            {
+                _core.CameraCore.Cursour(true);
+                OnInventory();
+            }
+            else
+            {
+                _core.CameraCore.Cursour(false);
+                CloseInventory();
+            }
         }
     }
 }
