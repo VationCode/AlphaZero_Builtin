@@ -4,10 +4,11 @@ using UnityEngine;
 public class PlayerCore : MonoBehaviour
 {
     #region ========== OutSideBind
-    public InputManager InputManager {  get; private set; }
+    public InputSystem_Alpha InputManager {  get; private set; }
     public CameraCore CameraCore { get; private set; }
     public UIManager UIManager { get; private set; }
     public ItemDB ItemDB { get; private set; }
+    public InventorySystem InventorySystem { get; private set; }
     #endregion
 
     #region ========== Boundary
@@ -31,16 +32,17 @@ public class PlayerCore : MonoBehaviour
     #region ========== Module
     public LocomotionModule LocoModule;
     public CombatModule CombatModule;
-    public InventoryModule InventoryModule;
+    public PlayerInventoryModule InventoryModule;
     // Equip
     #endregion
 
-    public void Bind(InputManager p_input, UIManager p_ui, CameraCore p_camera, ItemDB p_item)
+    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera, ItemDB p_item, InventorySystem p_inventorySystem)
     {
         InputManager = p_input;
         UIManager = p_ui;
         CameraCore = p_camera;
         ItemDB = p_item;
+        InventorySystem = p_inventorySystem;
     }
 
     private void Awake()
@@ -49,7 +51,7 @@ public class PlayerCore : MonoBehaviour
         StateMachine = GetComponent<PlayerStateMachine>();
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
-        InventoryModule = GetComponent<InventoryModule>();
+        InventoryModule = GetComponent<PlayerInventoryModule>();
 
         PlayerTr = this.transform;
     }

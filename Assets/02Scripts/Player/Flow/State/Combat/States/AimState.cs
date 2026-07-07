@@ -12,10 +12,10 @@ public class AimState : BaseState
 
     public override void Update()
     {
-        bool isAining = _Core.InputManager.IsAim;
-        if (_Core.UIManager.IsCombatBlocked) isAining = false;
+        bool isAiming = _Core.InputManager.IsAim;
+        //if (_Core.UIManager.IsCombatBlocked) isAiming = false;
 
-        if (!isAining) _Core.StateMachine.ChangeCombatState(ECombatType.Combat);
+        if (!isAiming) _Core.StateMachine.ChangeCombatState(ECombatType.Combat);
     }
 
     public override void Exit()

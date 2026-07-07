@@ -1,17 +1,17 @@
 {
     "Weapons": [
         {
-            "Id": 1000,
+            "ID": 1000,
             "WeaponType": 0,
             "BaseDamage": 20
         },
         {
-            "Id": 1001,
+            "ID": 1001,
             "WeaponType": 1,
             "BaseDamage": 2
         },
         {
-            "Id": 1002,
+            "ID": 1002,
             "WeaponType": 2,
             "BaseDamage": 30
         }

@@ -10,7 +10,7 @@ public class NormalState : BaseState
 
     public override void Update()
     {
-        if (_Core.UIManager.IsCombatBlocked) return;
+        //if (_Core.UIManager.IsCombatBlocked) return;
 
         bool isAim = _Core.InputManager.IsAim;
         bool isAttack = _Core.InputManager.IsAttack;

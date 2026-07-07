@@ -12,7 +12,7 @@ public class ItemPickupController : MonoBehaviour
     {
         int itemId = pickup.ItemId;
 
-        core.InventoryModule.AddItem(itemId);
+        core.InventorySystem.AddItem(itemId);
 
         Destroy(pickup.gameObject);
     }

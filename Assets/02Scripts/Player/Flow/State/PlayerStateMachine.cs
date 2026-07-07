@@ -97,8 +97,8 @@ public class PlayerStateMachine : MonoBehaviour
 
         _locoState.Enter();
 
-        StateUI stateUI = _uiModule.Get<StateUI>();
-        stateUI.ChangeLocoText($"{_currentLocoType}");
+        /*StateUI stateUI = _uiModule.Get<StateUI>();
+        stateUI.ChangeLocoText($"{_currentLocoType}");*/
     }
 
     public void ChangeCombatState(ECombatType p_newState)
@@ -114,7 +114,7 @@ public class PlayerStateMachine : MonoBehaviour
 
         _combatState.Enter();
 
-        StateUI stateUI = _uiModule.Get<StateUI>();
-        stateUI.ChangeCombatText($"{_currentCombatType}");;
+        /*StateUI stateUI = _uiModule.Get<StateUI>();
+        stateUI.ChangeCombatText($"{_currentCombatType}");*/
     }
 }

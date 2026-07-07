@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class StateUI : UIWindow
+public class StateUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _locoTMP;
     [SerializeField] private TextMeshProUGUI _combatTMP;

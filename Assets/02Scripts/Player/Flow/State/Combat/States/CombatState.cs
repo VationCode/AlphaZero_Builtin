@@ -24,7 +24,7 @@ public class CombatState : BaseState
             _Core.StateMachine.ChangeCombatState(ECombatType.Normal);
         }
 
-        if (_Core.UIManager.IsCombatBlocked) return;
+        //if (_Core.UIManager.IsCombatBlocked) return;
 
         if (isAim && _Core.CombatRule.CanAim(_Core.Context))
         {

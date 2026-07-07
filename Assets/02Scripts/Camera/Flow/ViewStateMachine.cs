@@ -75,8 +75,8 @@ public class ViewStateMachine : MonoBehaviour
 
     private void LateUpdate()
     {
-        StateUI state = _uiModule.Get<StateUI>();
-        state.ChangeViewText(($"{_currentViewState}"));
+        /*StateUI state = _uiModule.Get<StateUI>();
+        state.ChangeViewText(($"{_currentViewState}"));*/
         _currentViewState?.LateUpdate();
     }
 

@@ -15,24 +15,24 @@ public class ResourceDBLoadModule : MonoBehaviour
         _weaponIconDict = new();
         _weaponPrefabDict = new();
 
-        Sprite[] icons = Resources.LoadAll<Sprite>("Icons/Item/Weapon");
+        Sprite[] icons = Resources.LoadAll<Sprite>("Icons/ItemSO");
         foreach (var icon in icons)
         {
             _weaponIconDict.Add(icon.name, icon);
         }
 
-        GameObject[] itemPrefabs = Resources.LoadAll<GameObject>("Prefabs/Item/Weapon");
+        GameObject[] itemPrefabs = Resources.LoadAll<GameObject>("Prefabs/ItemSO");
         foreach (var weapon in itemPrefabs)
         {
             _weaponPrefabDict.Add(weapon.name, weapon);
         }
     }
 
-    public Sprite GetWeaponIcon(string p_iconKey)
+    public Sprite GetIcon(string p_iconKey)
     {
         return _weaponIconDict[p_iconKey];
     }
-    public GameObject GetWeaponPrefab(string p_prefabKey)
+    public GameObject GetPrefab(string p_prefabKey)
     {
         return _weaponPrefabDict[p_prefabKey];
     }

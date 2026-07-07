@@ -10,6 +10,7 @@ public class SnapToItemScroll : MonoBehaviour
     [SerializeField] private VerticalLayoutGroup _verticalLG;
     [SerializeField] string[] _itemNames;
 
+    [SerializeField] private float _offset;
     [SerializeField] private float _snapStartCurrentPower = 200;  // 클수록 조금만 느려져도 자석처럼 끌려감
     [SerializeField] private float snapTime = 0.015f;    // 높을수록 부드럽게 낮을수록 강하게 강하게 붙음
     int currentItem;
@@ -21,18 +22,15 @@ public class SnapToItemScroll : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(currentItem);
-
         if (_scrollRect.velocity.magnitude < _snapStartCurrentPower)
         {
             float itemHeight = _sampleListItem.rect.height + _verticalLG.spacing;
 
-            currentItem = Mathf.RoundToInt(
-                _contentPanel.anchoredPosition.y / itemHeight);
+            currentItem = Mathf.RoundToInt((_contentPanel.anchoredPosition.y - _offset) / itemHeight);
 
             currentItem = Mathf.Clamp(currentItem, 0, _contentPanel.childCount - 1);
 
-            float targetY = currentItem * itemHeight;
+            float targetY = _offset + (currentItem * itemHeight);
 
             Vector2 pos = _contentPanel.anchoredPosition;
 

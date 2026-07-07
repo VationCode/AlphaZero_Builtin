@@ -8,14 +8,14 @@ public abstract class UIPanel : MonoBehaviour
     {
         TryGetComponent<Animation>(out anim);
     }
-    public virtual void Show()
+    public virtual void Open()
     {
         if(anim != null)
             anim.Play();
         gameObject.SetActive(true);
     }
 
-    public virtual void Hide()
+    public virtual void Close()
     {
         gameObject.SetActive(false);
     }
