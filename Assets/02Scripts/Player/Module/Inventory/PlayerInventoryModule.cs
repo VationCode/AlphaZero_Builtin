@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerInventoryModule : MonoBehaviour
 {
     private PlayerCore _core;
-    private ItemParse _itemDB;
+    //private ItemParse _itemDB;
     private List<int> _itemIdList;
 
     public event Action OnInventoryActivate;
@@ -19,14 +19,14 @@ public class PlayerInventoryModule : MonoBehaviour
     public void Bind(PlayerCore p_core)
     {
         _core = p_core;
-        _itemDB = p_core.ItemDB;
+        //_itemDB = p_core.ItemDB;
     }
     public void AddItem(int p_id)
     {
         _itemIdList.Add(p_id);
-        ItemDataDTO item = _itemDB.GetItem(p_id);
+        //ItemDataDTO item = _itemDB.GetItem(p_id);
 
-        Debug.Log(item.PrefabKey);
+        //Debug.Log(item.PrefabKey);
 
     }
 

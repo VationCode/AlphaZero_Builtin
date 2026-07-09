@@ -13,8 +13,8 @@ public abstract class SlotBase : MonoBehaviour
     public virtual void SetItem(ItemDataDTO p_ItemData)
     {
         ItemData = p_ItemData;
-        Sprite icon = ResourceDBLoadModule.Instance.GetIcon(ItemData.IconKey);
-        Icon.sprite = icon;
+        //Sprite icon = ResourceLoadManager.Instance.GetIcon(ItemData.IconKey);
+        //Icon.sprite = icon;
         Icon.gameObject.SetActive(true);
     }
 

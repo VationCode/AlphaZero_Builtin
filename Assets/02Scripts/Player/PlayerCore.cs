@@ -7,7 +7,7 @@ public class PlayerCore : MonoBehaviour
     public InputSystem_Alpha InputManager {  get; private set; }
     public CameraCore CameraCore { get; private set; }
     public UIManager UIManager { get; private set; }
-    public ItemParse ItemDB { get; private set; }
+    
     public InventorySystem InventorySystem { get; private set; }
     #endregion
 
@@ -36,12 +36,12 @@ public class PlayerCore : MonoBehaviour
     // Equip
     #endregion
 
-    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera, ItemParse p_item, InventorySystem p_inventorySystem)
+    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera, InventorySystem p_inventorySystem)
     {
         InputManager = p_input;
         UIManager = p_ui;
         CameraCore = p_camera;
-        ItemDB = p_item;
+        
         InventorySystem = p_inventorySystem;
     }
 

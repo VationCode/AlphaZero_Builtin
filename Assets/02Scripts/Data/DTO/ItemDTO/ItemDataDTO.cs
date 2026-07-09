@@ -14,7 +14,7 @@ public enum EItemType
 [Serializable]
 public class ItemDataDTO
 {
-    public int ID;
+    public int Id;
 
     public string Name;
 
@@ -36,10 +36,10 @@ public class ItemDataDTO
 
 // Wrapper
 [Serializable]
-public class ItemTableDTO
+public class ItemWrapper
 {
     // 변수명은 json에서의 목록 이름과 같아야한다
-    public List<ItemTableDTO> ItemList;
+    public List<ItemDataDTO> ItemList;
 }
 #region ==================== Weapon
 public enum EWeaponType
@@ -59,9 +59,9 @@ public class WeaponDTO : ItemDataDTO
 }
 
 [Serializable]
-public class WeaponTableDTO
+public class WeaponWrapper
 {
-    public List<WeaponDTO> WeaponList;
+    public List<WeaponDTO> ItemList;
 }
 #endregion ==================== /Weapon
 
@@ -72,9 +72,9 @@ public class ArmorDTO : ItemDataDTO
     [Header("ArmorData")]
     public int Defense;
 }
-public class ArmorTableDTO
+public class ArmorWrapper
 {
-    public List<ArmorDTO> ArmorList;
+    public List<ArmorDTO> ItemList;
 }
 
 #endregion ==================== /Armor
@@ -87,9 +87,9 @@ public class ConsumableDTO : ItemDataDTO
     public int HealAmount;
 }
 [Serializable]
-public class ConsumableTableDTO
+public class ConsumableWrapper
 {
-    public List<ConsumableDTO> ConsumableList;
+    public List<ConsumableDTO> ItemList;
 }
 #endregion ==================== /Consumable
 
@@ -101,21 +101,21 @@ public class MaterialDTO : ItemDataDTO
 }
 
 [Serializable]
-public class MaterialTableDTO
+public class MaterialWrapper
 {
-    public List<MaterialDTO> MaterialList;
+    public List<MaterialDTO> ItemList;
 }
 #endregion ==================== /Material
 
 #region ==================== Quest
 [Serializable]
-public class QuestDTO : ItemDataDTO
+public class QuestItemDTO : ItemDataDTO
 {
 
 }
 [Serializable]
-public class QuestTableDTO
+public class QuestItemWrapper
 {
-    public List<QuestDTO> QuestItemList;
+    public List<QuestItemDTO> ItemList;
 }
 #endregion ==================== /Quest

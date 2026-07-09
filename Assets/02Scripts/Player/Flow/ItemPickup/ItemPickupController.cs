@@ -8,13 +8,18 @@ public class ItemPickupController : MonoBehaviour
         core = p_core;
     }
 
-    public void Pickup(PickupItem pickup)
+    public void Pickup(PickupItem p_pickup)
     {
-        int itemId = pickup.ItemId;
+        if (ItemDatabaseManger.Instance.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDataDTO p_data))
+        {
+            GameObject prefab =
+                ResourceLoadManager.Instance.GetItemPrefab(p_data.ItemType, p_data.PrefabKey);
 
-        core.InventorySystem.AddItem(itemId);
+            Instantiate(prefab, transform.position, Quaternion.identity);
+        }
+        //core.InventorySystem.AddItem(itemId);
 
-        Destroy(pickup.gameObject);
+        Destroy(p_pickup.gameObject);
     }
 
     private void OnTriggerEnter(Collider other)

@@ -1,0 +1,74 @@
+{
+    "ItemList": [
+        {
+            "Id": 1000,
+
+            "Name": "Sword01",
+
+            "ItemType": 0,
+
+            "IconKey": "Sword01_Icon",
+
+            "PrefabKey": "Sword01_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 검",
+
+            "WeaponType": 0,
+
+            "BaseDamage": 60
+        },
+        {
+            "Id": 2000,
+
+            "Name": "Rifle01",
+
+            "ItemType": 0,
+
+            "IconKey": "Rifle01_Icon",
+
+            "PrefabKey": "Rifle01_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 소총",
+
+            "WeaponType": 1,
+
+            "BaseDamage": 15
+        },
+        {
+            "Id": 3000,
+
+            "Name": "Sniper01",
+
+            "ItemType": 0,
+
+            "IconKey": "Sniper01_Icon",
+
+            "PrefabKey": "Sniper01_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 스나이퍼",
+
+            "WeaponType": 2,
+
+            "BaseDamage": 200
+        }
+
+    ]
+}
