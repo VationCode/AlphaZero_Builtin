@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class EquipmentModule : MonoBehaviour
 {
-    [SerializeField] private WeaponDB weaponDB;
+    [SerializeField] private WeaponParse weaponDB;
 
     private void Start()
     {

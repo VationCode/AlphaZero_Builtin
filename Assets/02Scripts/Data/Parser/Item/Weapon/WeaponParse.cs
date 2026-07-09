@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WeaponDB : MonoBehaviour
+public class WeaponParse : MonoBehaviour
 {
     [SerializeField] private TextAsset _json;
 
@@ -19,7 +19,7 @@ public class WeaponDB : MonoBehaviour
         WeaponTableDTO table =
             JsonUtility.FromJson<WeaponTableDTO>(_json.text);
 
-        foreach(var weapon in table.Weapons)
+        foreach(var weapon in table.WeaponList)
         {
             if (_weaponDict.ContainsKey(weapon.ID))
             {

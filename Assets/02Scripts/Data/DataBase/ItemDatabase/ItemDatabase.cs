@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ItemDatabase : MonoBehaviour
+public class ItemDatabase : BaseDatabase<int, ItemDataDTO>
 {
 
 }

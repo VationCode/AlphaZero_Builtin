@@ -1,5 +1,5 @@
 {
-    "Weapons": [
+    "WeaponList": [
         {
             "ID": 1000,
             "WeaponType": 0,

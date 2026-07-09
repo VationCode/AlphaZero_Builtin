@@ -22,7 +22,7 @@ public class WeaponInventory : UIPanel
             case EWeaponType.Range:
                 rangeSlots.Add(Instantiate(slotPrefab, RangeContent).GetComponent<WeaponInvenSlot>());
                 break;
-            case EWeaponType.SPRange:
+            case EWeaponType.Special:
                 spRangeSlots.Add(Instantiate(slotPrefab, SPRangeContent).GetComponent<WeaponInvenSlot>());
                 break;
         }

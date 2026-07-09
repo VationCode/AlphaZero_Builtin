@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class InventorySystem : MonoBehaviour
 {
-    public ItemDB ItemDB;
+    public ItemParse ItemDB;
     public GameObject CategoryUI;
     public WeaponInventory WeaponInventory;
 
-    public void Bind(ItemDB p_itemDB)
+    public void Bind(ItemParse p_itemDB)
     {
         ItemDB = p_itemDB;
     }

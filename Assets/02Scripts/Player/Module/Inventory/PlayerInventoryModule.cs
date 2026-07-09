@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerInventoryModule : MonoBehaviour
 {
     private PlayerCore _core;
-    private ItemDB _itemDB;
+    private ItemParse _itemDB;
     private List<int> _itemIdList;
 
     public event Action OnInventoryActivate;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ItemDB : MonoBehaviour
+public class ItemParse : MonoBehaviour
 {
     // 추후에는 어드레서블로 관리
     [SerializeField] private TextAsset _json;
@@ -18,7 +18,7 @@ public class ItemDB : MonoBehaviour
 
     private void Load()
     {
-        ItemTableDTO table = null;
+        /*ItemTableDTO table = null;
         try
         {
             table = JsonUtility.FromJson<ItemTableDTO>(_json.text);
@@ -29,7 +29,7 @@ public class ItemDB : MonoBehaviour
             return;
         }
 
-        foreach (var item in table.Items)
+        foreach (var item in table.ItemList)
         {
             // 중복 체크
             if (_itemDBDict.ContainsKey(item.ID))
@@ -40,7 +40,7 @@ public class ItemDB : MonoBehaviour
             _itemDBDict.Add(item.ID, item);
         }
 
-        Debug.Log($"ItemSO Loaded : {_itemDBDict.Count}");
+        Debug.Log($"ItemSO Loaded : {_itemDBDict.Count}");*/
     }
 
     public ItemDataDTO GetItem(int p_id)
