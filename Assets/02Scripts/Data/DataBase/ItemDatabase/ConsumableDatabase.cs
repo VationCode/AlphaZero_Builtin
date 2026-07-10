@@ -6,7 +6,7 @@ public class ConsumableDatabase : Database<int, ConsumableDTO>
 
     public async Task InitializeAsync()
     {
-        ConsumableWrapper itemTable = await _Loader.LoadAsync<ConsumableWrapper>("Consumable");
+        ConsumableWrapper itemTable = await _Loader.LoadAsync<ConsumableWrapper>("ConsumablePage");
 
         foreach (ConsumableDTO consumable in itemTable.ItemList)
         {

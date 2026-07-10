@@ -11,7 +11,9 @@ public class AttackState : BaseState
     public override void Update()
     {
         bool isAttack = _Core.InputManager.IsAttack;
-        //if (_Core.UIManager.IsCombatBlocked) isAttack = false;
+
+        if (_Core.BlockCombat) isAttack = false;
+
         if (!isAttack) _Core.StateMachine.ChangeCombatState(ECombatType.Combat);
     }
 

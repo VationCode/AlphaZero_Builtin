@@ -42,19 +42,6 @@ public class PlayerInventoryModule : MonoBehaviour
 
     private void Update()
     {
-        if (_core.InputManager.IsInventory)
-        {
-            _isInventoryActive = !_isInventoryActive;
-            if (_isInventoryActive)
-            {
-                _core.CameraCore.Cursour(true);
-                OnInventory();
-            }
-            else
-            {
-                _core.CameraCore.Cursour(false);
-                CloseInventory();
-            }
-        }
+        
     }
 }

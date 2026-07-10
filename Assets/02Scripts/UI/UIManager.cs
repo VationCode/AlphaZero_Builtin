@@ -8,5 +8,4 @@ public class UIManager : MonoBehaviour
 {
     public CrossHairUI CrossHairUI;
     public StateUI StateUI;
-    public InventorySystem InventorySystem;
 }

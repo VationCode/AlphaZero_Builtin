@@ -7,8 +7,7 @@ public class PlayerCore : MonoBehaviour
     public InputSystem_Alpha InputManager {  get; private set; }
     public CameraCore CameraCore { get; private set; }
     public UIManager UIManager { get; private set; }
-    
-    public InventorySystem InventorySystem { get; private set; }
+
     #endregion
 
     #region ========== Boundary
@@ -36,13 +35,18 @@ public class PlayerCore : MonoBehaviour
     // Equip
     #endregion
 
-    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera, InventorySystem p_inventorySystem)
+
+    public bool CanLocomotion => _canLocomotion;
+    private bool _canLocomotion;
+
+    public bool BlockCombat => _canCombat;
+    private bool _canCombat;
+
+    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera)
     {
         InputManager = p_input;
         UIManager = p_ui;
         CameraCore = p_camera;
-        
-        InventorySystem = p_inventorySystem;
     }
 
     private void Awake()
@@ -80,5 +84,15 @@ public class PlayerCore : MonoBehaviour
         {
             CameraCore.TransitionView(EViewType.Quarter);
         }
+    }
+
+    public void InventoryActiveChanged(bool p_isCombat)
+    {
+        _canCombat = p_isCombat;
+    }
+
+    public void SetLocomotionMode(bool p_isLocomotion)
+    {
+        _canLocomotion = p_isLocomotion;
     }
 }
