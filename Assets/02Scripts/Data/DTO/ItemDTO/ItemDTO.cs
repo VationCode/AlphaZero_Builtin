@@ -4,6 +4,7 @@ using UnityEngine;
 
 public enum EItemType
 {
+    None = -1,
     Weapon = 0,
     Armor = 1,
     Consumable = 2,
@@ -11,8 +12,17 @@ public enum EItemType
     Quest = 4
 }
 
+public enum EArmorType
+{
+    None = -1,
+    Helmet = 0,
+    Chest = 1,
+    Gloves = 2,
+    Boots = 3
+}
+
 [Serializable]
-public class ItemDataDTO
+public class ItemDTO
 {
     public int Id;
 
@@ -39,18 +49,19 @@ public class ItemDataDTO
 public class ItemWrapper
 {
     // 변수명은 json에서의 목록 이름과 같아야한다
-    public List<ItemDataDTO> ItemList;
+    public List<ItemDTO> ItemList;
 }
 #region ==================== Weapon
 public enum EWeaponType
 {
+    None = -1,
     Melee = 0,
     Range = 1,
     Special = 2     // 특수 장비(화염방사기, 유탄, 드론 등과 같은)
 }
 
 [Serializable]
-public class WeaponDTO : ItemDataDTO
+public class WeaponDTO : ItemDTO
 {
     [Header("WeaponData")]
     public EWeaponType WeaponType;
@@ -67,9 +78,10 @@ public class WeaponWrapper
 
 #region ==================== Armor
 [Serializable]
-public class ArmorDTO : ItemDataDTO
+public class ArmorDTO : ItemDTO
 {
     [Header("ArmorData")]
+    public EArmorType ArmorType;
     public int Defense;
 }
 public class ArmorWrapper
@@ -81,7 +93,7 @@ public class ArmorWrapper
 
 #region ==================== Consumable
 [Serializable]
-public class ConsumableDTO : ItemDataDTO
+public class ConsumableDTO : ItemDTO
 {
     [Header("ConsumableData")]
     public int HealAmount;
@@ -95,7 +107,7 @@ public class ConsumableWrapper
 
 #region ==================== Material
 [Serializable]
-public class MaterialDTO : ItemDataDTO
+public class MaterialDTO : ItemDTO
 {
 
 }
@@ -109,7 +121,7 @@ public class MaterialWrapper
 
 #region ==================== Quest
 [Serializable]
-public class QuestItemDTO : ItemDataDTO
+public class QuestItemDTO : ItemDTO
 {
 
 }

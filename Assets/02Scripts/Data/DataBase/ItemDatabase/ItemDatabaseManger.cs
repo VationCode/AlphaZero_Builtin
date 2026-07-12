@@ -59,7 +59,7 @@ public class ItemDatabaseManger : MonoBehaviour
         }*/
     }
 
-    public bool TryGetItem(EItemType p_type, int p_id, out ItemDataDTO p_data)
+    public bool TryGetItem(EItemType p_type, int p_id, out ItemDTO p_data)
     {
         switch (p_type)
         {

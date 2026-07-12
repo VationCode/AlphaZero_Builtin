@@ -10,7 +10,7 @@ public class ItemPickupController : MonoBehaviour
 
     public void Pickup(PickupItem p_pickup)
     {
-        if (ItemDatabaseManger.Instance.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDataDTO p_data))
+        if (ItemDatabaseManger.Instance.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDTO p_data))
         {
             GameObject prefab =
                 ResourceLoadManager.Instance.GetItemPrefab(p_data.ItemType, p_data.PrefabKey);

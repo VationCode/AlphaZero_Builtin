@@ -31,7 +31,6 @@ public class PlayerCore : MonoBehaviour
     #region ========== Module
     public LocomotionModule LocoModule;
     public CombatModule CombatModule;
-    public PlayerInventoryModule InventoryModule;
     // Equip
     #endregion
 
@@ -55,7 +54,6 @@ public class PlayerCore : MonoBehaviour
         StateMachine = GetComponent<PlayerStateMachine>();
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
-        InventoryModule = GetComponent<PlayerInventoryModule>();
 
         PlayerTr = this.transform;
     }
@@ -67,7 +65,6 @@ public class PlayerCore : MonoBehaviour
         StateMachine.Bind(this);
         AnimationBoundary.Bind(PlayerTr);
         ItemPickupController.Bind(this);
-        InventoryModule.Bind(this);
     }
 
     private void Update()

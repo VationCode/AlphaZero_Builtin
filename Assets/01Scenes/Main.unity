@@ -2941,37 +2941,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 787540962}
   m_CullTransparentMesh: 1
---- !u!1 &794548091
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 794548092}
-  m_Layer: 0
-  m_Name: PlayerInventory
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &794548092
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 794548091}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1542144796}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &813075684
 GameObject:
   m_ObjectHideFlags: 0
@@ -4030,37 +3999,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4998489640440859462, guid: fa7018866b8ead449955dd1b71e92b25, type: 3}
   m_PrefabInstance: {fileID: 1146829433}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1147688035
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1147688036}
-  m_Layer: 0
-  m_Name: WeaponInventory
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1147688036
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1147688035}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1542144796}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1176454762
 GameObject:
   m_ObjectHideFlags: 0
@@ -4890,9 +4828,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1147688036}
-  - {fileID: 794548092}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1542144797
@@ -8010,7 +7946,6 @@ MonoBehaviour:
   PlayerTr: {fileID: 9056764102366596953}
   LocoModule: {fileID: 1530817295313602418}
   CombatModule: {fileID: 9056764102366596956}
-  InventoryModule: {fileID: 9056764102366596958}
 --- !u!143 &1530817295313602420
 CharacterController:
   m_ObjectHideFlags: 0
@@ -18278,6 +18213,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26a39807139e2db4b851f4908e3a9a8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _core: {fileID: 0}
+  _itemIdList: 
+  _isInventoryActive: 0
 --- !u!114 &9056764102366596959
 MonoBehaviour:
   m_ObjectHideFlags: 0

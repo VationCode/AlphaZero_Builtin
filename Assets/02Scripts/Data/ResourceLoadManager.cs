@@ -41,4 +41,16 @@ public class ResourceLoadManager : MonoBehaviour
 
         return itemPrefab;
     }
+
+    public Sprite GetIcon(string p_key)
+    {
+        string spritePath = $"Icon/Items/{p_key}";
+        if(spritePath == null)
+        {
+            Debug.LogError($"Sprite not found for key: {p_key}");
+            return null;
+        }
+        Sprite sprite = Resources.Load<Sprite>(spritePath);
+        return sprite;
+    }
 }
