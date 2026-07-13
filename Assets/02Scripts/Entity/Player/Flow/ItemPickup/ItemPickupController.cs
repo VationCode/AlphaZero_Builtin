@@ -8,7 +8,7 @@ public class ItemPickupController : MonoBehaviour
         core = p_core;
     }
 
-    public void Pickup(PickupItem p_pickup)
+    public void Pickup(PickupItemInfo p_pickup)
     {
         if (ItemDatabaseManger.Instance.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDTO p_data))
         {
@@ -24,7 +24,7 @@ public class ItemPickupController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out PickupItem p_pickupItem))
+        if (other.TryGetComponent(out PickupItemInfo p_pickupItem))
         {
             Pickup(p_pickupItem);
         }

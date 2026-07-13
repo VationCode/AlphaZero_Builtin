@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PickupItem : MonoBehaviour
+public class PickupItemInfo : MonoBehaviour
 {
     [SerializeField]
     private int _itemId;
