@@ -4,19 +4,17 @@ using UnityEngine;
 public class PlayerCore : MonoBehaviour
 {
     #region ========== OutSideBind
-    public InputSystem_Alpha InputManager {  get; private set; }
+    public AlphaInputSystem InputManager {  get; private set; }
     public CameraCore CameraCore { get; private set; }
     public UIManager UIManager { get; private set; }
+    public InventoryPresenter InventoryPresenter { get; private set; }
 
-    #endregion
-
-    #region ========== Boundary
-    public AnimationBoundary AnimationBoundary;
     #endregion
 
     #region ========== Flow
-    public PlayerStateMachine StateMachine;
-    public ItemPickupController ItemPickupController;
+    public PlayerStateMachine StateMachine { get; private set; }
+    public ItemPickupFlow ItemPickupController { get; private set; }
+    public PlayerInventoryFlow InventoryFlow { get; private set; }
 
     public LocomotionRule LocoRule = new LocomotionRule();
     public CombatRule CombatRule = new CombatRule();
@@ -26,14 +24,14 @@ public class PlayerCore : MonoBehaviour
     public StateContext Context = new StateContext();
     #endregion
 
-    public Transform PlayerTr;
-
     #region ========== Module
-    public LocomotionModule LocoModule;
-    public CombatModule CombatModule;
-    // Equip
+    public LocomotionModule LocoModule { get; private set; }
+    public CombatModule CombatModule { get; private set; }
+    public PlayerAnimationModule AnimationModule { get; private set; }
+    public PlayerInventoryModule InventoryModule { get; private set; }
     #endregion
 
+    public Transform PlayerTr;
 
     public bool CanLocomotion => _canLocomotion;
     private bool _canLocomotion;
@@ -41,7 +39,7 @@ public class PlayerCore : MonoBehaviour
     public bool BlockCombat => _canCombat;
     private bool _canCombat;
 
-    public void Bind(InputSystem_Alpha p_input, UIManager p_ui, CameraCore p_camera)
+    public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera)
     {
         InputManager = p_input;
         UIManager = p_ui;
@@ -50,10 +48,14 @@ public class PlayerCore : MonoBehaviour
 
     private void Awake()
     {
-        AnimationBoundary = GetComponent<AnimationBoundary>();
         StateMachine = GetComponent<PlayerStateMachine>();
+        ItemPickupController = GetComponent<ItemPickupFlow>();
+        InventoryFlow = GetComponent<PlayerInventoryFlow>();
+
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
+        AnimationModule = GetComponent<PlayerAnimationModule>();
+        InventoryModule = GetComponent<PlayerInventoryModule>();
 
         PlayerTr = this.transform;
     }
@@ -63,8 +65,9 @@ public class PlayerCore : MonoBehaviour
         LocoModule.Bind(this);
         CombatModule.Bind(this);
         StateMachine.Bind(this);
-        AnimationBoundary.Bind(PlayerTr);
-        ItemPickupController.Bind(this);
+        AnimationModule.Bind(PlayerTr);
+        ItemPickupController.Bind(InventoryModule);
+        InventoryFlow.Bind(this);
     }
 
     private void Update()

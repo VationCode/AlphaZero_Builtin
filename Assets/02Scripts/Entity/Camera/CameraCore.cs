@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraCore : MonoBehaviour
 {
     public UIManager UIModule;
-    public InputSystem_Alpha Input;
+    public AlphaInputSystem Input;
 
     [Header("Ref")]
     // Flow

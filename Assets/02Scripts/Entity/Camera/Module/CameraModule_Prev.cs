@@ -8,7 +8,7 @@ namespace alpha.camera
     {
         #region Ref Component
         [SerializeField]
-        private InputSystem_Alpha _input;
+        private AlphaInputSystem _input;
         #endregion
 
         #region ==================== Config 

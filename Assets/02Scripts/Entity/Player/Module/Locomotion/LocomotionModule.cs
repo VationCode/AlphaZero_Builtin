@@ -16,7 +16,7 @@ public class LocomotionModule : MonoBehaviour
     // Ref
     [Header("[Ref]")]
     [SerializeField] private CharacterController _characterCtrl;
-    private AnimationBoundary _anim;
+    private PlayerAnimationModule _anim;
 
     [Header("GroundMovement")]
     [SerializeField] private float _moveSpeed = 3f;
@@ -73,7 +73,7 @@ public class LocomotionModule : MonoBehaviour
 
     public void Bind(PlayerCore p_core)
     {
-        _anim = p_core.AnimationBoundary;
+        _anim = p_core.AnimationModule;
     }
 
     private void Start()

@@ -3,18 +3,17 @@ using UnityEngine;
 public class WeaponSlot : SlotBase
 {
     public EWeaponType WeaponType { get; }
-    public WeaponSlot(EWeaponType weaponType)
+
+    public WeaponSlot(EWeaponType p_weaponType)
     {
-        WeaponType = weaponType;
+        WeaponType = p_weaponType;
     }
-    public override bool SetItem(ItemDTO p_item, int p_count = 1)
+
+    public override bool CanStore(ItemDTO p_item)
     {
         if (p_item is not WeaponDTO weapon)
             return false;
 
-        if (weapon.WeaponType != WeaponType)
-            return false;
-
-        return base.SetItem(p_item, 1);
+        return weapon.WeaponType == WeaponType;
     }
 }

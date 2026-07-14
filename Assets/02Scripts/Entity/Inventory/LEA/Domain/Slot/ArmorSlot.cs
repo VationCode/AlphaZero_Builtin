@@ -4,19 +4,16 @@ public class ArmorSlot : SlotBase
 {
     public EArmorType ArmorType { get; }
 
-    public ArmorSlot(EArmorType armorType)
+    public ArmorSlot(EArmorType p_armorType)
     {
-        ArmorType = armorType;
+        ArmorType = p_armorType;
     }
 
-    public override bool SetItem(ItemDTO p_item, int p_count = 1)
+    public override bool CanStore(ItemDTO p_item)
     {
         if (p_item is not ArmorDTO armor)
             return false;
 
-        if (armor.ArmorType != ArmorType)
-            return false;
-
-        return base.SetItem(p_item, 1);
+        return armor.ArmorType == ArmorType;
     }
 }
