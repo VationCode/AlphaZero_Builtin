@@ -29,6 +29,7 @@ public class PlayerCore : MonoBehaviour
     public CombatModule CombatModule { get; private set; }
     public PlayerAnimationModule AnimationModule { get; private set; }
     public PlayerInventoryModule InventoryModule { get; private set; }
+    public PlayerEquipmentModule EquipmentModule { get; private set; }
     #endregion
 
     public Transform PlayerTr;
@@ -56,6 +57,7 @@ public class PlayerCore : MonoBehaviour
         CombatModule = GetComponent<CombatModule>();
         AnimationModule = GetComponent<PlayerAnimationModule>();
         InventoryModule = GetComponent<PlayerInventoryModule>();
+        EquipmentModule = GetComponent<PlayerEquipmentModule>();
 
         PlayerTr = this.transform;
     }

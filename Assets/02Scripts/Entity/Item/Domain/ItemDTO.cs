@@ -9,16 +9,7 @@ public enum EItemType
     Armor = 1,
     Consumable = 2,
     Material = 3,
-    Quest = 4
-}
-
-public enum EArmorType
-{
-    None = -1,
-    Helmet = 0,
-    Chest = 1,
-    Gloves = 2,
-    Boots = 3
+    QuestItem = 4
 }
 
 [Serializable]
@@ -77,12 +68,20 @@ public class WeaponWrapper
 #endregion ==================== /Weapon
 
 #region ==================== Armor
+public enum EArmorType
+{
+    None = -1,
+    Helmet = 0,
+    Chest = 1,
+    Gloves = 2,
+    Boots = 3
+}
 [Serializable]
 public class ArmorDTO : ItemDTO
 {
     [Header("ArmorData")]
     public EArmorType ArmorType;
-    public int Defense;
+    public int BaseDefense;
 }
 public class ArmorWrapper
 {
@@ -92,10 +91,18 @@ public class ArmorWrapper
 #endregion ==================== /Armor
 
 #region ==================== Consumable
+public enum EConsumableType
+{
+    None = -1,
+    Heal = 0,
+    Mana = 1,
+    Pack = 2,
+}
 [Serializable]
 public class ConsumableDTO : ItemDTO
 {
     [Header("ConsumableData")]
+    public EConsumableType ConsumableType;
     public int HealAmount;
 }
 [Serializable]
@@ -106,10 +113,17 @@ public class ConsumableWrapper
 #endregion ==================== /Consumable
 
 #region ==================== Material
+public enum EMaterialType
+{
+    None = -1,
+    Mineral = 0,
+    Organic = 1,
+    Essence = 2,
+}
 [Serializable]
 public class MaterialDTO : ItemDTO
 {
-
+    EMaterialType MaterialType;
 }
 
 [Serializable]

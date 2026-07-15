@@ -32,7 +32,7 @@ public class PlayerInventoryModule : MonoBehaviour
             new ItemInventoryModule(EItemType.Material, _materialSlotCount);
 
         QuestInventory =
-            new ItemInventoryModule(EItemType.Quest, _questSlotCount);
+            new ItemInventoryModule(EItemType.QuestItem, _questSlotCount);
     }
 
     public bool TryAdd(ItemDTO p_item, int p_count)
@@ -60,7 +60,7 @@ public class PlayerInventoryModule : MonoBehaviour
                 isAdded = MaterialInventory.TryAdd(p_item, p_count);
                 break;
 
-            case EItemType.Quest:
+            case EItemType.QuestItem:
                 isAdded = QuestInventory.TryAdd(p_item, p_count);
                 break;
 
@@ -103,7 +103,7 @@ public class PlayerInventoryModule : MonoBehaviour
                     MaterialInventory.TryRemove(p_itemId, p_count);
                 break;
 
-            case EItemType.Quest:
+            case EItemType.QuestItem:
                 isRemoved =
                     QuestInventory.TryRemove(p_itemId, p_count);
                 break;

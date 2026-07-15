@@ -1,15 +1,15 @@
 {
     "ItemList": [
         {
-            "Id": 1000,
+            "Id": 100,
 
-            "Name": "Sword01",
+            "Name": "Melee00",
 
             "ItemType": 0,
 
-            "IconKey": "Sword01_Icon",
+            "IconKey": "Melee00_Icon",
 
-            "PrefabKey": "Sword01_Prefab",
+            "PrefabKey": "Melee01_Prefab",
 
             "Price": 500,
 
@@ -24,15 +24,61 @@
             "BaseDamage": 60
         },
         {
-            "Id": 2000,
+            "Id": 101,
 
-            "Name": "Rifle01",
+            "Name": "Melee01",
 
             "ItemType": 0,
 
-            "IconKey": "Rifle01_Icon",
+            "IconKey": "Melee01_Icon",
 
-            "PrefabKey": "Rifle01_Prefab",
+            "PrefabKey": "Melee01_Prefab",
+
+            "Price": 800,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 검",
+
+            "WeaponType": 0,
+
+            "BaseDamage": 60
+        },
+        {
+            "Id": 102,
+
+            "Name": "Melee02",
+
+            "ItemType": 0,
+
+            "IconKey": "Melee02_Icon",
+
+            "PrefabKey": "Melee02_Prefab",
+
+            "Price": 1500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 검",
+
+            "WeaponType": 0,
+
+            "BaseDamage": 60
+        },
+        {
+            "Id": 200,
+
+            "Name": "Range00",
+
+            "ItemType": 0,
+
+            "IconKey": "Range00_Icon",
+
+            "PrefabKey": "Range00_Prefab",
 
             "Price": 500,
 
@@ -47,15 +93,62 @@
             "BaseDamage": 15
         },
         {
-            "Id": 3000,
+            "Id": 201,
 
-            "Name": "Sniper01",
+            "Name": "Range01",
 
             "ItemType": 0,
 
-            "IconKey": "Sniper01_Icon",
+            "IconKey": "Range01_Icon",
 
-            "PrefabKey": "Sniper01_Prefab",
+            "PrefabKey": "Range01_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 소총",
+
+            "WeaponType": 1,
+
+            "BaseDamage": 15
+        },
+
+        {
+            "Id": 202,
+
+            "Name": "Range02",
+
+            "ItemType": 0,
+
+            "IconKey": "Range02_Icon",
+
+            "PrefabKey": "Range02_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 소총",
+
+            "WeaponType": 1,
+
+            "BaseDamage": 15
+        },
+        {
+            "Id": 300,
+
+            "Name": "SP00",
+
+            "ItemType": 0,
+
+            "IconKey": "SP00_Icon",
+
+            "PrefabKey": "SP00_Prefab",
 
             "Price": 600,
 
@@ -63,12 +156,57 @@
 
             "MaxStackCount": 1,
 
-            "Description": "기본 스나이퍼",
+            "Description": "특수 무기00",
+
+            "WeaponType": 2,
+
+            "BaseDamage": 200
+        },
+        {
+            "Id": 301,
+
+            "Name": "SP01",
+
+            "ItemType": 0,
+
+            "IconKey": "SP01_Icon",
+
+            "PrefabKey": "SP01_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "특수 무기01",
+
+            "WeaponType": 2,
+
+            "BaseDamage": 200
+        },
+        {
+            "Id": 302,
+
+            "Name": "SP02",
+
+            "ItemType": 0,
+
+            "IconKey": "SP02_Icon",
+
+            "PrefabKey": "SP02_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "특수 무기02",
 
             "WeaponType": 2,
 
             "BaseDamage": 200
         }
-
     ]
 }

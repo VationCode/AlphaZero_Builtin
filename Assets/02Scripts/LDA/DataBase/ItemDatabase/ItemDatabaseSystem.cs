@@ -8,7 +8,7 @@ public class ItemDatabaseSystem : MonoBehaviour
     {
         get
         {
-            if(_instance == null) _instance = FindObjectOfType<ItemDatabaseSystem>();
+            if(_instance == null) _instance = FindFirstObjectByType<ItemDatabaseSystem>();
             return _instance;
         }
     }
@@ -47,16 +47,10 @@ public class ItemDatabaseSystem : MonoBehaviour
     private async void Start()
     {
         await Weapon.InitializeAsync();
-
-        /*await Armor.InitializeAsync();
+        await Armor.InitializeAsync();
         await Consumable.InitializeAsync();
         await Material.InitializeAsync();
         await QuestItem.InitializeAsync();
-        var weaponDict = Weapon.GetAll();
-        foreach (var weapon in weaponDict)
-        {
-            Debug.Log($"ID : {weapon.Key}, Name : {weapon.Value.Name}");
-        }*/
     }
 
     public bool TryGetItem(EItemType p_type, int p_id, out ItemDTO p_data)
@@ -92,7 +86,7 @@ public class ItemDatabaseSystem : MonoBehaviour
                     return true;
                 }
                 break;
-            case EItemType.Quest:
+            case EItemType.QuestItem:
                 if (QuestItem.TryGet(p_id, out QuestItemDTO questItemDTO))
                 {
                     p_data = questItemDTO;

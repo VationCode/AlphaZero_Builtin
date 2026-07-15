@@ -10,11 +10,13 @@ public class ResourceLoadSystem : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = FindObjectOfType<ResourceLoadSystem>();
+                _instance = FindFirstObjectByType<ResourceLoadSystem>();
             }
             return _instance;
         }
     }
+    private readonly Dictionary<EItemType, Dictionary<string, Sprite>>
+    _iconCache = new Dictionary<EItemType, Dictionary<string, Sprite>>();
 
     private void Awake()
     {
@@ -25,6 +27,8 @@ public class ResourceLoadSystem : MonoBehaviour
         }
         _instance = this;
         DontDestroyOnLoad(gameObject);
+
+        LoadIconCache();
     }
 
     public GameObject GetItemPrefab(EItemType p_itemType, string p_key)
@@ -42,15 +46,55 @@ public class ResourceLoadSystem : MonoBehaviour
         return itemPrefab;
     }
 
-    public Sprite GetIcon(string p_key)
+    public Sprite GetIcon(EItemType p_itemType, string p_key)
     {
-        string spritePath = $"Icon/Items/{p_key}";
-        if(spritePath == null)
+        if (!_iconCache.TryGetValue(p_itemType, out Dictionary<string, Sprite> typeCache))
         {
-            Debug.LogError($"Sprite not found for key: {p_key}");
+            Debug.LogError($"Icon type not loaded: {p_itemType}");
+
             return null;
         }
-        Sprite sprite = Resources.Load<Sprite>(spritePath);
+
+        if (!typeCache.TryGetValue(p_key, out Sprite sprite))
+        {
+            Debug.LogError($"Icon not found: {p_itemType}/{p_key}");
+
+            return null;
+        }
+
         return sprite;
+    }
+
+    private void LoadIconCache()
+    {
+        EItemType[] itemTypes =
+            {EItemType.Weapon, EItemType.Armor,
+            EItemType.Consumable,EItemType.Material,
+            EItemType.QuestItem};
+
+        foreach (EItemType itemType in itemTypes)
+        {
+            string sheetPath =
+                $"Icon/Items/{itemType}/{itemType}Icons";
+
+            Sprite[] sprites =
+                Resources.LoadAll<Sprite>(sheetPath);
+
+            Dictionary<string, Sprite> typeCache = new Dictionary<string, Sprite>();
+
+            foreach (Sprite sprite in sprites)
+            {
+                if (typeCache.ContainsKey(sprite.name))
+                {
+                    Debug.LogError($"Duplicated sprite name: {itemType}/{sprite.name}");
+
+                    continue;
+                }
+
+                typeCache.Add(sprite.name, sprite);
+            }
+
+            _iconCache[itemType] = typeCache;
+        }
     }
 }

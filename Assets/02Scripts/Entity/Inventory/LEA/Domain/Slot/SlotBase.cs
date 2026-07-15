@@ -1,12 +1,16 @@
 // 아이템 데이터 보관
 // 아이템 수량 보관
 // 슬롯 초기화
+using System;
+
 public abstract class SlotBase
 {
    public ItemDTO Item { get; private set; }
     public int Count { get; private set; }
 
     public bool IsEmpty => Item == null;
+
+    public event Action<SlotBase> Changed;
 
     public bool SetItem(ItemDTO p_item, int p_count = 1)
     {
@@ -25,6 +29,7 @@ public abstract class SlotBase
         Item = p_item;
         Count = p_count;
 
+        NotifyChanged();
         return true;
     }
 
@@ -32,6 +37,8 @@ public abstract class SlotBase
     {
         Item = null;
         Count = 0;
+
+        NotifyChanged();
     }
 
     public abstract bool CanStore(ItemDTO p_item);
@@ -51,6 +58,8 @@ public abstract class SlotBase
             return false;
 
         Count += p_count;
+
+        NotifyChanged();
         return true;
     }
 
@@ -66,7 +75,15 @@ public abstract class SlotBase
 
         if (Count == 0)
             Clear();
+        else
+            NotifyChanged();
+        
 
         return true;
+    }
+
+    private void NotifyChanged()
+    {
+        Changed?.Invoke(this);
     }
 }

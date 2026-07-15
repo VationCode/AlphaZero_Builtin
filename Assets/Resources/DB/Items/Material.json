@@ -1,0 +1,68 @@
+{
+    "ItemList": [
+        {
+            "Id": 3000,
+
+            "Name": "Mineral00",
+
+            "ItemType": 3,
+
+            "IconKey": "Mineral00_Icon",
+
+            "PrefabKey": "Mineral00_Prefab",
+
+            "Price": 100,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 99,
+
+            "Description": "에너지 결정",
+
+            "MaterialType": 0
+        },
+        {
+            "Id": 3100,
+
+            "Name": "Organic00",
+
+            "ItemType": 3,
+
+            "IconKey": "Organic00_Icon",
+
+            "PrefabKey": "Organic00_Prefab",
+
+            "Price": 100,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 99,
+
+            "Description": "생체 소재",
+
+            "MaterialType": 1
+        },
+        {
+            "Id": 3200,
+
+            "Name": "Essence00",
+
+            "ItemType": 3,
+
+            "IconKey": "Essence00_Icon",
+
+            "PrefabKey": "Essence00_Prefab",
+
+            "Price": 100,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 99,
+
+            "Description": "에너지 코어",
+
+            "MaterialType": 2
+        }
+
+    ]
+}

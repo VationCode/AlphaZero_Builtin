@@ -46,7 +46,7 @@ public class SlotPresenter : ISlotDragHandler
         }
 
         Sprite icon =
-            _resourceLoader.GetIcon(_slot.Item.IconKey);
+            _resourceLoader.GetIcon(_slot.Item.ItemType, _slot.Item.IconKey);
 
         _view.Show(icon, _slot.Count);
     }

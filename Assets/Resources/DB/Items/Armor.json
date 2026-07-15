@@ -1,0 +1,280 @@
+{
+    "ItemList": [
+        {
+            "Id": 1000,
+
+            "Name": "Helmet00",
+
+            "ItemType": 1,
+
+            "IconKey": "Helmet00_Icon",
+
+            "PrefabKey": "Helmet00_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 헬멧",
+
+            "ArmorType": 0,
+
+            "BaseDefense": 15
+        },
+        {
+            "Id": 1001,
+
+            "Name": "Helmet01",
+
+            "ItemType": 1,
+
+            "IconKey": "Helmet01_Icon",
+
+            "PrefabKey": "Helmet01_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 헬멧",
+
+            "ArmorType": 0,
+
+            "BaseDefense": 30
+        },
+        {
+            "Id": 1002,
+
+            "Name": "Helmet02",
+
+            "ItemType": 1,
+
+            "IconKey": "Helmet02_Icon",
+
+            "PrefabKey": "Helmet02_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 헬멧",
+
+            "ArmorType": 0,
+
+            "BaseDefense": 60
+        },
+        {
+            "Id": 1100,
+
+            "Name": "Chest00",
+
+            "ItemType": 1,
+
+            "IconKey": "Chest00_Icon",
+
+            "PrefabKey": "Chest00_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 갑옷",
+
+            "ArmorType": 1,
+
+            "BaseDefense": 15
+        },
+        {
+            "Id": 1101,
+
+            "Name": "Chest01",
+
+            "ItemType": 1,
+
+            "IconKey": "Chest01_Icon",
+
+            "PrefabKey": "Chest01_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 갑옷",
+
+            "ArmorType": 1,
+
+            "BaseDefense": 30
+        },
+        {
+            "Id": 1102,
+
+            "Name": "Chest02",
+
+            "ItemType": 1,
+
+            "IconKey": "Chest02_Icon",
+
+            "PrefabKey": "Chest02_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 갑옷",
+
+            "ArmorType": 1,
+
+            "BaseDefense": 60
+        },
+        {
+            "Id": 1200,
+
+            "Name": "Gloves00",
+
+            "ItemType": 1,
+
+            "IconKey": "Gloves00_Icon",
+
+            "PrefabKey": "Gloves00_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 장갑",
+
+            "ArmorType": 2,
+
+            "BaseDefense": 15
+        },
+        {
+            "Id": 1201,
+
+            "Name": "Gloves01",
+
+            "ItemType": 1,
+
+            "IconKey": "Gloves01_Icon",
+
+            "PrefabKey": "Gloves01_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 장갑",
+
+            "ArmorType": 2,
+
+            "BaseDefense": 30
+        },
+        {
+            "Id": 1202,
+
+            "Name": "Gloves02",
+
+            "ItemType": 1,
+
+            "IconKey": "Gloves02_Icon",
+
+            "PrefabKey": "Gloves02_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 장갑",
+
+            "ArmorType": 2,
+
+            "BaseDefense": 60
+        },
+        {
+            "Id": 1300,
+
+            "Name": "Boots00",
+
+            "ItemType": 1,
+
+            "IconKey": "Boots00_Icon",
+
+            "PrefabKey": "Boots00_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 신발",
+
+            "ArmorType": 3,
+
+            "BaseDefense": 15
+        },
+        {
+            "Id": 1301,
+
+            "Name": "Boots01",
+
+            "ItemType": 1,
+
+            "IconKey": "Boots01_Icon",
+
+            "PrefabKey": "Boots01_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 신발",
+
+            "ArmorType": 3,
+
+            "BaseDefense": 30
+        },
+        {
+            "Id": 1302,
+
+            "Name": "Boots02",
+
+            "ItemType": 1,
+
+            "IconKey": "Boots02_Icon",
+
+            "PrefabKey": "Boots02_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "고급 신발",
+
+            "ArmorType": 3,
+
+            "BaseDefense": 60
+        }
+    ]
+}

@@ -14,10 +14,8 @@ public class ItemPickupFlow : MonoBehaviour
         if (p_pickup == null || _inventoryModule == null)
             return false;
 
-        if (!ItemDatabaseSystem.Instance.TryGetItem(
-                p_pickup.ItemType,
-                p_pickup.ItemId,
-                out ItemDTO item))
+        
+        if (!ItemDatabaseSystem.Instance.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDTO item))
         {
             return false;
         }
