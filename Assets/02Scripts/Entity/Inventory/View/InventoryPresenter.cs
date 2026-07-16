@@ -1,3 +1,4 @@
+using System;
 
 public class InventoryPresenter
 {
@@ -8,6 +9,10 @@ public class InventoryPresenter
     private readonly ItemInventoryPresenter _materialPresenter;
     private readonly ItemInventoryPresenter _questPresenter;
 
+    public event Action<bool> OpenStateChanged;
+
+    public bool IsOpen => _inventoryView.IsOpen;
+    // 생성자
     public InventoryPresenter
         (PlayerInventoryModule p_playerInventory, 
         InventoryView p_inventoryView, 
@@ -32,6 +37,10 @@ public class InventoryPresenter
             new ItemInventoryPresenter(p_playerInventory.QuestInventory, p_inventoryView.QuestView, p_resourceLoader, p_transferSystem);
 
         p_playerInventory.InventoryChanged += Refresh;
+
+        _inventoryView = p_inventoryView;
+
+        _inventoryView.OpenStateChanged += OnOpenStateChanged;
     }
 
     public void Initialize()
@@ -65,5 +74,10 @@ public class InventoryPresenter
         _consumablePresenter.Refresh();
         _materialPresenter.Refresh();
         _questPresenter.Refresh();
+    }
+
+    private void OnOpenStateChanged(bool p_isOpen)
+    {
+        OpenStateChanged?.Invoke(p_isOpen);
     }
 }

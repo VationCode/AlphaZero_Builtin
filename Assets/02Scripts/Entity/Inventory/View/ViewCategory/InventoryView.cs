@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public enum EInventoryView
 {
@@ -40,6 +41,7 @@ public class InventoryView : MonoBehaviour
     public ItemInventoryView QuestView =>
         _questInventory as ItemInventoryView;
 
+    public event Action<bool> OpenStateChanged;
     private void Awake()
     {
         _viewDict = new Dictionary<EInventoryView, ViewBase>
@@ -87,8 +89,19 @@ public class InventoryView : MonoBehaviour
         if (CurrentView == p_view)
             return;
 
+        bool wasOpen = IsOpen;
+
         CurrentView = p_view;
         ApplyView();
+
+        bool isOpen = IsOpen;
+
+        // 카테고리 간 이동에서는 호출하지 않고,
+        // 실제 열기 또는 닫기에서만 호출한다.
+        if (wasOpen != isOpen)
+        {
+            OpenStateChanged?.Invoke(isOpen);
+        }
     }
 
     private void ApplyView()

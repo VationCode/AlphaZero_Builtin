@@ -4,20 +4,23 @@ using UnityEngine;
 public class PlayerCore : MonoBehaviour
 {
     #region ========== OutSideBind
-    public AlphaInputSystem InputManager {  get; private set; }
+    public AlphaInputSystem Input {  get; private set; }
     public CameraCore CameraCore { get; private set; }
     public UIManager UIManager { get; private set; }
     public InventoryPresenter InventoryPresenter { get; private set; }
+    public ResourceLoadSystem ResourceLoader { get; private set; }
 
     #endregion
 
     #region ========== Flow
-    public PlayerStateMachine StateMachine { get; private set; }
-    public ItemPickupFlow ItemPickupController { get; private set; }
+    public PlayerStateMachine StateMachineFlow { get; private set; }
+    public ItemPickupFlow ItemPickupFlow { get; private set; }
     public PlayerInventoryFlow InventoryFlow { get; private set; }
 
     public LocomotionRule LocoRule = new LocomotionRule();
     public CombatRule CombatRule = new CombatRule();
+
+    public PlayerEquipmentFlow EquipmentFlow { get; private set; }
     #endregion
 
     #region ========== Domain
@@ -27,74 +30,87 @@ public class PlayerCore : MonoBehaviour
     #region ========== Module
     public LocomotionModule LocoModule { get; private set; }
     public CombatModule CombatModule { get; private set; }
-    public PlayerAnimationModule AnimationModule { get; private set; }
     public PlayerInventoryModule InventoryModule { get; private set; }
     public PlayerEquipmentModule EquipmentModule { get; private set; }
     #endregion
 
+    #region ========== View
+    public PlayerAnimationView AnimationView { get; private set; }
+    public PlayerEquipmentView EquipmentView { get; private set; }
+    #endregion
     public Transform PlayerTr;
 
     public bool CanLocomotion => _canLocomotion;
     private bool _canLocomotion;
 
-    public bool BlockCombat => _canCombat;
-    private bool _canCombat;
+    public bool BlockCombat => _isCombatBlocked;
+    private bool _isCombatBlocked;
 
-    public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera)
+    public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera, ResourceLoadSystem p_resourceLoad)
     {
-        InputManager = p_input;
+        Input = p_input;
         UIManager = p_ui;
         CameraCore = p_camera;
-    }
+        ResourceLoader = p_resourceLoad;
+    }   
 
     private void Awake()
     {
-        StateMachine = GetComponent<PlayerStateMachine>();
-        ItemPickupController = GetComponent<ItemPickupFlow>();
+        StateMachineFlow = GetComponent<PlayerStateMachine>();
+        ItemPickupFlow = GetComponent<ItemPickupFlow>();
         InventoryFlow = GetComponent<PlayerInventoryFlow>();
+        EquipmentFlow = GetComponent<PlayerEquipmentFlow>();
 
         LocoModule = GetComponent<LocomotionModule>();
         CombatModule = GetComponent<CombatModule>();
-        AnimationModule = GetComponent<PlayerAnimationModule>();
+        AnimationView = GetComponent<PlayerAnimationView>();
         InventoryModule = GetComponent<PlayerInventoryModule>();
         EquipmentModule = GetComponent<PlayerEquipmentModule>();
+
+        EquipmentView = GetComponent<PlayerEquipmentView>();
 
         PlayerTr = this.transform;
     }
 
     private void Start()
     {
+        StateMachineFlow.Bind(this);
+        InventoryFlow.Bind(this);
+        ItemPickupFlow.Bind(InventoryModule);
+        if (EquipmentFlow == null || EquipmentView == null)
+        {
+            Debug.LogError("[PlayerCore] PlayerEquipmentFlow 또는 PlayerEquipmentView가 없습니다.",this);
+
+            return;
+        }
+        EquipmentFlow.Bind(EquipmentModule, EquipmentView, ResourceLoader);
+        
         LocoModule.Bind(this);
         CombatModule.Bind(this);
-        StateMachine.Bind(this);
-        AnimationModule.Bind(PlayerTr);
-        ItemPickupController.Bind(InventoryModule);
-        InventoryFlow.Bind(this);
+        
+        AnimationView.Bind(PlayerTr);
+
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha8))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha8))
         {
             CameraCore.TransitionView(EViewType.ThirdPerson);
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha9))
+        else if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha9))
         {
             CameraCore.TransitionView(EViewType.Aim);
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha0))
+        else if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha0))
         {
             CameraCore.TransitionView(EViewType.Quarter);
         }
     }
 
-    public void InventoryActiveChanged(bool p_isCombat)
+    public void SetCombatBlocked(bool p_isBlocked)
     {
-        _canCombat = p_isCombat;
+        _isCombatBlocked = p_isBlocked;
     }
 
-    public void SetLocomotionMode(bool p_isLocomotion)
-    {
-        _canLocomotion = p_isLocomotion;
-    }
 }

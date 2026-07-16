@@ -20,7 +20,7 @@ public class Installer : MonoBehaviour
 
     private void Awake()
     {
-        _player.Bind(_input, _ui, _camera);
+        _player.Bind(_input, _ui, _camera, _resourceLoader);
     }
 
     private void Start()
