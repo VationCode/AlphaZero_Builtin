@@ -83,7 +83,8 @@ public class PlayerCore : MonoBehaviour
 
             return;
         }
-        EquipmentFlow.Bind(EquipmentModule, EquipmentView, ResourceLoader);
+
+        EquipmentFlow.Bind(this);
         
         LocoModule.Bind(this);
         CombatModule.Bind(this);

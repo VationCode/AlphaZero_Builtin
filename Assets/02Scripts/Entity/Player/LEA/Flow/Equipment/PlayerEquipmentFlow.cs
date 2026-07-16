@@ -5,16 +5,16 @@ public class PlayerEquipmentFlow : MonoBehaviour
     private PlayerEquipmentModule _equipmentModule;
     private PlayerEquipmentView _equipmentView;
     private ResourceLoadSystem _resourceLoader;
+    private PlayerAnimationView _animationView;
 
-    public void Bind(PlayerEquipmentModule p_equipmentModule,
-                    PlayerEquipmentView p_equipmentView, 
-                    ResourceLoadSystem p_resourceLoader)
+    public void Bind(PlayerCore p_core)
     {
         Unbind();
 
-        _equipmentModule = p_equipmentModule;
-        _equipmentView = p_equipmentView;
-        _resourceLoader = p_resourceLoader;
+        _equipmentModule = p_core.EquipmentModule;
+        _equipmentView = p_core.EquipmentView;
+        _animationView = p_core.AnimationView;
+        _resourceLoader = p_core.ResourceLoader;
 
         if (_equipmentModule == null || _equipmentView == null || _resourceLoader == null)
         {
@@ -26,6 +26,11 @@ public class PlayerEquipmentFlow : MonoBehaviour
         }
 
         _equipmentModule.EquipmentChanged += OnEquipmentChanged;
+        _equipmentModule.ActiveWeaponChanged += OnActiveWeaponChanged;
+
+        // 시작 시 현재 무기 상태에 맞는 Controller만 적용한다.
+        // 여기에서는 Swap 애니메이션을 실행하지 않는다.
+        _animationView?.ApplyWeaponOverrideController(_equipmentModule.ActiveWeaponType);
 
         foreach (SlotBase slot in _equipmentModule.SlotList)
         {
@@ -62,8 +67,7 @@ public class PlayerEquipmentFlow : MonoBehaviour
         if (_equipmentModule.ActiveWeaponType == p_weaponType)
             return false;
 
-        WeaponSlot weaponSlot =
-            _equipmentModule.GetWeaponSlot(p_weaponType);
+        WeaponSlot weaponSlot = _equipmentModule.GetWeaponSlot(p_weaponType);
 
         if (weaponSlot == null || weaponSlot.IsEmpty)
             return false;
@@ -71,36 +75,47 @@ public class PlayerEquipmentFlow : MonoBehaviour
         if (!TryEquipSlot(weaponSlot))
             return false;
 
-        return _equipmentModule.TrySelectWeapon(p_weaponType);
+        if (!_equipmentModule.TrySelectWeapon(p_weaponType))
+            return false;
+
+        return true;
     }
+    private void OnActiveWeaponChanged(WeaponDTO p_weapon)
+    {
+        EWeaponType weaponType = p_weapon != null ? p_weapon.WeaponType : EWeaponType.None;
+
+        _animationView?.ApplyWeaponOverrideController(weaponType);
+        _animationView?.PlayWeaponSwap();
+    }
+
     private void OnEquipmentChanged(SlotBase p_slot)
     {
-        if (p_slot == null || !_equipmentView.Supports(p_slot))
+        if (p_slot == null)
             return;
 
-        if (p_slot is ArmorSlot)
+        if (p_slot is ArmorSlot armorSlot)
         {
-            SynchronizeArmor(p_slot);
+            SynchronizeArmor(armorSlot);
             return;
         }
 
         if (p_slot is not WeaponSlot weaponSlot)
             return;
 
-        if (p_slot.IsEmpty)
+        if (weaponSlot.IsEmpty)
         {
             OnWeaponRemoved(weaponSlot);
             return;
         }
 
-        // 처음 장착한 무기는 자동으로 활성 무기가 된다.
+        // 첫 무기 장착
         if (_equipmentModule.ActiveWeaponType == EWeaponType.None)
         {
             SelectWeapon(weaponSlot.WeaponType);
             return;
         }
 
-        // 현재 사용 중인 슬롯의 아이템이 교체된 경우 외형도 교체한다.
+        // 현재 활성화된 무기 슬롯의 장비 교체
         if (_equipmentModule.ActiveWeaponType == weaponSlot.WeaponType)
         {
             TryEquipSlot(weaponSlot);
@@ -126,13 +141,12 @@ public class PlayerEquipmentFlow : MonoBehaviour
 
         _equipmentView.Unequip(p_weaponSlot);
 
-        if (!TrySelectFallbackWeapon())
-        {
-            _equipmentModule.ClearActiveWeapon();
-        }
+        // 대체 무기가 선택되면 ActiveWeaponChanged가 발생한다.
+        if (TrySelectFallbackWeapon()) return;
+
+        // 남은 무기가 없으면 null로 ActiveWeaponChanged가 발생한다.
+        _equipmentModule.ClearActiveWeapon();
     }
-
-
 
     private bool TrySelectFallbackWeapon()
     {
@@ -168,10 +182,10 @@ public class PlayerEquipmentFlow : MonoBehaviour
 
     private void Unbind()
     {
-        if (_equipmentModule != null)
-        {
-            _equipmentModule.EquipmentChanged -= OnEquipmentChanged;
-        }
+        if (_equipmentModule == null) return;
+
+        _equipmentModule.EquipmentChanged -= OnEquipmentChanged;
+        _equipmentModule.ActiveWeaponChanged -= OnActiveWeaponChanged;
     }
 
     private void OnDestroy()

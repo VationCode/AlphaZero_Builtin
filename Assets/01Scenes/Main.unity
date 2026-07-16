@@ -21128,6 +21128,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _flyUpDownAnim: {fileID: 2741921899698313788}
+  _unarmedOverrideController: {fileID: 22100000, guid: 64c20a7c82c403e4ca94e227a09ff7e9, type: 2}
+  _meleeOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
+  _rangeOverrideController: {fileID: 22100000, guid: 34976b7d7579db54a873721598e98762, type: 2}
+  _specialOverrideController: {fileID: 22100000, guid: c2489d0853f6b6e42ae85cb2a04bc33c, type: 2}
 --- !u!114 &9056764102366596955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21226,6 +21230,7 @@ MonoBehaviour:
   _bootsPivots:
   - {fileID: 1887335879}
   - {fileID: 123050091}
+  _weaponRemoveDelay: 0.25
 --- !u!114 &9056764102366596964
 MonoBehaviour:
   m_ObjectHideFlags: 0

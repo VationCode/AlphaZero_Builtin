@@ -4,22 +4,104 @@ using UnityEngine.Windows;
 [RequireComponent(typeof(Animator))]
 public class PlayerAnimationView : MonoBehaviour
 {
+    private Animator _anim;
+
     [SerializeField] private Animator _flyUpDownAnim;
 
-    private Animator _anim;
+    [Header("Weapon Animator Override")]
+    [SerializeField]
+    private AnimatorOverrideController _unarmedOverrideController;
+
+    [SerializeField]
+    private AnimatorOverrideController _meleeOverrideController;
+
+    [SerializeField]
+    private AnimatorOverrideController _rangeOverrideController;
+
+    [SerializeField]
+    private AnimatorOverrideController _specialOverrideController;
+
+    private RuntimeAnimatorController _initialController;
+
+
     private int _isSprint = Animator.StringToHash("IsSprint");
     private int _isIncombat = Animator.StringToHash("IsInCombat");
     private int _isGround = Animator.StringToHash("IsGround");
+    private readonly int _swap = Animator.StringToHash("Swap");
+    private const string WeaponUpperBodyLayerName = "Weapon UpperBody Layer";
+    private int _weaponUpperBodyLayerIndex = -1;
 
     private Transform _playerTr;
     private void Awake()
     {
         _anim = GetComponent<Animator>();
+        _initialController = _anim.runtimeAnimatorController;
+
+        _weaponUpperBodyLayerIndex = _anim.GetLayerIndex(WeaponUpperBodyLayerName);
+
+        if (_weaponUpperBodyLayerIndex < 0)
+        {
+            Debug.LogError($"Animator Layer를 찾을 수 없습니다: {WeaponUpperBodyLayerName}", this);
+            return;
+        }
+
+        _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
     }
 
     public void Bind(Transform p_playerTr)
     {
         _playerTr = p_playerTr;
+    }
+
+    public void ApplyWeaponOverrideController(EWeaponType p_weaponType)
+    {
+        if (_anim == null)
+            return;
+
+        RuntimeAnimatorController nextController = GetWeaponOverrideController(p_weaponType);
+
+        if (nextController == null)
+        {
+            Debug.LogError($"등록된 AnimatorOverrideController가 없습니다: {p_weaponType}", this);
+
+            return;
+        }
+
+        if (_anim.runtimeAnimatorController == nextController)
+            return;
+
+        _anim.runtimeAnimatorController = nextController;
+
+        // 모든 Override Controller가 같은 Base Controller를 사용하지만
+        // 안전하게 Layer Index와 Weight를 다시 확인한다.
+        _weaponUpperBodyLayerIndex = _anim.GetLayerIndex(WeaponUpperBodyLayerName);
+
+        if (_weaponUpperBodyLayerIndex >= 0)
+        {
+            _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+        }
+    }
+    private RuntimeAnimatorController GetWeaponOverrideController(EWeaponType p_weaponType)
+    {
+        switch (p_weaponType)
+        {
+            case EWeaponType.Melee:
+                return _meleeOverrideController;
+
+            case EWeaponType.Range:
+                return _rangeOverrideController;
+
+            case EWeaponType.Special:
+                return _specialOverrideController;
+
+            case EWeaponType.None:
+                return _unarmedOverrideController != null
+                    ? _unarmedOverrideController
+                    : _initialController;
+
+            default:
+                return null;
+        }
     }
 
     // 비전투 : 그냥 입력키값
@@ -80,5 +162,18 @@ public class PlayerAnimationView : MonoBehaviour
     public void IsFlyUpDownPos(bool p_isFly)
     {
         _flyUpDownAnim.SetBool("IsFly", p_isFly);
+    }
+
+    public void PlayWeaponSwap()
+    {
+        if (_anim == null) return;
+
+        if (_weaponUpperBodyLayerIndex >= 0)
+        {
+            _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+        }
+
+        _anim.ResetTrigger(_swap);
+        _anim.SetTrigger(_swap);
     }
 }
