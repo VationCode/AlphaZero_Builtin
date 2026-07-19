@@ -1,18 +1,22 @@
+using Alpha.UI;
 using UnityEngine;
 
-public class ItemInventoryView : ViewBase
+namespace Alpha.Inventory
 {
-    [SerializeField]
-    private SlotBaseUI _slotPrefab;
-
-    [SerializeField]
-    private Transform _content;
-
-    public SlotBaseUI CreateSlotView()
+    public class ItemInventoryView : ViewBase
     {
-        if (_slotPrefab == null || _content == null)
-            return null;
+        [SerializeField]
+        private SlotBaseUI _slotPrefab;
 
-        return Instantiate(_slotPrefab, _content);
+        [SerializeField]
+        private Transform _content;
+
+        public SlotBaseUI CreateSlotView()
+        {
+            if (_slotPrefab == null || _content == null)
+                return null;
+
+            return Instantiate(_slotPrefab, _content);
+        }
     }
 }

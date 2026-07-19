@@ -1,6 +1,10 @@
+using Alpha.UI;
 using UnityEngine;
 
-public class CategoryInventoryView : ViewBase
+namespace Alpha.Inventory
 {
+    public class CategoryInventoryView : ViewBase
+    {
 
+    }
 }

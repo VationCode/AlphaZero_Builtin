@@ -1,93 +1,62 @@
+using System;
 using System.Collections.Generic;
 
-// 논리 슬롯 목록 소유
-// 외부에 읽기 전용 슬롯 목록 제공
-// 현재 슬롯 수 제공
-// 파생 인벤토리가 생성한 슬롯 추가
-// 파생 인벤토리에 아이템 보관 조건 위임
+// Slot 목록을 관리하고 Item 추가와 제거를 처리한다.
 public abstract class InventoryModuleBase
 {
     private readonly List<SlotBase> _slotList = new();
 
     public IReadOnlyList<SlotBase> SlotList => _slotList;
-    public int Capacity => _slotList.Count;
 
-    private bool TryAddOne(ItemDTO p_item)
+    private void TryAddOneItem(ItemDTO p_item)
     {
         if (p_item.IsStackable)
         {
             foreach (SlotBase slot in _slotList)
             {
-                if (slot.TryStack(p_item))
-                    return true;
+                if (slot.TryStack(p_item)) 
+                    return;
             }
         }
 
         foreach (SlotBase slot in _slotList)
         {
-            if (!slot.IsEmpty)
-                continue;
-
-            if (slot.SetItem(p_item))
-                return true;
+            if (slot.IsEmpty && slot.SetItem(p_item))
+                return;
         }
-
-        return false;
     }
 
-    public bool TryAdd(ItemDTO p_item, int p_count)
+    // 보관 가능한 Slot에 Item을 추가한다.
+    public bool TryAddItem(ItemDTO p_item, int p_count = 1)
     {
-        if (p_item == null || p_count <= 0)
+        if (p_item == null || p_count <= 0 || GetAvailableCount(p_item) < p_count)
+        {
             return false;
-
-        if (!CanStore(p_item))
-            return false;
-
-        if (GetAvailableCount(p_item) < p_count)
-            return false;
+        }
 
         for (int i = 0; i < p_count; i++)
         {
-            if (!TryAddOne(p_item))
-                return false;
+            TryAddOneItem(p_item);
         }
 
         return true;
     }
 
-    public bool TryRemove(int p_itemId, int p_count = 1)
+    public bool TryRemoveItem(int p_itemId, int p_count = 1)
     {
-        if (p_count <= 0)
-            return false;
-
-        int totalCount = 0;
-
-        foreach (SlotBase slot in _slotList)
+        if (p_count <= 0 || GetItemCount(p_itemId) < p_count)
         {
-            if (slot.IsEmpty)
-                continue;
-
-            if (slot.Item.Id == p_itemId)
-                totalCount += slot.Count;
+            return false;
         }
 
-        if (totalCount < p_count)
-            return false;
-
         int remainingCount = p_count;
-
+        
         foreach (SlotBase slot in _slotList)
         {
-            if (slot.IsEmpty)
+            if (slot.IsEmpty || slot.Item.Id != p_itemId)
                 continue;
-
-            if (slot.Item.Id != p_itemId)
-                continue;
-
-            int removeCount = remainingCount;
-
-            if (removeCount > slot.Count)
-                removeCount = slot.Count;
+            
+            int removeCount = Math.Min(slot.Count, remainingCount);
 
             slot.TryRemoveCount(removeCount);
             remainingCount -= removeCount;
@@ -95,10 +64,25 @@ public abstract class InventoryModuleBase
             if (remainingCount == 0)
                 return true;
         }
-
         return false;
     }
 
+    // Inventory에 보관된 Item 수량을 계산한다.
+    private int GetItemCount(int p_itemId)
+    {
+        int itemCount = 0;
+
+        foreach (SlotBase slot in _slotList)
+        {
+            if (!slot.IsEmpty && slot.Item.Id == p_itemId)
+            {
+                itemCount += slot.Count;
+            }
+        }
+        return itemCount;
+    }
+
+    // Inventory에 새로운 Slot을 추가한다.
     protected void AddSlot(SlotBase p_slot)
     {
         if (p_slot == null)
@@ -107,43 +91,28 @@ public abstract class InventoryModuleBase
         _slotList.Add(p_slot);
     }
 
-    protected abstract bool CanStore(ItemDTO p_item);
-
+    // Item을 추가할 수 있는 전체 수량을 계산한다.
     private int GetAvailableCount(ItemDTO p_item)
     {
         int availableCount = 0;
 
         foreach (SlotBase slot in _slotList)
         {
+            // 저장 불가시
+            if (!slot.CanStore(p_item)) continue;
+
+            // 빈 슬롯이 IsStackable일 때
             if (slot.IsEmpty)
             {
-                if (!slot.CanStore(p_item))
-                    continue;
-
-                if (p_item.IsStackable)
-                {
-                    if (p_item.MaxStackCount > 0)
-                        availableCount += p_item.MaxStackCount;
-                }
-                else
-                {
-                    availableCount += 1;
-                }
-
+                availableCount += p_item.IsStackable ? p_item.MaxStackCount : 1;
                 continue;
             }
 
-            if (!p_item.IsStackable)
-                continue;
-
-            if (slot.Item.Id != p_item.Id)
-                continue;
-
-            int slotAvailableCount =
-                slot.Item.MaxStackCount - slot.Count;
-
-            if (slotAvailableCount > 0)
-                availableCount += slotAvailableCount;
+            // 같은 Id이고 스택 가능할 때
+            if (slot.Item.Id == p_item.Id && p_item.IsStackable )
+            {
+                availableCount += slot.Item.MaxStackCount - slot.Count;
+            }
         }
 
         return availableCount;

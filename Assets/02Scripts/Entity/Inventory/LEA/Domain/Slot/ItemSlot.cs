@@ -9,13 +9,6 @@ public class ItemSlot : SlotBase
     }
     public override bool CanStore(ItemDTO p_item)
     {
-        if (p_item == null)
-            return false;
-
-        if (p_item.ItemType == EItemType.Weapon ||
-            p_item.ItemType == EItemType.Armor)
-            return false;
-
-        return ItemType == p_item.ItemType;
+        return p_item != null && p_item.ItemType == ItemType;
     }
 }

@@ -1,52 +1,46 @@
 using System.Collections.Generic;
-using UnityEngine;
 
-public class ArmorInventoryPresenter
+namespace Alpha.Inventory
 {
-    private readonly ArmorInventoryModule _inventory;
-    private readonly ArmorInventoryView _view;
-    private readonly ResourceLoadSystem _resourceLoader;
-
-    private readonly List<SlotPresenter> _slotPresenters = new();
-    private readonly SlotTransferSystem _transferSystem;
-    public ArmorInventoryPresenter(
-        ArmorInventoryModule p_inventory,
-        ArmorInventoryView p_view,
-        ResourceLoadSystem p_resourceLoader,
-        SlotTransferSystem p_transferSystem)
+    public class ArmorInventoryPresenter
     {
-        _inventory = p_inventory;
-        _view = p_view;
-        _resourceLoader = p_resourceLoader;
-        _transferSystem = p_transferSystem;
-    }
+        private readonly ArmorInventoryModule _inventory;
+        private readonly ArmorInventoryView _view;
+        private readonly ResourceLoadSystem _resourceLoader;
 
-    public void Initialize()
-    {
-        foreach (SlotBase slot in _inventory.SlotList)
+        private readonly List<SlotPresenter> _slotPresenters = new();
+        private readonly SlotTransferSystem _transferSystem;
+        public ArmorInventoryPresenter(
+            ArmorInventoryModule p_inventory,
+            ArmorInventoryView p_view,
+            ResourceLoadSystem p_resourceLoader,
+            SlotTransferSystem p_transferSystem)
         {
-            if (slot is not ArmorSlot armorSlot)
-                continue;
-
-            SlotBaseUI slotView =
-                _view.CreateSlotView(armorSlot.ArmorType);
-
-            if (slotView == null)
-                continue;
-
-            SlotPresenter presenter = 
-                new SlotPresenter(armorSlot, slotView, _resourceLoader, _transferSystem);
-
-            _slotPresenters.Add(presenter);
-            presenter.Refresh();
+            _inventory = p_inventory;
+            _view = p_view;
+            _resourceLoader = p_resourceLoader;
+            _transferSystem = p_transferSystem;
         }
-    }
 
-    public void Refresh()
-    {
-        foreach (SlotPresenter presenter in _slotPresenters)
+        public void Initialize()
         {
-            presenter.Refresh();
+            foreach (SlotBase slot in _inventory.SlotList)
+            {
+                if (slot is not ArmorSlot armorSlot)
+                    continue;
+
+                SlotBaseUI slotView =
+                    _view.CreateSlotView(armorSlot.ArmorType);
+
+                if (slotView == null)
+                    continue;
+
+                SlotPresenter presenter =
+                    new SlotPresenter(armorSlot, slotView, _resourceLoader, _transferSystem);
+
+                _slotPresenters.Add(presenter);
+                presenter.Refresh();
+            }
         }
     }
 }

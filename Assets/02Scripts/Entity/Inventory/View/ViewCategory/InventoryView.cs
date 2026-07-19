@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Alpha.UI;
 
 public enum EInventoryView
 {
@@ -12,110 +13,95 @@ public enum EInventoryView
     Material,
     Quest
 }
-public class InventoryView : MonoBehaviour
+
+namespace Alpha.Inventory
 {
-    [SerializeField] private ViewBase _category;
-    [SerializeField] private ViewBase _weaponInventory;
-    [SerializeField] private ViewBase _armorInventory;
-    [SerializeField] private ViewBase _consumableInventory;
-    [SerializeField] private ViewBase _materialInventory;
-    [SerializeField] private ViewBase _questInventory;
-
-    private Dictionary<EInventoryView, ViewBase> _viewDict;
-
-    public EInventoryView CurrentView { get; private set; }
-    public bool IsOpen => CurrentView != EInventoryView.Closed;
-
-    public WeaponInventoryView WeaponView =>
-        _weaponInventory as WeaponInventoryView;
-
-    public ArmorInventoryView ArmorView =>
-        _armorInventory as ArmorInventoryView;
-
-    public ItemInventoryView ConsumableView =>
-    _consumableInventory as ItemInventoryView;
-
-    public ItemInventoryView MaterialView =>
-        _materialInventory as ItemInventoryView;
-
-    public ItemInventoryView QuestView =>
-        _questInventory as ItemInventoryView;
-
-    public event Action<bool> OpenStateChanged;
-    private void Awake()
+    public class InventoryView : MonoBehaviour
     {
-        _viewDict = new Dictionary<EInventoryView, ViewBase>
+        [SerializeField] private ViewBase _category;
+        [SerializeField] private ViewBase _weaponInventory;
+        [SerializeField] private ViewBase _armorInventory;
+        [SerializeField] private ViewBase _consumableInventory;
+        [SerializeField] private ViewBase _materialInventory;
+        [SerializeField] private ViewBase _questInventory;
+
+        private Dictionary<EInventoryView, ViewBase> _viewDict = new ();
+
+        public EInventoryView CurrentView { get; private set; }
+
+        public bool IsOpen => CurrentView != EInventoryView.Closed;
+
+        public WeaponInventoryView WeaponView => _weaponInventory as WeaponInventoryView;
+        public ArmorInventoryView ArmorView => _armorInventory as ArmorInventoryView;
+        public ItemInventoryView ConsumableView => _consumableInventory as ItemInventoryView;
+        public ItemInventoryView MaterialView => _materialInventory as ItemInventoryView;
+        public ItemInventoryView QuestView => _questInventory as ItemInventoryView;
+
+        private CursorLockMode _previousCursorLockMode;
+        private bool _previousCursorVisible;
+
+        public event Action<bool> OpenStateChanged;
+        private void Awake()
         {
-            { EInventoryView.Category, _category },
-            { EInventoryView.Weapon, _weaponInventory },
-            { EInventoryView.Armor, _armorInventory },
-            { EInventoryView.Consumable, _consumableInventory },
-            { EInventoryView.Material, _materialInventory },
-            { EInventoryView.Quest, _questInventory }
-        };
+            _viewDict.Add(EInventoryView.Category, _category);
+            _viewDict.Add(EInventoryView.Weapon, _weaponInventory);
+            _viewDict.Add(EInventoryView.Armor, _armorInventory);
+            _viewDict.Add(EInventoryView.Consumable, _consumableInventory);
+            _viewDict.Add(EInventoryView.Material, _materialInventory);
+            _viewDict.Add(EInventoryView.Quest, _questInventory);
 
-        CurrentView = EInventoryView.Closed;
-        ApplyView();
-    }
+            CurrentView = EInventoryView.Closed;
 
-    public void OpenView(int p_view)
-    {
-        EInventoryView page = (EInventoryView)p_view;
-
-        if (!CanOpen(page))
-            return;
-
-        ChangeView(page);
-    }
-
-    public void CloseView()
-    {
-        ChangeView(EInventoryView.Closed);
-    }
-
-    private bool CanOpen(EInventoryView p_view)
-    {
-        if (CurrentView == EInventoryView.Closed)
-            return p_view == EInventoryView.Category;
-
-        if (CurrentView == EInventoryView.Category)
-            return p_view != EInventoryView.Closed;
-
-        return p_view == EInventoryView.Category;
-    }
-
-    private void ChangeView(EInventoryView p_view)
-    {
-        if (CurrentView == p_view)
-            return;
-
-        bool wasOpen = IsOpen;
-
-        CurrentView = p_view;
-        ApplyView();
-
-        bool isOpen = IsOpen;
-
-        // 카테고리 간 이동에서는 호출하지 않고,
-        // 실제 열기 또는 닫기에서만 호출한다.
-        if (wasOpen != isOpen)
-        {
-            OpenStateChanged?.Invoke(isOpen);
+            ApplyView();
         }
-    }
 
-    private void ApplyView()
-    {
-        foreach (var view in _viewDict)
+        // Unity Button에서 Inventory 화면을 요청한다.
+        public void OpenView(int p_view)
         {
-            bool isOpen = view.Key == CurrentView;
+            OpenView((EInventoryView)p_view);
+        }
 
-            view.Value.gameObject.SetActive(isOpen);
+        // 지정한 Inventory 화면을 연다.
+        public void OpenView(EInventoryView p_view)
+        {
+            ChangeView(p_view);
+        }
 
-            if (isOpen)
-                view.Value.Open();
-            else
-                view.Value.Close();
+        public void CloseView()
+        {
+            ChangeView(EInventoryView.Closed);
+        }
+
+        // 현재 Inventory 화면을 변경한다.
+        private void ChangeView(EInventoryView p_view)
+        {
+            if (CurrentView == p_view)
+                return;
+            
+            bool wasOpen = IsOpen;
+
+            CurrentView = p_view;
+
+            ApplyView();
+
+            if (wasOpen != IsOpen)
+            {
+                OpenStateChanged?.Invoke(IsOpen);
+            }
+        }
+
+        // 현재 선택된 화면만 활성화한다.
+        private void ApplyView()
+        {
+            foreach (var view in _viewDict)
+            {
+                view.Value.gameObject.SetActive(view.Key == CurrentView);
+            }
+
+            if (IsOpen)
+            {
+                _viewDict[CurrentView].Open();
+            }
         }
     }
 }

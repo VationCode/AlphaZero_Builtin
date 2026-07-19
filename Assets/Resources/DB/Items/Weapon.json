@@ -1,5 +1,5 @@
 {
-    "ItemList": [
+    "MeleeList": [
         {
             "Id": 100,
 
@@ -18,8 +18,6 @@
             "MaxStackCount": 1,
 
             "Description": "기본 검",
-
-            "WeaponType": 0,
 
             "BaseDamage": 60
         },
@@ -42,8 +40,6 @@
 
             "Description": "중급 검",
 
-            "WeaponType": 0,
-
             "BaseDamage": 60
         },
         {
@@ -65,10 +61,10 @@
 
             "Description": "고급 검",
 
-            "WeaponType": 0,
-
             "BaseDamage": 60
-        },
+        }
+    ],
+    "RangeList": [
         {
             "Id": 200,
 
@@ -88,9 +84,11 @@
 
             "Description": "기본 소총",
 
-            "WeaponType": 1,
+            "BaseDamage": 15,
 
-            "BaseDamage": 15
+            "Rate": 0.2,
+
+            "MaxDistance": 100
         },
         {
             "Id": 201,
@@ -111,9 +109,11 @@
 
             "Description": "중급 소총",
 
-            "WeaponType": 1,
+            "BaseDamage": 15,
 
-            "BaseDamage": 15
+            "Rate": 3,
+
+            "MaxDistance": 200
         },
 
         {
@@ -135,10 +135,14 @@
 
             "Description": "고급 소총",
 
-            "WeaponType": 1,
+            "BaseDamage": 15,
 
-            "BaseDamage": 15
-        },
+            "Rate": 0.2,
+
+            "MaxDistance": 100
+        }
+    ],
+    "SpecialList": [
         {
             "Id": 300,
 
@@ -157,8 +161,6 @@
             "MaxStackCount": 1,
 
             "Description": "특수 무기00",
-
-            "WeaponType": 2,
 
             "BaseDamage": 200
         },
@@ -181,8 +183,6 @@
 
             "Description": "특수 무기01",
 
-            "WeaponType": 2,
-
             "BaseDamage": 200
         },
         {
@@ -203,8 +203,6 @@
             "MaxStackCount": 1,
 
             "Description": "특수 무기02",
-
-            "WeaponType": 2,
 
             "BaseDamage": 200
         }

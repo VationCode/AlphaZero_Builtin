@@ -1,51 +1,46 @@
 using System.Collections.Generic;
 
-public class WeaponInventoryPresenter
+namespace Alpha.Inventory
 {
-    private readonly WeaponInventoryModule _inventory;
-    private readonly WeaponInventoryView _view;
-    private readonly ResourceLoadSystem _resourceLoader;
-
-    private readonly List<SlotPresenter> _slotPresenters = new();
-    private readonly SlotTransferSystem _transferSystem;
-    public WeaponInventoryPresenter(
-                                    WeaponInventoryModule p_inventory, 
-                                    WeaponInventoryView p_view, 
-                                    ResourceLoadSystem p_resourceLoader,
-                                    SlotTransferSystem p_transferSystem)
+    public class WeaponInventoryPresenter
     {
-        _inventory = p_inventory;
-        _view = p_view;
-        _resourceLoader = p_resourceLoader;
-        _transferSystem = p_transferSystem;
-    }
+        private readonly WeaponInventoryModule _inventory;
+        private readonly WeaponInventoryView _view;
+        private readonly ResourceLoadSystem _resourceLoader;
 
-    public void Initialize()
-    {
-        foreach (SlotBase slot in _inventory.SlotList)
+        private readonly List<SlotPresenter> _slotPresenters = new();
+        private readonly SlotTransferSystem _transferSystem;
+        public WeaponInventoryPresenter(
+                                        WeaponInventoryModule p_inventory,
+                                        WeaponInventoryView p_view,
+                                        ResourceLoadSystem p_resourceLoader,
+                                        SlotTransferSystem p_transferSystem)
         {
-            if (slot is not WeaponSlot weaponSlot)
-                continue;
-
-            SlotBaseUI slotView =
-                _view.CreateSlotView(weaponSlot.WeaponType);
-
-            if (slotView == null)
-                continue;
-
-            SlotPresenter presenter = 
-                new SlotPresenter(weaponSlot, slotView, _resourceLoader, _transferSystem);
-
-            _slotPresenters.Add(presenter);
-            presenter.Refresh();
+            _inventory = p_inventory;
+            _view = p_view;
+            _resourceLoader = p_resourceLoader;
+            _transferSystem = p_transferSystem;
         }
-    }
 
-    public void Refresh()
-    {
-        foreach (SlotPresenter presenter in _slotPresenters)
+        public void Initialize()
         {
-            presenter.Refresh();
+            foreach (SlotBase slot in _inventory.SlotList)
+            {
+                if (slot is not WeaponSlot weaponSlot)
+                    continue;
+
+                SlotBaseUI slotView =
+                    _view.CreateSlotView(weaponSlot.WeaponType);
+
+                if (slotView == null)
+                    continue;
+
+                SlotPresenter presenter =
+                    new SlotPresenter(weaponSlot, slotView, _resourceLoader, _transferSystem);
+
+                _slotPresenters.Add(presenter);
+                presenter.Refresh();
+            }
         }
     }
 }

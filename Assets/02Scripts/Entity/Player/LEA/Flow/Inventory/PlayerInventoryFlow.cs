@@ -1,71 +1,48 @@
+using Alpha.Inventory;
+using Alpha.Mouse;
 using UnityEngine;
 
-public class PlayerInventoryFlow : MonoBehaviour
+namespace Alpha.Player
 {
-    private AlphaInputSystem _input;
-    private CameraCore _camera;
-    private PlayerCore _player;
-    private InventoryPresenter _inventoryPresenter;
-
-    public void Bind(PlayerCore p_core)
+    public class PlayerInventoryFlow : MonoBehaviour
     {
-        if (p_core == null) return;
-
-        _player = p_core;
-        _input = p_core.Input;
-        _camera = p_core.CameraCore;
-
-        TrySynchronizeInventoryState();
-    }
-
-    public void BindPresenter(InventoryPresenter p_inventoryPresenter)
-    {
-        if (_inventoryPresenter != null)
+        private AlphaInputSystem _input;
+        private PlayerCore _player;
+        private InventoryPresenter _inventoryPresenter;
+        private MouseSystem _mouseSystem;
+        public void Bind(PlayerCore p_core, InventoryPresenter p_inventoryPresenter)
         {
-            _inventoryPresenter.OpenStateChanged -= OnInventoryOpenStateChanged;
+            if (p_core == null) return;
+
+            _player = p_core;
+            _input = p_core.Input;
+            _inventoryPresenter = p_inventoryPresenter;
+            _mouseSystem = p_core.MouseSystem;
+
+            _inventoryPresenter.OpenStateChanged += OnInventoryOpenStateChanged;
+
+            OnInventoryOpenStateChanged(_inventoryPresenter.IsOpen);
         }
 
-        _inventoryPresenter = p_inventoryPresenter;
-
-        if (_inventoryPresenter == null) return;
-
-        _inventoryPresenter.OpenStateChanged += OnInventoryOpenStateChanged;
-
-        TrySynchronizeInventoryState();
-    }
-
-    private void Update()
-    {
-        if (!_input.IsInventory || _inventoryPresenter == null)
-            return;
-
-        ToggleWindow();
-    }
-    private void TrySynchronizeInventoryState()
-    {
-        if (_player == null || _camera == null || _inventoryPresenter == null)
+        private void Update()
         {
-            return;
+            if (_input.IsInventory)
+            {
+                _inventoryPresenter.ToggleWindow();
+            }
         }
 
-        OnInventoryOpenStateChanged(_inventoryPresenter.IsOpen);
-    }
-    private void ToggleWindow()
-    {
-        _inventoryPresenter.ToggleWindow();
-    }
-
-    private void OnInventoryOpenStateChanged(bool p_isOpen)
-    {
-        if (_player == null || _camera == null) return;
-        _player.SetCombatBlocked(p_isOpen);
-        _camera.Cursour(p_isOpen);
-    }
-
-    private void OnDestroy()
-    {
-        if (_inventoryPresenter != null)
+        // Inventory 상태에 따라 전투 입력을 차단한다.
+        private void OnInventoryOpenStateChanged(bool p_isOpen)
         {
+            _player.SetCombatBlocked(p_isOpen);
+            _mouseSystem.SetUICursor(p_isOpen);
+        }
+
+        private void OnDestroy()
+        {
+            if (_inventoryPresenter == null) return;
+
             _inventoryPresenter.OpenStateChanged -= OnInventoryOpenStateChanged;
         }
     }

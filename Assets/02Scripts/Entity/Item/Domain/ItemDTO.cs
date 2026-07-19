@@ -43,28 +43,7 @@ public class ItemWrapper
     public List<ItemDTO> ItemList;
 }
 #region ==================== Weapon
-public enum EWeaponType
-{
-    None = -1,
-    Melee = 0,
-    Range = 1,
-    Special = 2     // 특수 장비(화염방사기, 유탄, 드론 등과 같은)
-}
 
-[Serializable]
-public class WeaponDTO : ItemDTO
-{
-    [Header("WeaponData")]
-    public EWeaponType WeaponType;
-
-    public float BaseDamage;
-}
-
-[Serializable]
-public class WeaponWrapper
-{
-    public List<WeaponDTO> ItemList;
-}
 #endregion ==================== /Weapon
 
 #region ==================== Armor

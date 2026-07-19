@@ -1,45 +1,49 @@
+using Alpha.UI;
 using UnityEngine;
 
-public class WeaponInventoryView : ViewBase
+namespace Alpha.Inventory
 {
-    [SerializeField]
-    private SlotBaseUI _slotPrefab;
-
-    [Header("Horizontal Scroll Contents")]
-    [SerializeField]
-    private Transform _meleeContent;
-
-    [SerializeField]
-    private Transform _rangeContent;
-
-    [SerializeField]
-    private Transform _specialContent;
-
-    public SlotBaseUI CreateSlotView(EWeaponType p_weaponType)
+    public class WeaponInventoryView : ViewBase
     {
-        Transform content = GetContent(p_weaponType);
+        [SerializeField]
+        private SlotBaseUI _slotPrefab;
 
-        if (content == null || _slotPrefab == null)
-            return null;
+        [Header("Horizontal Scroll Contents")]
+        [SerializeField]
+        private Transform _meleeContent;
 
-        return Instantiate(_slotPrefab, content);
-    }
+        [SerializeField]
+        private Transform _rangeContent;
 
-    private Transform GetContent(EWeaponType p_weaponType)
-    {
-        switch (p_weaponType)
+        [SerializeField]
+        private Transform _specialContent;
+
+        public SlotBaseUI CreateSlotView(EWeaponType p_weaponType)
         {
-            case EWeaponType.Melee:
-                return _meleeContent;
+            Transform content = GetContent(p_weaponType);
 
-            case EWeaponType.Range:
-                return _rangeContent;
-
-            case EWeaponType.Special:
-                return _specialContent;
-
-            default:
+            if (content == null || _slotPrefab == null)
                 return null;
+
+            return Instantiate(_slotPrefab, content);
+        }
+
+        private Transform GetContent(EWeaponType p_weaponType)
+        {
+            switch (p_weaponType)
+            {
+                case EWeaponType.Melee:
+                    return _meleeContent;
+
+                case EWeaponType.Range:
+                    return _rangeContent;
+
+                case EWeaponType.Special:
+                    return _specialContent;
+
+                default:
+                    return null;
+            }
         }
     }
 }

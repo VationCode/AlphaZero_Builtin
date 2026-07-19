@@ -11,8 +11,7 @@ public class ArmorSlot : SlotBase
 
     public override bool CanStore(ItemDTO p_item)
     {
-        if (p_item is not ArmorDTO armor)
-            return false;
+        if (p_item is not ArmorDTO armor) return false;
 
         return armor.ArmorType == ArmorType;
     }

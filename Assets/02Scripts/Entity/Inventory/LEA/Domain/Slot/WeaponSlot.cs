@@ -11,8 +11,7 @@ public class WeaponSlot : SlotBase
 
     public override bool CanStore(ItemDTO p_item)
     {
-        if (p_item is not WeaponDTO weapon)
-            return false;
+        if (p_item is not WeaponDTO weapon) return false;
 
         return weapon.WeaponType == WeaponType;
     }

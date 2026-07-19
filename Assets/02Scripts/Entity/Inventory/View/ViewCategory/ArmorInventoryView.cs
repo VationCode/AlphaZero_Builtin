@@ -1,51 +1,55 @@
+using Alpha.UI;
 using UnityEngine;
 
-public class ArmorInventoryView : ViewBase
+namespace Alpha.Inventory
 {
-    [SerializeField]
-    private SlotBaseUI _slotUIPrefab;
-
-    [Header("Horizontal Scroll Contents")]
-    [SerializeField]
-    private Transform _helmetContent;
-
-    [SerializeField]
-    private Transform _chestContent;
-
-    [SerializeField]
-    private Transform _glovesContent;
-
-    [SerializeField]
-    private Transform _bootsContent;
-
-    public SlotBaseUI CreateSlotView(EArmorType p_armorType)
+    public class ArmorInventoryView : ViewBase
     {
-        Transform content = GetContent(p_armorType);
+        [SerializeField]
+        private SlotBaseUI _slotUIPrefab;
 
-        if (content == null || _slotUIPrefab == null)
-            return null;
+        [Header("Horizontal Scroll Contents")]
+        [SerializeField]
+        private Transform _helmetContent;
 
-        return Instantiate(_slotUIPrefab, content);
-    }
+        [SerializeField]
+        private Transform _chestContent;
 
-    private Transform GetContent(EArmorType p_armorType)
-    {
-        switch (p_armorType)
+        [SerializeField]
+        private Transform _glovesContent;
+
+        [SerializeField]
+        private Transform _bootsContent;
+
+        public SlotBaseUI CreateSlotView(EArmorType p_armorType)
         {
-            case EArmorType.Helmet:
-                return _helmetContent;
+            Transform content = GetContent(p_armorType);
 
-            case EArmorType.Chest:
-                return _chestContent;
-
-            case EArmorType.Gloves:
-                return _glovesContent;
-
-            case EArmorType.Boots:
-                return _bootsContent;
-
-            default:
+            if (content == null || _slotUIPrefab == null)
                 return null;
+
+            return Instantiate(_slotUIPrefab, content);
+        }
+
+        private Transform GetContent(EArmorType p_armorType)
+        {
+            switch (p_armorType)
+            {
+                case EArmorType.Helmet:
+                    return _helmetContent;
+
+                case EArmorType.Chest:
+                    return _chestContent;
+
+                case EArmorType.Gloves:
+                    return _glovesContent;
+
+                case EArmorType.Boots:
+                    return _bootsContent;
+
+                default:
+                    return null;
+            }
         }
     }
 }

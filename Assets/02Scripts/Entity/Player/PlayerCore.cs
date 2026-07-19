@@ -1,117 +1,117 @@
-using alpha.camera;
+using Alpha.AlphaCamera;
+using Alpha.Mouse;
 using UnityEngine;
 
-public class PlayerCore : MonoBehaviour
+namespace Alpha.Player
 {
-    #region ========== OutSideBind
-    public AlphaInputSystem Input {  get; private set; }
-    public CameraCore CameraCore { get; private set; }
-    public UIManager UIManager { get; private set; }
-    public InventoryPresenter InventoryPresenter { get; private set; }
-    public ResourceLoadSystem ResourceLoader { get; private set; }
-
-    #endregion
-
-    #region ========== Flow
-    public PlayerStateMachine StateMachineFlow { get; private set; }
-    public ItemPickupFlow ItemPickupFlow { get; private set; }
-    public PlayerInventoryFlow InventoryFlow { get; private set; }
-
-    public LocomotionRule LocoRule = new LocomotionRule();
-    public CombatRule CombatRule = new CombatRule();
-
-    public PlayerEquipmentFlow EquipmentFlow { get; private set; }
-    #endregion
-
-    #region ========== Domain
-    public StateContext Context = new StateContext();
-    #endregion
-
-    #region ========== Module
-    public LocomotionModule LocoModule { get; private set; }
-    public CombatModule CombatModule { get; private set; }
-    public PlayerInventoryModule InventoryModule { get; private set; }
-    public PlayerEquipmentModule EquipmentModule { get; private set; }
-    #endregion
-
-    #region ========== View
-    public PlayerAnimationView AnimationView { get; private set; }
-    public PlayerEquipmentView EquipmentView { get; private set; }
-    #endregion
-    public Transform PlayerTr;
-
-    public bool CanLocomotion => _canLocomotion;
-    private bool _canLocomotion;
-
-    public bool BlockCombat => _isCombatBlocked;
-    private bool _isCombatBlocked;
-
-    public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera, ResourceLoadSystem p_resourceLoad)
+    [RequireComponent(typeof(LocomotionMotorModule), typeof(GroundLocomotionModule), typeof(LocomotionModeFlow))]
+    public class PlayerCore : MonoBehaviour
     {
-        Input = p_input;
-        UIManager = p_ui;
-        CameraCore = p_camera;
-        ResourceLoader = p_resourceLoad;
-    }   
+        #region ========== OutSideBind
+        public AlphaInputSystem Input { get; private set; }
+        public CameraCore CameraCore { get; private set; }
+        public UIManager UIManager { get; private set; }
+        public ResourceLoadSystem ResourceLoader { get; private set; }
+        public DamageSystem DamageSystem { get; private set; }
+        public MouseSystem MouseSystem { get; private set; }
+        #endregion
 
-    private void Awake()
-    {
-        StateMachineFlow = GetComponent<PlayerStateMachine>();
-        ItemPickupFlow = GetComponent<ItemPickupFlow>();
-        InventoryFlow = GetComponent<PlayerInventoryFlow>();
-        EquipmentFlow = GetComponent<PlayerEquipmentFlow>();
+        #region ========== Flow
+        public LocomotionModeFlow LocomotionModeFlow { get; private set; }
 
-        LocoModule = GetComponent<LocomotionModule>();
-        CombatModule = GetComponent<CombatModule>();
-        AnimationView = GetComponent<PlayerAnimationView>();
-        InventoryModule = GetComponent<PlayerInventoryModule>();
-        EquipmentModule = GetComponent<PlayerEquipmentModule>();
+        public ItemPickupFlow ItemPickupFlow { get; private set; }
+        public PlayerInventoryFlow InventoryFlow { get; private set; }
 
-        EquipmentView = GetComponent<PlayerEquipmentView>();
+        public PlayerEquipmentFlow EquipmentFlow { get; private set; }
+        #endregion
 
-        PlayerTr = this.transform;
-    }
+        #region ========== Domain
+        public PlayerContext Context { get; } = new PlayerContext();
+        #endregion
 
-    private void Start()
-    {
-        StateMachineFlow.Bind(this);
-        InventoryFlow.Bind(this);
-        ItemPickupFlow.Bind(InventoryModule);
-        if (EquipmentFlow == null || EquipmentView == null)
+        #region ========== Module
+        public LocomotionMotorModule LocomotionMotor { get; private set; }
+        public GroundLocomotionModule GroundLocomotion { get; private set; }
+        public PlayerInventoryModule InventoryModule { get; private set; }
+        public PlayerEquipmentModule EquipmentModule { get; private set; }
+        #endregion
+
+        #region ========== View
+        public PlayerAnimationView AnimationView { get; private set; }
+        public PlayerEquipmentView EquipmentView { get; private set; }
+        #endregion
+        public Transform PlayerTr;
+
+        public bool CanLocomotion => _canLocomotion;
+        private bool _canLocomotion;
+
+        public bool BlockCombat => _isCombatBlocked;
+        private bool _isCombatBlocked;
+
+        public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera,
+                         ResourceLoadSystem p_resourceLoad, DamageSystem p_damageSystem,
+                        MouseSystem p_mouseSystem)
         {
-            Debug.LogError("[PlayerCore] PlayerEquipmentFlow 또는 PlayerEquipmentView가 없습니다.",this);
+            Input = p_input;
+            UIManager = p_ui;
+            CameraCore = p_camera;
+            ResourceLoader = p_resourceLoad;
+            DamageSystem = p_damageSystem;
+            MouseSystem = p_mouseSystem;
 
-            return;
         }
 
-        EquipmentFlow.Bind(this);
-        
-        LocoModule.Bind(this);
-        CombatModule.Bind(this);
-        
-        AnimationView.Bind(PlayerTr);
+        private void Awake()
+        {
+
+            // Flow
+            LocomotionModeFlow = GetComponent<LocomotionModeFlow>();
+            ItemPickupFlow = GetComponent<ItemPickupFlow>();
+            InventoryFlow = GetComponent<PlayerInventoryFlow>();
+            EquipmentFlow = GetComponent<PlayerEquipmentFlow>();
+
+            // Module
+            LocomotionMotor = GetComponent<LocomotionMotorModule>();
+            GroundLocomotion = GetComponent<GroundLocomotionModule>();
+            InventoryModule = GetComponent<PlayerInventoryModule>();
+            EquipmentModule = GetComponent<PlayerEquipmentModule>();
+
+            // View
+            AnimationView = GetComponent<PlayerAnimationView>();
+            EquipmentView = GetComponent<PlayerEquipmentView>();
+
+            PlayerTr = this.transform;
+        }
+
+        private void Start()
+        {
+            // 외부 Camera를 Motor의 이동 기준으로 연결한다.
+            LocomotionMotor.Bind(CameraCore.RenderCamera.transform);
+
+            // Ground Module에 공통 Motor를 연결한다.
+            GroundLocomotion.Bind(LocomotionMotor);
+
+            // 모든 Module 연결 후 Locomotion Flow를 시작한다.
+            LocomotionModeFlow.Bind(this);
+
+            ItemPickupFlow.Bind(InventoryModule);
+
+            EquipmentFlow.Bind(this);
+
+
+            AnimationView.Bind(PlayerTr);
+
+        }
+
+        private void Update()
+        {
+
+        }
+
+        public void SetCombatBlocked(bool p_isBlocked)
+        {
+            _isCombatBlocked = p_isBlocked;
+        }
 
     }
-
-    private void Update()
-    {
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha8))
-        {
-            CameraCore.TransitionView(EViewType.ThirdPerson);
-        }
-        else if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha9))
-        {
-            CameraCore.TransitionView(EViewType.Aim);
-        }
-        else if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha0))
-        {
-            CameraCore.TransitionView(EViewType.Quarter);
-        }
-    }
-
-    public void SetCombatBlocked(bool p_isBlocked)
-    {
-        _isCombatBlocked = p_isBlocked;
-    }
-
 }

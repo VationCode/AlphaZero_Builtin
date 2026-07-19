@@ -1,120 +1,72 @@
 using UnityEngine;
-using System;
 
-public class PlayerInventoryModule : MonoBehaviour
+namespace Alpha.Player
 {
-    [SerializeField] private int _weaponSlotCount = 10;
-    [SerializeField] private int _armorSlotCount = 10;
-    [SerializeField] private int _consumableSlotCount = 10;
-    [SerializeField] private int _materialSlotCount = 10;
-    [SerializeField] private int _questSlotCount = 10;
-
-    public event Action InventoryChanged;
-    public WeaponInventoryModule WeaponInventory { get; private set; }
-    public ArmorInventoryModule ArmorInventory { get; private set; }
-    public ItemInventoryModule ConsumableInventory { get; private set; }
-    public ItemInventoryModule MaterialInventory { get; private set; }
-    public ItemInventoryModule QuestInventory { get; private set; }
-
-
-    private void Awake()
+    public class PlayerInventoryModule : MonoBehaviour
     {
-        WeaponInventory =
-            new WeaponInventoryModule(_weaponSlotCount);
+        [SerializeField] private int _weaponSlotCount = 10;
+        [SerializeField] private int _armorSlotCount = 10;
+        [SerializeField] private int _consumableSlotCount = 10;
+        [SerializeField] private int _materialSlotCount = 10;
+        [SerializeField] private int _questSlotCount = 10;
 
-        ArmorInventory =
-            new ArmorInventoryModule(_armorSlotCount);
+        public WeaponInventoryModule WeaponInventory { get; private set; }
+        public ArmorInventoryModule ArmorInventory { get; private set; }
+        public ItemInventoryModule ConsumableInventory { get; private set; }
+        public ItemInventoryModule MaterialInventory { get; private set; }
+        public ItemInventoryModule QuestInventory { get; private set; }
 
-        ConsumableInventory =
-            new ItemInventoryModule(EItemType.Consumable, _consumableSlotCount);
-
-        MaterialInventory =
-            new ItemInventoryModule(EItemType.Material, _materialSlotCount);
-
-        QuestInventory =
-            new ItemInventoryModule(EItemType.QuestItem, _questSlotCount);
-    }
-
-    public bool TryAdd(ItemDTO p_item, int p_count)
-    {
-        if (p_item == null || p_count <= 0)
-            return false;
-
-        bool isAdded;
-
-        switch (p_item.ItemType)
+        private void Awake()
         {
-            case EItemType.Weapon:
-                isAdded = WeaponInventory.TryAdd(p_item, p_count);
-                break;
-
-            case EItemType.Armor:
-                isAdded = ArmorInventory.TryAdd(p_item, p_count);
-                break;
-
-            case EItemType.Consumable:
-                isAdded = ConsumableInventory.TryAdd(p_item, p_count);
-                break;
-
-            case EItemType.Material:
-                isAdded = MaterialInventory.TryAdd(p_item, p_count);
-                break;
-
-            case EItemType.QuestItem:
-                isAdded = QuestInventory.TryAdd(p_item, p_count);
-                break;
-
-            default:
-                return false;
+            WeaponInventory = new WeaponInventoryModule(_weaponSlotCount);
+            ArmorInventory = new ArmorInventoryModule(_armorSlotCount);
+            ConsumableInventory = new ItemInventoryModule(EItemType.Consumable, _consumableSlotCount);
+            MaterialInventory = new ItemInventoryModule(EItemType.Material, _materialSlotCount);
+            QuestInventory = new ItemInventoryModule(EItemType.QuestItem, _questSlotCount);
         }
 
-        if (isAdded)
-            InventoryChanged?.Invoke();
-
-        return isAdded;
-    }
-
-    public bool TryRemove(EItemType p_itemType, int p_itemId, int p_count)
-    {
-        if (p_count <= 0)
-            return false;
-
-        bool isRemoved;
-
-        switch (p_itemType)
+        // Item 종류에 맞는 Inventory에 추가한다.
+        public bool TryAdd(ItemDTO p_item, int p_count = 1)
         {
-            case EItemType.Weapon:
-                isRemoved =
-                    WeaponInventory.TryRemove(p_itemId, p_count);
-                break;
-
-            case EItemType.Armor:
-                isRemoved =
-                    ArmorInventory.TryRemove(p_itemId, p_count);
-                break;
-
-            case EItemType.Consumable:
-                isRemoved =
-                    ConsumableInventory.TryRemove(p_itemId, p_count);
-                break;
-
-            case EItemType.Material:
-                isRemoved =
-                    MaterialInventory.TryRemove(p_itemId, p_count);
-                break;
-
-            case EItemType.QuestItem:
-                isRemoved =
-                    QuestInventory.TryRemove(p_itemId, p_count);
-                break;
-
-            default:
+            if (p_item == null)
                 return false;
+
+
+            InventoryModuleBase inventory = GetInventory(p_item.ItemType);
+
+            return inventory != null && inventory.TryAddItem(p_item, p_count);
         }
 
-        if (isRemoved)
-            InventoryChanged?.Invoke();
+        public bool TryRemove(EItemType p_itemType, int p_itemId, int p_count = 1)
+        {
+            InventoryModuleBase inventory = GetInventory(p_itemType);
 
-        return isRemoved;
+            return inventory != null && inventory.TryRemoveItem(p_itemId, p_count);
+        }
+
+        // Item 종류에 해당하는 Inventory를 반환한다.
+        private InventoryModuleBase GetInventory(EItemType p_itemType)
+        {
+            switch (p_itemType)
+            {
+                case EItemType.Weapon:
+                    return WeaponInventory;
+
+                case EItemType.Armor:
+                    return ArmorInventory;
+
+                case EItemType.Consumable:
+                    return ConsumableInventory;
+
+                case EItemType.Material:
+                    return MaterialInventory;
+
+                case EItemType.QuestItem:
+                    return QuestInventory;
+
+                default:
+                    return null;
+            }
+        }
     }
 }

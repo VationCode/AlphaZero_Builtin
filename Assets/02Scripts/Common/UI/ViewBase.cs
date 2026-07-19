@@ -1,18 +1,21 @@
 using UnityEngine;
 
-public abstract class ViewBase : MonoBehaviour
+namespace Alpha.UI
 {
-    public Animation m_UIOpenAnim;
-
-    internal void Open()
+    public abstract class ViewBase : MonoBehaviour
     {
-        if (m_UIOpenAnim)
+        public Animation m_UIOpenAnim;
+
+        internal void Open()
         {
-            this.m_UIOpenAnim.Play();
+            if (m_UIOpenAnim)
+            {
+                this.m_UIOpenAnim.Play();
+            }
         }
-    }
-    internal void Close()
-    {
+        internal void Close()
+        {
 
+        }
     }
 }
