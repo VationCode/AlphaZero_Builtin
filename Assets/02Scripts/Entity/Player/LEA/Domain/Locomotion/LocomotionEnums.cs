@@ -4,29 +4,30 @@ public enum ELocomotionMode
     Ground,
     Flight,
     Swim
+
+    // 실제 구현할 때 추가
+    // Climb,
+    // RopeClimb,
+    // RopeSwing,
+    // Zipline
+}
+
+
+public enum ELocomotionSpace
+{
+    Planar,
+    Spatial
 }
 
 // States
-public enum EGroundState
+public enum ELocomotionState
 {
-    GroundMove,
+    Idle,
+    Move,
     Jump,
     Fall,
     Land,
-    Dash
-}
-
-public enum EFlightState
-{
-    Ascend,
-    FlightMove,
-    Fall,
-    Dash
-}
-
-public enum ESwimState
-{
-    SwimMove,
-    Dash
+    Dash,
+    Ascend
 }
 

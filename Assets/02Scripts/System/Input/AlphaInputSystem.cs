@@ -20,6 +20,9 @@ public class AlphaInputSystem : MonoBehaviour
     private bool _isDash => _dashFrame == Time.frameCount;
     private int _dashFrame;
 
+    public bool IsFlight => _isFlight;
+    private bool _isFlight => _flightFrame == Time.frameCount;
+    private int _flightFrame;
     // Combat
     public bool IsAttack => _isAttack;
     private bool _isAttack;
@@ -63,6 +66,7 @@ public class AlphaInputSystem : MonoBehaviour
 
         _action.Player.Jump.performed += i => _jumpFrame = Time.frameCount;
         _action.Player.Dash.performed += i => _dashFrame = Time.frameCount;
+        _action.Player.Flight.performed += i => _flightFrame = Time.frameCount;
 
         // Combat
         _action.Player.Attack.performed += i => _isAttack = true;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Alpha.Player
 {
-    [RequireComponent(typeof(LocomotionMotorModule), typeof(GroundLocomotionModule), typeof(LocomotionModeFlow))]
+    //[RequireComponent(typeof(LocomotionMotorModule), typeof(GroundLocomotionModule), typeof(LocomotionModeFlow))]
     public class PlayerCore : MonoBehaviour
     {
         #region ========== OutSideBind
@@ -17,7 +17,7 @@ namespace Alpha.Player
         #endregion
 
         #region ========== Flow
-        public LocomotionModeFlow LocomotionModeFlow { get; private set; }
+        //public LocomotionModeFlow LocomotionModeFlow { get; private set; }
 
         public ItemPickupFlow ItemPickupFlow { get; private set; }
         public PlayerInventoryFlow InventoryFlow { get; private set; }
@@ -26,12 +26,12 @@ namespace Alpha.Player
         #endregion
 
         #region ========== Domain
-        public PlayerContext Context { get; } = new PlayerContext();
+        //public PlayerContext Context { get; } = new PlayerContext();
         #endregion
 
         #region ========== Module
-        public LocomotionMotorModule LocomotionMotor { get; private set; }
-        public GroundLocomotionModule GroundLocomotion { get; private set; }
+        //public LocomotionMotorModule LocomotionMotor { get; private set; }
+        //public GroundLocomotionModule GroundLocomotion { get; private set; }
         public PlayerInventoryModule InventoryModule { get; private set; }
         public PlayerEquipmentModule EquipmentModule { get; private set; }
         #endregion
@@ -65,14 +65,14 @@ namespace Alpha.Player
         {
 
             // Flow
-            LocomotionModeFlow = GetComponent<LocomotionModeFlow>();
+           //LocomotionModeFlow = GetComponent<LocomotionModeFlow>();
             ItemPickupFlow = GetComponent<ItemPickupFlow>();
             InventoryFlow = GetComponent<PlayerInventoryFlow>();
             EquipmentFlow = GetComponent<PlayerEquipmentFlow>();
 
             // Module
-            LocomotionMotor = GetComponent<LocomotionMotorModule>();
-            GroundLocomotion = GetComponent<GroundLocomotionModule>();
+            //LocomotionMotor = GetComponent<LocomotionMotorModule>();
+            //GroundLocomotion = GetComponent<GroundLocomotionModule>();
             InventoryModule = GetComponent<PlayerInventoryModule>();
             EquipmentModule = GetComponent<PlayerEquipmentModule>();
 
@@ -86,13 +86,13 @@ namespace Alpha.Player
         private void Start()
         {
             // 외부 Camera를 Motor의 이동 기준으로 연결한다.
-            LocomotionMotor.Bind(CameraCore.RenderCamera.transform);
+            //LocomotionMotor.Bind(CameraCore.RenderCamera.transform);
 
             // Ground Module에 공통 Motor를 연결한다.
-            GroundLocomotion.Bind(LocomotionMotor);
+            //GroundLocomotion.Bind(LocomotionMotor);
 
             // 모든 Module 연결 후 Locomotion Flow를 시작한다.
-            LocomotionModeFlow.Bind(this);
+            //LocomotionModeFlow.Bind(this);
 
             ItemPickupFlow.Bind(InventoryModule);
 
