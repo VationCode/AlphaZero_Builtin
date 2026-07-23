@@ -1,10 +1,10 @@
 using Alpha.AlphaCamera;
 using Alpha.Mouse;
 using UnityEngine;
+using Alpha.Player.Locomotion;
 
 namespace Alpha.Player
 {
-    //[RequireComponent(typeof(LocomotionMotorModule), typeof(GroundLocomotionModule), typeof(LocomotionModeFlow))]
     public class PlayerCore : MonoBehaviour
     {
         #region ========== OutSideBind
@@ -17,7 +17,7 @@ namespace Alpha.Player
         #endregion
 
         #region ========== Flow
-        //public LocomotionModeFlow LocomotionModeFlow { get; private set; }
+        public LocomotionModeFlow LocomotionModeFlow { get; private set; }
 
         public ItemPickupFlow ItemPickupFlow { get; private set; }
         public PlayerInventoryFlow InventoryFlow { get; private set; }
@@ -26,12 +26,12 @@ namespace Alpha.Player
         #endregion
 
         #region ========== Domain
-        //public PlayerContext Context { get; } = new PlayerContext();
+        public LocomotionContext LocomotionContext { get; } = new();
+        
         #endregion
 
         #region ========== Module
-        //public LocomotionMotorModule LocomotionMotor { get; private set; }
-        //public GroundLocomotionModule GroundLocomotion { get; private set; }
+        public PlayerLocomotionModule LocomotionModule { get; private set; }
         public PlayerInventoryModule InventoryModule { get; private set; }
         public PlayerEquipmentModule EquipmentModule { get; private set; }
         #endregion
@@ -63,28 +63,30 @@ namespace Alpha.Player
 
         private void Awake()
         {
-
             // Flow
-           //LocomotionModeFlow = GetComponent<LocomotionModeFlow>();
+            LocomotionModeFlow = GetComponentInChildren<LocomotionModeFlow>();
             ItemPickupFlow = GetComponent<ItemPickupFlow>();
-            InventoryFlow = GetComponent<PlayerInventoryFlow>();
-            EquipmentFlow = GetComponent<PlayerEquipmentFlow>();
+            InventoryFlow = GetComponentInChildren<PlayerInventoryFlow>();
+            EquipmentFlow = GetComponentInChildren<PlayerEquipmentFlow>();
 
             // Module
-            //LocomotionMotor = GetComponent<LocomotionMotorModule>();
-            //GroundLocomotion = GetComponent<GroundLocomotionModule>();
-            InventoryModule = GetComponent<PlayerInventoryModule>();
-            EquipmentModule = GetComponent<PlayerEquipmentModule>();
+            LocomotionModule = GetComponentInChildren<PlayerLocomotionModule>();
+            InventoryModule = GetComponentInChildren<PlayerInventoryModule>();
+            EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>();
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
-            EquipmentView = GetComponent<PlayerEquipmentView>();
+            EquipmentView = GetComponentInChildren<PlayerEquipmentView>();
 
             PlayerTr = this.transform;
+
         }
 
         private void Start()
         {
+            LocomotionModeFlow.Bind(this);
+            LocomotionModule.Bind(LocomotionContext);
+
             // 외부 Camera를 Motor의 이동 기준으로 연결한다.
             //LocomotionMotor.Bind(CameraCore.RenderCamera.transform);
 

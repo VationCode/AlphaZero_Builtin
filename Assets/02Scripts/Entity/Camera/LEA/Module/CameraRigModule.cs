@@ -1,5 +1,3 @@
-using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 // 추적, 회전, 줌, 충돌, 부드러운 보간 실행

@@ -1,12 +1,11 @@
 using UnityEngine;
 using UnityEngine.Windows;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(Animator))]
 public class PlayerAnimationView : MonoBehaviour
 {
     private Animator _anim;
-
-    [SerializeField] private Animator _flyUpDownAnim;
 
     [Header("Weapon Animator Override")]
     [SerializeField]
@@ -21,17 +20,55 @@ public class PlayerAnimationView : MonoBehaviour
     [SerializeField]
     private AnimatorOverrideController _specialOverrideController;
 
+    private const int BaseLayer = 0;
+    private static readonly int MovementState =
+        Animator.StringToHash("Base Layer.MovementTree");
+
+    private static readonly int CombatMovementState =
+    Animator.StringToHash("Base Layer.CombatMovementTree");
+
+    private static readonly int SprintState =
+        Animator.StringToHash("Base Layer.Fast Run F");
+
+    private static readonly int MoveMagnitude =
+        Animator.StringToHash("MoveMagnitude");
+
+    private static readonly int InputX =
+        Animator.StringToHash("InputX");
+
+    private static readonly int InputY =
+        Animator.StringToHash("InputY");
+
+    private static readonly int Jump =
+        Animator.StringToHash("Base Layer.Jump");
+
+    private static readonly int Fall =
+        Animator.StringToHash("Base Layer.Fall");
+
+    private static readonly int Land =
+        Animator.StringToHash("Base Layer.Land");
+
+    private static readonly int Dash =
+        Animator.StringToHash("Base Layer.Dash");
+
+
+    private int _currentBaseState;
+
+
     private RuntimeAnimatorController _initialController;
 
 
     private int _isSprint = Animator.StringToHash("IsSprint");
     private int _isIncombat = Animator.StringToHash("IsInCombat");
     private int _isGround = Animator.StringToHash("IsGround");
+
+
     private readonly int _swap = Animator.StringToHash("Swap");
     private const string WeaponUpperBodyLayerName = "Weapon UpperBody Layer";
     private int _weaponUpperBodyLayerIndex = -1;
 
     private Transform _playerTr;
+
     private void Awake()
     {
         _anim = GetComponent<Animator>();
@@ -52,6 +89,71 @@ public class PlayerAnimationView : MonoBehaviour
     {
         _playerTr = p_playerTr;
     }
+    // p_transitionDuration 전환 비율
+    // p_normalizedTimeOffset 클립의 0%부터 재생
+    private void CrossFadeBase(int p_stateHash, float p_transitionDuration = 0.15f, 
+                               float p_normalizedTimeOffset = 0f, bool p_forceReplay = false)
+    {
+        // 같은 애니메이션을 매 프레임 재실행하지 않음
+        if (!p_forceReplay && _currentBaseState == p_stateHash)
+            return;
+
+        _currentBaseState = p_stateHash;
+
+        // 초 단위 전환 시간이 관리하기 편함
+        _anim.CrossFadeInFixedTime(p_stateHash, 0.15f, BaseLayer, p_normalizedTimeOffset);
+    }
+
+    #region ======================================== Locomotion
+    public void PlayGroundLocomotion(Vector2 p_moveInput, bool p_isSprint, bool p_isCombat = false)
+    {
+        Vector2 input = Vector2.ClampMagnitude(p_moveInput, 1f);
+
+        int targetState;
+
+        if (p_isCombat)
+        {
+            targetState = CombatMovementState;
+
+            // 전투 이동 방향 BlendTree 갱신
+            _anim.SetFloat(InputX, input.x, 0.1f, Time.deltaTime);
+            _anim.SetFloat(InputY, input.y, 0.1f, Time.deltaTime);
+        }
+        else
+        {
+            bool isMoving = input.sqrMagnitude > 0.01f;
+
+            targetState = p_isSprint && isMoving ? SprintState : MovementState;
+
+            _anim.SetFloat(MoveMagnitude, input.magnitude, 0.1f, Time.deltaTime);
+        }
+
+        CrossFadeBase(targetState);
+    }
+
+    public void PlayJump()
+    {
+        CrossFadeBase(Jump);
+    }
+
+    public void PlayDash()
+    {
+        CrossFadeBase(Dash);
+    }
+
+    public void PlayFall()
+    {
+        CrossFadeBase(Fall, 0, 0.15f); 
+    }
+
+    public void PlayLand()
+    {
+        CrossFadeBase(Land, 0.143f, 0.443f);
+    }
+    #endregion ======================================== /Locomotion
+
+
+
 
     public void ApplyWeaponOverrideController(EWeaponType p_weaponType)
     {
@@ -104,50 +206,9 @@ public class PlayerAnimationView : MonoBehaviour
         }
     }
 
-    // 비전투 : 그냥 입력키값
-    // 전투 : 플레이어 현재 방향 기준 좌표
-    public void MoveAnim(Vector3 p_moveDir, bool p_isSprint, bool p_isCombat = false)
-    {
-        _anim.SetBool(_isSprint, p_isSprint);
-        _anim.SetBool(_isIncombat, p_isCombat);
+    
 
-        if (!p_isCombat)
-        {
-            _anim.SetFloat("MoveMagnitude", p_moveDir.sqrMagnitude, 0.1f, Time.deltaTime);
-            return;
-        }
-
-        // 현재 플레이어가 바라본 방향에서의 입력키를 계산
-        var animDir = CalculateTransformPosInput(p_moveDir);
-
-        _anim.SetFloat("InputX", animDir.x, 0.1f, Time.deltaTime);
-        _anim.SetFloat("InputY", animDir.z, 0.1f, Time.deltaTime);
-    }
-
-    // 현재 입력받은 값을 Transform 방향 기준에 맞게 변경
-    public Vector3 CalculateTransformPosInput(Vector3 p_moveDir)
-    {
-        // InverseTransformDirection : 입력값에 대해 플레이어 기준에서으로 방향값을 변환해줌
-        // 전투시 오른쪽 보고 있을 때 W키 눌러 위로 가면 캐릭터 기준 왼쪽으로 이동이기에 그값으로 만들어준다는것
-        Vector3 localDir = _playerTr.InverseTransformDirection(p_moveDir);
-
-        return localDir;
-    }
-
-
-    public void JumpAnim()
-    {
-        _anim.SetTrigger("Jump");
-    }
-
-    public void DashAnim()
-    {
-        _anim.SetTrigger("Dash");
-    }
-    public void IsDashingAnim(bool p_isDashing)
-    {
-        _anim.SetBool("IsDashing", p_isDashing);
-    }
+    
 
     public void IsGround(bool p_isGround)
     {
@@ -161,7 +222,7 @@ public class PlayerAnimationView : MonoBehaviour
 
     public void IsFlyUpDownPos(bool p_isFly)
     {
-        _flyUpDownAnim.SetBool("IsFly", p_isFly);
+        //_flyUpDownAnim.SetBool("IsFly", p_isFly);
     }
 
     public void PlayWeaponSwap()

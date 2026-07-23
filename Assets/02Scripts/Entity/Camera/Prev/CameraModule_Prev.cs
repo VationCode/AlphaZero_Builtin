@@ -2,8 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 
-namespace Alpha.Camera
-{
     public class CameraModule_Prev : MonoBehaviour
     {
         #region Ref Component
@@ -266,4 +264,3 @@ namespace Alpha.Camera
             _cameraPivotTr.localRotation = _rot;
         }
     }
-}

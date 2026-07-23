@@ -174,17 +174,38 @@ Entity
 
 # 5. LEA
 
-LEA는 Entity 내부의 조립, 상태, 판단, 기능을 역할별로 분리하기 위한 Local Entity Architecture이다.
+LEA는 Entity 내부의 기능을 Feature 단위로 구성하고, 각 코드의 조립, 상태, 판단, 실행 책임을 구분하기 위한 Local Entity Architecture이다.
+
+LEA는 `CompositionRoot`, `Domain`, `Flow`, `Module` 폴더를 강제하는 고정된 폴더 템플릿이 아니다.
+
+먼저 Entity가 보유한 Feature를 기준으로 코드를 모은다.
 
 ```text
-LEA
-├─ CompositionRoot
+Player
+└─ LEA
+   ├─ CompositionRoot
+   │  └─ PlayerCore
+   ├─ Locomotion
+   │  ├─ LocomotionContext
+   │  ├─ LocomotionFlow
+   │  ├─ GroundLocomotionState
+   │  └─ LocomotionMotorModule
+   ├─ Combat
+   └─ Inventory
+```
+
+Feature 내부에서는 파일의 수와 복잡도에 따라 자유롭게 배치한다.
+
+```text
+Locomotion
 ├─ Domain
 ├─ Flow
 └─ Module
 ```
 
-LEA의 역할은 다음과 같이 정의한다.
+위와 같은 하위 폴더는 탐색에 도움이 될 때만 선택적으로 사용한다. 모든 Feature가 동일한 하위 폴더를 가질 필요는 없으며, 빈 폴더나 역할이 없는 클래스를 구조에 맞추기 위해 만들지 않는다.
+
+폴더 형태와 관계없이 각 클래스의 아키텍처 역할은 다음과 같이 정의한다.
 
 ```text
 CompositionRoot = 내부 전체 조립 / 외부 연결 / Entity Core
@@ -199,6 +220,16 @@ Module          = Entity 내부 기능 실행
 > Flow가 판단하며  
 > Module이 실행하고  
 > Domain이 상태를 가진다.
+
+> 폴더는 Feature를 중심으로 구성하고, 책임은 LEA 역할을 따른다.
+
+Feature 분류 기준:
+
+- 하나의 응집된 기능 또는 행동 범위를 하나의 Feature로 본다.
+- `Locomotion`, `Combat`, `Inventory`처럼 기능의 목적이 드러나는 이름을 사용한다.
+- Feature 내부 클래스의 위치보다 실제 책임을 기준으로 Domain, Flow, Module 역할을 판단한다.
+- 여러 Feature가 함께 사용하는 Entity 공통 상태와 조립 코드는 특정 Feature에 억지로 귀속시키지 않는다.
+- Feature가 커졌을 때만 필요에 따라 내부 폴더를 추가한다.
 
 ---
 
@@ -218,7 +249,7 @@ EnemyCore
 
 주요 책임:
 
-- Domain, Flow, Module 참조 구성
+- 각 Feature의 Domain, Flow, Module 역할 객체 참조 구성
 - Entity 내부 의존성 연결
 - 내부 객체 Bind
 - 외부 의존성 수신 및 연결
@@ -234,9 +265,9 @@ EnemyCore
 PlayerCore
  ↓
 Player LEA
-├─ Domain
-├─ Flow
-└─ Module
+├─ Locomotion
+├─ Combat
+└─ Inventory
 ```
 
 예시:
@@ -316,6 +347,8 @@ Domain에는 다음 코드가 포함될 수 있다.
 
 Domain은 가능한 한 행동 흐름을 직접 제어하지 않는다.
 
+Domain 코드는 해당 개념을 소유한 Feature 내부에 배치한다. 여러 Feature가 공유하는 Entity 공통 상태라면 Entity 범위에 둘 수 있으며, 이를 위해 반드시 별도의 `Domain` 폴더를 만들 필요는 없다.
+
 ---
 
 ## 5.3 Flow
@@ -383,6 +416,8 @@ Module
 
 예를 들어 Player가 Item을 줍는 행동은 외부 Item과 Inventory를 사용하더라도 Player Flow에 위치할 수 있다.
 
+Flow 코드는 해당 행동을 소유한 Feature 내부에 배치한다. `Flow` 폴더의 존재 여부가 아니라 판단과 실행 흐름을 담당하는지가 기준이다.
+
 ---
 
 ## 5.4 Module
@@ -428,6 +463,8 @@ Player
 Module은 다른 Entity의 전체 행동 흐름이나 게임 전체 규칙을 과도하게 제어하지 않는다.
 
 하나의 Module이 여러 Module의 실행 순서를 판단하기 시작한다면 Flow 책임인지 검토한다.
+
+Module 코드는 해당 기능을 소유한 Feature 내부에 배치한다. `Module` 폴더의 존재 여부가 아니라 실제 기능 실행을 담당하는지가 기준이다.
 
 ---
 
