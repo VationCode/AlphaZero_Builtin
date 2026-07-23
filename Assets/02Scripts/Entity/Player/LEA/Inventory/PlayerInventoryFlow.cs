@@ -1,49 +1,97 @@
-using Alpha.Inventory;
 using Alpha.Mouse;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace Alpha.Player
+namespace Alpha.Player.Inventory
 {
     public class PlayerInventoryFlow : MonoBehaviour
     {
+        private PlayerCore _core;
         private AlphaInputSystem _input;
-        private PlayerCore _player;
-        private InventoryPresenter _inventoryPresenter;
         private MouseSystem _mouseSystem;
-        public void Bind(PlayerCore p_core, InventoryPresenter p_inventoryPresenter)
+        private PlayerInventoryModule _inventoryModule;
+
+        public bool IsOpen { get; private set; }
+
+        // InventoryWindow 활성화 관리
+        public event Action<bool> OnWindowActivate;
+
+        // Slot 관리
+        public event Action OnSlotsInitialized;
+        public event Action<IReadOnlyList<SlotBase>> OnSlotsAdded;
+
+        public void Bind(PlayerCore p_core)
         {
-            if (p_core == null) return;
-
-            _player = p_core;
+            _core = p_core;
             _input = p_core.Input;
-            _inventoryPresenter = p_inventoryPresenter;
             _mouseSystem = p_core.MouseSystem;
-
-            _inventoryPresenter.OpenStateChanged += OnInventoryOpenStateChanged;
-
-            OnInventoryOpenStateChanged(_inventoryPresenter.IsOpen);
+            _inventoryModule = p_core.InventoryModule;
         }
 
         private void Update()
         {
-            if (_input.IsInventory)
-            {
-                _inventoryPresenter.ToggleWindow();
-            }
+            if (_input != null && _input.IsInventory)
+                SetWindowActive(!IsOpen);
         }
 
-        // Inventory 상태에 따라 전투 입력을 차단한다.
-        private void OnInventoryOpenStateChanged(bool p_isOpen)
+        // 인벤토리 창
+        public void SetWindowActive(bool p_isActive)
         {
-            _player.SetCombatBlocked(p_isOpen);
-            _mouseSystem.SetUICursor(p_isOpen);
+            if (IsOpen == p_isActive)
+                return;
+
+            IsOpen = p_isActive;
+            OnWindowActivate?.Invoke(IsOpen);
         }
 
-        private void OnDestroy()
+        // Slot
+        public void InitializeSlots()
         {
-            if (_inventoryPresenter == null) return;
+            if (_inventoryModule == null || _inventoryModule.IsInitialized)
+                return;
 
-            _inventoryPresenter.OpenStateChanged -= OnInventoryOpenStateChanged;
+            // Flow가 Module의 초기화를 실행
+            _inventoryModule.InitializeSlots();
+
+            // 초기화가 끝난 후 외부에 알림
+            OnSlotsInitialized?.Invoke();
         }
+
+        public void AddWeaponSlots(EWeaponType p_type, int p_count = 1)
+        {
+            if (_inventoryModule == null || p_count <= 0)
+                return;
+
+            var createdSlots = _inventoryModule.CreateWeaponSlots(p_type, p_count);
+
+            // 생성된 슬롯 목록을 한 번만 전달
+            if (createdSlots.Count > 0)
+                OnSlotsAdded?.Invoke(createdSlots);
+        }
+
+        public void AddArmorSlots(EArmorType p_type, int p_count = 1)
+        {
+            if (_inventoryModule == null || p_count <= 0)
+                return;
+
+            var createdSlots = _inventoryModule.CreateArmorSlots(p_type, p_count);
+
+            if (createdSlots.Count > 0)
+                OnSlotsAdded?.Invoke(createdSlots);
+        }
+
+        public void AddCommonSlots(EItemType p_type, int p_count = 1)
+        {
+            if (_inventoryModule == null || p_count <= 0)
+                return;
+
+            var createdSlots = _inventoryModule.CreateCommonSlots(p_type, p_count);
+
+            if (createdSlots.Count > 0)
+                OnSlotsAdded?.Invoke(createdSlots);
+        }
+
+       
     }
 }

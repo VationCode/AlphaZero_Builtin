@@ -1,7 +1,9 @@
 using Alpha.AlphaCamera;
+using Alpha.Player.Inventory;
 using Alpha.Mouse;
-using UnityEngine;
 using Alpha.Player.Locomotion;
+using Alpha.UI;
+using UnityEngine;
 
 namespace Alpha.Player
 {
@@ -22,7 +24,6 @@ namespace Alpha.Player
         public ItemPickupFlow ItemPickupFlow { get; private set; }
         public PlayerInventoryFlow InventoryFlow { get; private set; }
 
-        public PlayerEquipmentFlow EquipmentFlow { get; private set; }
         #endregion
 
         #region ========== Domain
@@ -33,12 +34,12 @@ namespace Alpha.Player
         #region ========== Module
         public PlayerLocomotionModule LocomotionModule { get; private set; }
         public PlayerInventoryModule InventoryModule { get; private set; }
-        public PlayerEquipmentModule EquipmentModule { get; private set; }
+        //public PlayerEquipmentModule EquipmentModule { get; private set; }
         #endregion
 
         #region ========== View
         public PlayerAnimationView AnimationView { get; private set; }
-        public PlayerEquipmentView EquipmentView { get; private set; }
+        //public PlayerEquipmentView EquipmentView { get; private set; }
         #endregion
         public Transform PlayerTr;
 
@@ -67,19 +68,17 @@ namespace Alpha.Player
             LocomotionModeFlow = GetComponentInChildren<LocomotionModeFlow>();
             ItemPickupFlow = GetComponent<ItemPickupFlow>();
             InventoryFlow = GetComponentInChildren<PlayerInventoryFlow>();
-            EquipmentFlow = GetComponentInChildren<PlayerEquipmentFlow>();
+            //EquipmentFlow = GetComponentInChildren<PlayerEquipmentFlow>();
 
             // Module
             LocomotionModule = GetComponentInChildren<PlayerLocomotionModule>();
             InventoryModule = GetComponentInChildren<PlayerInventoryModule>();
-            EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>();
+            //EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>();
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
-            EquipmentView = GetComponentInChildren<PlayerEquipmentView>();
 
             PlayerTr = this.transform;
-
         }
 
         private void Start()
@@ -87,22 +86,11 @@ namespace Alpha.Player
             LocomotionModeFlow.Bind(this);
             LocomotionModule.Bind(LocomotionContext);
 
-            // 외부 Camera를 Motor의 이동 기준으로 연결한다.
-            //LocomotionMotor.Bind(CameraCore.RenderCamera.transform);
-
-            // Ground Module에 공통 Motor를 연결한다.
-            //GroundLocomotion.Bind(LocomotionMotor);
-
-            // 모든 Module 연결 후 Locomotion Flow를 시작한다.
-            //LocomotionModeFlow.Bind(this);
-
             ItemPickupFlow.Bind(InventoryModule);
 
-            EquipmentFlow.Bind(this);
-
+            //EquipmentFlow.Bind(this);
 
             AnimationView.Bind(PlayerTr);
-
         }
 
         private void Update()

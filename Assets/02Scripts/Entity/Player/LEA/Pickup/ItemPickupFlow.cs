@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Alpha.Player.Inventory;
 
 namespace Alpha.Player
 {
@@ -23,8 +23,8 @@ namespace Alpha.Player
                 return false;
             }
 
-            if (!_inventoryModule.TryAdd(item, p_pickup.Count))
-                return false;
+            /*if (!_inventoryModule.TryAdd(item, p_pickup.Count))
+                return false;*/
 
             Destroy(p_pickup.gameObject);
             return true;
