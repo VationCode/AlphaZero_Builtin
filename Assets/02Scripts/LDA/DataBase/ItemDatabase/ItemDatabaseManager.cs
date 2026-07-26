@@ -1,17 +1,18 @@
 
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class ItemDatabaseSystem : MonoBehaviour
+public class ItemDatabaseManager : MonoBehaviour
 {
-    private static ItemDatabaseSystem _instance;
-    public static ItemDatabaseSystem Instance
+    /*private static ItemDatabaseManager _instance;
+    public static ItemDatabaseManager Instance
     {
         get
         {
-            if(_instance == null) _instance = FindFirstObjectByType<ItemDatabaseSystem>();
+            if(_instance == null) _instance = FindFirstObjectByType<ItemDatabaseManager>();
             return _instance;
         }
-    }
+    }*/
 
     public WeaponDatabase Weapon { get; private set; }
     public ArmorDatabase Armor { get; private set; }
@@ -19,16 +20,18 @@ public class ItemDatabaseSystem : MonoBehaviour
     public MaterialDatabase Material { get; private set; }
     public QuestItemDatabase QuestItem { get; private set; }
 
+    public bool IsInitialized { get; private set; }
+
     private void Awake()
     {
-        if (_instance != null && _instance != this)
+        /*if (_instance != null && _instance != this)
         {
             Destroy(gameObject);
             return;
         }
         _instance = this;
 
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject);*/
 
         IDataLoader loader = new JsonDataLoader(Application.dataPath + "/Resources/DB/Items");
 
@@ -44,17 +47,27 @@ public class ItemDatabaseSystem : MonoBehaviour
         QuestItem = new QuestItemDatabase(p_loader);
     }
 
-    private async void Start()
+    public async Task InitializeAsync()
     {
+        if (IsInitialized) return;
+
         await Weapon.InitializeAsync();
         await Armor.InitializeAsync();
         await Consumable.InitializeAsync();
         await Material.InitializeAsync();
         await QuestItem.InitializeAsync();
+
+        IsInitialized = true;
     }
 
     public bool TryGetItem(EItemType p_type, int p_id, out ItemDTO p_data)
     {
+        if (!IsInitialized)
+        {
+            p_data = null;
+            return false;
+        }
+
         switch (p_type)
         {
             case EItemType.Weapon:

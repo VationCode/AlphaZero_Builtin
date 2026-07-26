@@ -1,3 +1,4 @@
+using Alpha.Player.Slot;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,140 +7,168 @@ namespace Alpha.Player.Inventory
 {
     public class PlayerInventoryModule : MonoBehaviour
     {
-        [Header("Slot Count Per Type")]
+        // Slot
         [SerializeField, Min(0)] private int _weaponSlotCount = 10;
         [SerializeField, Min(0)] private int _armorSlotCount = 10;
         [SerializeField, Min(0)] private int _commonSlotCount = 10;
 
-        // Weapon과 Armor의 경우는 각 스크롤별로 관리해야 하기에
-        private readonly Dictionary<EWeaponType, List<WeaponSlot>> _weaponSlotDict = new();
-        private readonly Dictionary<EArmorType, List<ArmorSlot>> _armorSlotDict = new();
-        //private readonly Dictionary<EItemType, List<CommonSlot>> _commonSlotDict = new();
-        private readonly List<CommonSlot> _consumableSlotList = new();
-        private readonly List<CommonSlot> _materialSlotList = new();
-        private readonly List<CommonSlot> _questItemSlotList = new();
+        // Page
+        private readonly Dictionary<EItemType, InventoryPage> _inventoryPageDict = new();
+
         public bool IsInitialized { get; private set; }
 
-        public void InitializeSlots()
+       
+        public void Initialize()
         {
-            if (IsInitialized) return;
+            if (IsInitialized)
+                return;
 
-            CreateWeaponSlots(EWeaponType.Melee, _weaponSlotCount);
-            CreateWeaponSlots(EWeaponType.Range, _weaponSlotCount);
-            CreateWeaponSlots(EWeaponType.Special, _weaponSlotCount);
+            CreateWeaponPage();
+            CreateArmorPage();
 
-            CreateArmorSlots(EArmorType.Helmet, _armorSlotCount);
-            CreateArmorSlots(EArmorType.Chest, _armorSlotCount);
-            CreateArmorSlots(EArmorType.Gloves, _armorSlotCount);
-            CreateArmorSlots(EArmorType.Boots, _armorSlotCount);
-
-            CreateCommonSlots(EItemType.Consumable, _commonSlotCount);
-            CreateCommonSlots(EItemType.Material, _commonSlotCount);
-            CreateCommonSlots(EItemType.QuestItem, _commonSlotCount);
+            CreateSingleGroupPage(EItemType.Consumable);
+            CreateSingleGroupPage(EItemType.Material);
+            CreateSingleGroupPage(EItemType.QuestItem);
 
             IsInitialized = true;
         }
 
-        public IReadOnlyList<WeaponSlot> CreateWeaponSlots(EWeaponType p_type, int p_count)
+        #region ======================================== InventoryPage
+        // Page 조회
+        public bool TryGetPage(EItemType p_pageType, out InventoryPage p_page)
         {
-            if (p_type == EWeaponType.None || p_count <= 0)
-                return Array.Empty<WeaponSlot>();
+            return _inventoryPageDict.TryGetValue(p_pageType, out p_page);
+        }
 
-            // 타입별 슬롯 목록이 없으면 최초 생성
-            if (!_weaponSlotDict.TryGetValue(p_type, out var slotList))
+        // 무기 Page 및 무기 종류별 Group 생성
+        private void CreateWeaponPage()
+        {
+            InventoryPage page = CreatePage(EItemType.Weapon);
+
+            if (page == null)
+                return;
+
+            page.AddSlotGroup((int)EWeaponType.Melee, CreateWeaponSlotGroup(EWeaponType.Melee));
+            page.AddSlotGroup((int)EWeaponType.Range, CreateWeaponSlotGroup(EWeaponType.Range));
+            page.AddSlotGroup((int)EWeaponType.Special, CreateWeaponSlotGroup(EWeaponType.Special));
+        }
+
+        // 방어구 Page 및 방어구 종류별 Group 생성
+        private void CreateArmorPage()
+        {
+            InventoryPage page = CreatePage(EItemType.Armor);
+
+            if (page == null)
+                return;
+
+            page.AddSlotGroup((int)EArmorType.Helmet, CreateArmorSlotGroup(EArmorType.Helmet));
+            page.AddSlotGroup((int)EArmorType.Chest, CreateArmorSlotGroup(EArmorType.Chest));
+            page.AddSlotGroup((int)EArmorType.Gloves, CreateArmorSlotGroup(EArmorType.Gloves));
+            page.AddSlotGroup((int)EArmorType.Boots, CreateArmorSlotGroup(EArmorType.Boots));
+        }
+
+        // 하나의 Group만 사용하는 Page 생성
+        private void CreateSingleGroupPage(EItemType p_pageType)
+        {
+            InventoryPage page = CreatePage(p_pageType);
+
+            if (page == null)
+                return;
+
+            page.AddSlotGroup(0, CreateCommonSlotGroup(p_pageType));
+        }
+
+        // Page 생성 및 등록
+        private InventoryPage CreatePage(EItemType p_pageType)
+        {
+            if (p_pageType == EItemType.None || _inventoryPageDict.ContainsKey(p_pageType))
+                return null;
+
+            InventoryPage page = new InventoryPage();
+
+            _inventoryPageDict.Add(p_pageType, page);
+
+            return page;
+        }
+
+        #endregion ======================================== /InventoryPage
+
+        #region ======================================== SlotGroup
+        private SlotGroup CreateWeaponSlotGroup(EWeaponType p_type)
+        {
+            SlotGroup slotGroup = new();
+
+            for (int i = 0; i < _weaponSlotCount; i++)
             {
-                slotList = new List<WeaponSlot>();
-                _weaponSlotDict.Add(p_type, slotList);
+                WeaponSlot slot = SlotFactory.CreateWeaponSlot(p_type);
+
+                slotGroup.AddSlot(slot);
             }
 
-            List<WeaponSlot> createdSlots = new();
+            return slotGroup;
+        }
 
-            for (int i = 0; i < p_count; i++)
+        private SlotGroup CreateArmorSlotGroup(EArmorType p_type)
+        {
+            SlotGroup slotGroup = new();
+
+            for (int i = 0; i < _armorSlotCount; i++)
             {
-                WeaponSlot slot = new WeaponSlot(p_type);
+                ArmorSlot slot = SlotFactory.CreateArmorSlot(p_type);
 
-                slotList.Add(slot);
-                createdSlots.Add(slot);
+                slotGroup.AddSlot(slot);
             }
 
-            return createdSlots;
+            return slotGroup;
         }
 
-        public IReadOnlyList<ArmorSlot> CreateArmorSlots(EArmorType p_type, int p_count)
+        private SlotGroup CreateCommonSlotGroup(EItemType p_type)
         {
-            if (p_type == EArmorType.None || p_count <= 0)
-                return Array.Empty<ArmorSlot>();
+            SlotGroup slotGroup = new();
 
-            // 타입별 슬롯 목록이 없으면 최초 생성
-            if (!_armorSlotDict.TryGetValue(p_type, out var slotList))
+            for (int i = 0; i < _commonSlotCount; i++)
             {
-                slotList = new List<ArmorSlot>();
-                _armorSlotDict.Add(p_type, slotList);
+                CommonSlot slot = SlotFactory.CreateCommonSlot(p_type);
+
+                slotGroup.AddSlot(slot);
             }
 
-            List<ArmorSlot> createdSlots = new();
+            return slotGroup;
+        }
+        #endregion ======================================== /SlotGroup
 
-            for (int i = 0; i < p_count; i++)
+        #region ======================================== Slot
+        public SlotBase AddSlot(EItemType p_pageType, int p_groupIndex)
+        {
+            if (!TryGetPage(p_pageType, out InventoryPage page))
+                return null;
+
+            if (!page.TryGetSlotGroup(p_groupIndex, out SlotGroup slotGroup))
+                return null;
+
+            SlotBase slot = CreateSlot(p_pageType, p_groupIndex);
+
+            if (slot == null)
+                return null;
+
+            slotGroup.AddSlot(slot);
+
+            return slot;
+        }
+
+        private SlotBase CreateSlot(EItemType p_pageType, int p_groupIndex)
+        {
+            return p_pageType switch
             {
-                ArmorSlot slot = new ArmorSlot(p_type);
+                EItemType.Weapon => SlotFactory.CreateWeaponSlot((EWeaponType)p_groupIndex),
 
-                slotList.Add(slot);
-                createdSlots.Add(slot);
-            }
+                EItemType.Armor =>SlotFactory.CreateArmorSlot((EArmorType)p_groupIndex),
 
-            return createdSlots;
+                EItemType.Consumable or EItemType.Material or EItemType.QuestItem => SlotFactory.CreateCommonSlot(p_pageType),
+
+                _ => null
+            };
         }
-
-        private List<CommonSlot> GetCommonSlotList(EItemType p_type)
-        {
-            switch (p_type)
-            {
-                case EItemType.Consumable:
-                    return _consumableSlotList;
-
-                case EItemType.Material:
-                    return _materialSlotList;
-
-                case EItemType.QuestItem:
-                    return _questItemSlotList;
-
-                default:
-                    return null;
-            }
-        }
-        public IReadOnlyList<CommonSlot> CreateCommonSlots(EItemType p_type, int p_count)
-        {
-            List<CommonSlot> slotList = GetCommonSlotList(p_type);
-
-            if (slotList == null || p_count <= 0)
-                return Array.Empty<CommonSlot>();
-
-            List<CommonSlot> createdSlots = new();
-
-            for (int i = 0; i < p_count; i++)
-            {
-                CommonSlot slot = new CommonSlot(p_type);
-
-                slotList.Add(slot);
-                createdSlots.Add(slot);
-            }
-
-            return createdSlots;
-        }
-
-        public IReadOnlyList<WeaponSlot> GetWeaponSlots(EWeaponType p_type)
-        {
-            return _weaponSlotDict.TryGetValue(p_type, out var slots)? slots : Array.Empty<WeaponSlot>();
-        }
-
-        public IReadOnlyList<ArmorSlot> GetArmorSlots(EArmorType p_type)
-        {
-            return _armorSlotDict.TryGetValue(p_type, out var slots)? slots : Array.Empty<ArmorSlot>();
-        }
-
-        public IReadOnlyList<CommonSlot> GetCommonSlots(EItemType p_type)
-        {
-            return GetCommonSlotList(p_type)?? (IReadOnlyList<CommonSlot>)Array.Empty<CommonSlot>();
-        }
+        #endregion ======================================== /Slot
     }
 }

@@ -42,32 +42,6 @@ public class ItemWrapper
     // 변수명은 json에서의 목록 이름과 같아야한다
     public List<ItemDTO> ItemList;
 }
-#region ==================== Weapon
-
-#endregion ==================== /Weapon
-
-#region ==================== Armor
-public enum EArmorType
-{
-    None = -1,
-    Helmet = 0,
-    Chest = 1,
-    Gloves = 2,
-    Boots = 3
-}
-[Serializable]
-public class ArmorDTO : ItemDTO
-{
-    [Header("ArmorData")]
-    public EArmorType ArmorType;
-    public int BaseDefense;
-}
-public class ArmorWrapper
-{
-    public List<ArmorDTO> ItemList;
-}
-
-#endregion ==================== /Armor
 
 #region ==================== Consumable
 public enum EConsumableType

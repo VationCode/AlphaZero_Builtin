@@ -28,6 +28,15 @@ namespace Alpha.Player.Locomotion
                 return;
             }
 
+            // 절벽 등에서 지면을 벗어난 경우
+            if (!_Core.LocomotionModule.IsGrounded)
+            {
+                // 직전 지상 이동의 수평 속도 보존
+                _Core.LocomotionModule.StartFall();
+
+                _StateFlow.ChangeState(EStateType.Fall);
+                return;
+            }
             Transform cameraTr = _Core.CameraCore.RenderCamera.transform;
 
             bool isSprint = _Input.IsSprint;

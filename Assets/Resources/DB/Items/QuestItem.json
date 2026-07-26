@@ -13,7 +13,7 @@
 
             "Price": -1,
 
-            "IsStackable": false,
+            "IsStackable": true,
 
             "MaxStackCount": 99,
 
@@ -34,7 +34,7 @@
 
             "Price": -1,
 
-            "IsStackable": false,
+            "IsStackable": true,
 
             "MaxStackCount": 99,
 
@@ -55,7 +55,7 @@
 
             "Price": -1,
 
-            "IsStackable": false,
+            "IsStackable": true,
 
             "MaxStackCount": 99,
 

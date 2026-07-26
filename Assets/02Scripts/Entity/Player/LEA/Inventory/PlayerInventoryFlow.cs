@@ -1,15 +1,19 @@
 using Alpha.Mouse;
+using Alpha.Player.Slot;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 namespace Alpha.Player.Inventory
 {
+    // 입력에 따른 창 활성화 판단
+    // InventoryModule에 슬롯 초기화·추가 요청
+    // 생성된 슬롯을 외부에 이벤트로 전달
+
     public class PlayerInventoryFlow : MonoBehaviour
     {
-        private PlayerCore _core;
         private AlphaInputSystem _input;
-        private MouseSystem _mouseSystem;
         private PlayerInventoryModule _inventoryModule;
 
         public bool IsOpen { get; private set; }
@@ -23,9 +27,9 @@ namespace Alpha.Player.Inventory
 
         public void Bind(PlayerCore p_core)
         {
-            _core = p_core;
+            if (p_core == null) return;
+
             _input = p_core.Input;
-            _mouseSystem = p_core.MouseSystem;
             _inventoryModule = p_core.InventoryModule;
         }
 
@@ -45,14 +49,14 @@ namespace Alpha.Player.Inventory
             OnWindowActivate?.Invoke(IsOpen);
         }
 
-        // Slot
+        #region ======================================== Slot
         public void InitializeSlots()
         {
             if (_inventoryModule == null || _inventoryModule.IsInitialized)
                 return;
 
             // Flow가 Module의 초기화를 실행
-            _inventoryModule.InitializeSlots();
+            //_inventoryModule.InitializeSlots();
 
             // 초기화가 끝난 후 외부에 알림
             OnSlotsInitialized?.Invoke();
@@ -60,14 +64,12 @@ namespace Alpha.Player.Inventory
 
         public void AddWeaponSlots(EWeaponType p_type, int p_count = 1)
         {
-            if (_inventoryModule == null || p_count <= 0)
+            if (_inventoryModule == null)
                 return;
 
-            var createdSlots = _inventoryModule.CreateWeaponSlots(p_type, p_count);
+            //IReadOnlyList<WeaponSlot> slots = _inventoryModule.CreateWeaponSlotList(p_type, p_count);
 
-            // 생성된 슬롯 목록을 한 번만 전달
-            if (createdSlots.Count > 0)
-                OnSlotsAdded?.Invoke(createdSlots);
+            //NotifySlotsAdded(slots);
         }
 
         public void AddArmorSlots(EArmorType p_type, int p_count = 1)
@@ -75,10 +77,9 @@ namespace Alpha.Player.Inventory
             if (_inventoryModule == null || p_count <= 0)
                 return;
 
-            var createdSlots = _inventoryModule.CreateArmorSlots(p_type, p_count);
+            //IReadOnlyList<ArmorSlot> slots = _inventoryModule.CreateArmorSlotList(p_type, p_count);
 
-            if (createdSlots.Count > 0)
-                OnSlotsAdded?.Invoke(createdSlots);
+            //NotifySlotsAdded(slots);
         }
 
         public void AddCommonSlots(EItemType p_type, int p_count = 1)
@@ -86,12 +87,22 @@ namespace Alpha.Player.Inventory
             if (_inventoryModule == null || p_count <= 0)
                 return;
 
-            var createdSlots = _inventoryModule.CreateCommonSlots(p_type, p_count);
+            //IReadOnlyList<CommonSlot> slots = _inventoryModule.CreateCommonSlotList(p_type, p_count);
 
-            if (createdSlots.Count > 0)
-                OnSlotsAdded?.Invoke(createdSlots);
+            //NotifySlotsAdded(slots);
         }
 
-       
+        // Add 내용에 대해 외부에 알림
+        private void NotifySlotsAdded<TSlot>(IReadOnlyList<TSlot> p_slots) where TSlot : SlotBase
+        {
+            if (p_slots == null || p_slots.Count == 0)
+            {
+                return;
+            }
+
+            OnSlotsAdded?.Invoke(p_slots);
+        }
+        #endregion ======================================== /Slot
+
     }
 }

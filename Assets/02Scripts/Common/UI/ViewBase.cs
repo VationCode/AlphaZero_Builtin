@@ -4,18 +4,24 @@ namespace Alpha.UI
 {
     public abstract class ViewBase : MonoBehaviour
     {
-        public Animation m_UIOpenAnim;
+        [SerializeField] private Animation _openAnimation;
+
+        private void Awake()
+        {
+            _openAnimation = GetComponent<Animation>();
+        }
 
         internal void Open()
         {
-            if (m_UIOpenAnim)
-            {
-                this.m_UIOpenAnim.Play();
-            }
+            gameObject.SetActive(true);
+
+            if (_openAnimation != null)
+                _openAnimation.Play();
         }
+
         internal void Close()
         {
-
+            gameObject.SetActive(false);
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace Alpha.Player.Inventory
+namespace Alpha.Player.Slot
 {
     public class ArmorSlot : SlotBase
     {

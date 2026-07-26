@@ -58,7 +58,7 @@ namespace Alpha.Player.Locomotion
 
         [Header("Gravity")]
         [SerializeField, Min(0f)] private float _gravity = 15f;
-        [SerializeField, Min(0f)] private float _groundedForce = 0.5f;
+        [SerializeField, Min(0f)] private float _groundedForce = 2;
 
         private LocomotionContext _context;
 
@@ -67,10 +67,10 @@ namespace Alpha.Player.Locomotion
         public Vector3 Velocity { get; private set; }
         private float _rotationVelocity;
 
-        private Vector2 _lastMoveInput;
-        private Vector3 _lastMoveDirection;
+
         private float _airMoveSpeed;
 
+        public bool IsGroundCollisionBelow { get; private set; }
         private void Awake()
         {
             _controller = GetComponentInParent<CharacterController>();
@@ -254,6 +254,17 @@ namespace Alpha.Player.Locomotion
 
             Move(velocity);
         }
+
+        public void StartFall()
+        {
+            // 직전 지상 이동의 수평 속도 보존
+            Vector3 horizontalVelocity = Vector3.ProjectOnPlane(Velocity, Vector3.up);
+
+            _airMoveSpeed = horizontalVelocity.magnitude;
+
+            _context.LockedMoveDirection = _airMoveSpeed > 0.001f ? horizontalVelocity.normalized : Vector3.zero;
+        }
+
 
         public void StartDash(Vector2 p_input, Transform p_cameraTransform)
         {

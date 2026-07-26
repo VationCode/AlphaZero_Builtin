@@ -15,7 +15,6 @@ namespace Alpha.Player.Locomotion
             // 낙하 중 수평 이동과 중력 적용
             _Core.LocomotionModule.MoveAirborne(_Core.LocomotionContext.LockedMoveDirection);
 
-            // 착지하면 일반 이동으로 복귀
             if (_Core.LocomotionModule.IsGrounded && _Core.LocomotionModule.VerticalVelocity <= 0f)
             {
                 _StateFlow.ChangeState(EStateType.Land);

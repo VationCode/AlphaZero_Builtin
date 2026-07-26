@@ -3,6 +3,7 @@ using Alpha.Player.Inventory;
 using Alpha.Mouse;
 using Alpha.Player.Locomotion;
 using Alpha.UI;
+using Alpha.Player.Equipment;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -16,6 +17,7 @@ namespace Alpha.Player
         public ResourceLoadSystem ResourceLoader { get; private set; }
         public DamageSystem DamageSystem { get; private set; }
         public MouseSystem MouseSystem { get; private set; }
+        public ItemDatabaseManager ItemDatabase { get; private set; }
         #endregion
 
         #region ========== Flow
@@ -34,7 +36,7 @@ namespace Alpha.Player
         #region ========== Module
         public PlayerLocomotionModule LocomotionModule { get; private set; }
         public PlayerInventoryModule InventoryModule { get; private set; }
-        //public PlayerEquipmentModule EquipmentModule { get; private set; }
+        public PlayerEquipmentModule EquipmentModule { get; private set; }
         #endregion
 
         #region ========== View
@@ -51,7 +53,7 @@ namespace Alpha.Player
 
         public void Bind(AlphaInputSystem p_input, UIManager p_ui, CameraCore p_camera,
                          ResourceLoadSystem p_resourceLoad, DamageSystem p_damageSystem,
-                        MouseSystem p_mouseSystem)
+                        MouseSystem p_mouseSystem, ItemDatabaseManager p_itemDabase)
         {
             Input = p_input;
             UIManager = p_ui;
@@ -59,6 +61,7 @@ namespace Alpha.Player
             ResourceLoader = p_resourceLoad;
             DamageSystem = p_damageSystem;
             MouseSystem = p_mouseSystem;
+            ItemDatabase = p_itemDabase;
 
         }
 
@@ -73,7 +76,7 @@ namespace Alpha.Player
             // Module
             LocomotionModule = GetComponentInChildren<PlayerLocomotionModule>();
             InventoryModule = GetComponentInChildren<PlayerInventoryModule>();
-            //EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>();
+            EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>();
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
@@ -86,7 +89,7 @@ namespace Alpha.Player
             LocomotionModeFlow.Bind(this);
             LocomotionModule.Bind(LocomotionContext);
 
-            ItemPickupFlow.Bind(InventoryModule);
+            ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
 
             //EquipmentFlow.Bind(this);
 

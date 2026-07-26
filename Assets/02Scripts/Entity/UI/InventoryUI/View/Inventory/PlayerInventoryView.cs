@@ -8,7 +8,7 @@ public enum EInventoryPage  // 순서 배치 지킬것
     Armor,
     Consumable,
     Material,
-    Quest
+    QuestItem
 }
 namespace Alpha.UI.Inventory
 {
@@ -26,6 +26,12 @@ namespace Alpha.UI.Inventory
         private void Awake()
         {
             _pages = GetComponentsInChildren<InventoryPageView>(true);
+
+            foreach (InventoryPageView page in _pages)
+            {
+                if (page != null)
+                    page.Initialize();
+            }
 
             ClosedAllPage();
             SetWindowActive(false);
