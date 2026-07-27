@@ -581,7 +581,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI (1)
+      value: RangeSlotUI
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -1117,7 +1117,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI
+      value: HelemetSlotUI
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -2556,7 +2556,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI (3)
+      value: BootsSlotUI (3)
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -3552,7 +3552,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI
+      value: MeleeSlotUI
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -3803,15 +3803,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00feee5bd33c0841ac2588b23fe86e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 0}
-  _dragImage: {fileID: 0}
-  _dragFlow: {fileID: 0}
-  _canvas: {fileID: 0}
-  _slotSearchRoot: {fileID: 0}
-  _sourceTrigger: {fileID: 0}
-  _isSlotDragging: 0
-  _savedHorizontal: 0
-  _savedVertical: 0
 --- !u!1001 &823829296
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3822,7 +3813,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI (2)
+      value: GlovesSlotUI (2)
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -3932,7 +3923,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI (2)
+      value: SpecialSlotUI
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -4275,15 +4266,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00feee5bd33c0841ac2588b23fe86e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 0}
-  _dragImage: {fileID: 0}
-  _dragFlow: {fileID: 0}
-  _canvas: {fileID: 0}
-  _slotSearchRoot: {fileID: 0}
-  _sourceTrigger: {fileID: 0}
-  _isSlotDragging: 0
-  _savedHorizontal: 0
-  _savedVertical: 0
 --- !u!1001 &854093652
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4913,15 +4895,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00feee5bd33c0841ac2588b23fe86e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 0}
-  _dragImage: {fileID: 0}
-  _dragFlow: {fileID: 0}
-  _canvas: {fileID: 0}
-  _slotSearchRoot: {fileID: 0}
-  _sourceTrigger: {fileID: 0}
-  _isSlotDragging: 0
-  _savedHorizontal: 0
-  _savedVertical: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -6613,7 +6586,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3242523865606719130, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_Name
-      value: SlotUI (1)
+      value: ChestSlotUI (1)
       objectReference: {fileID: 0}
     - target: {fileID: 4559159633653240277, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
       propertyPath: m_IsActive
@@ -7587,15 +7560,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00feee5bd33c0841ac2588b23fe86e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 0}
-  _dragImage: {fileID: 0}
-  _dragFlow: {fileID: 0}
-  _canvas: {fileID: 0}
-  _slotSearchRoot: {fileID: 0}
-  _sourceTrigger: {fileID: 0}
-  _isSlotDragging: 0
-  _savedHorizontal: 0
-  _savedVertical: 0
 --- !u!1 &1748257270
 GameObject:
   m_ObjectHideFlags: 0
@@ -7642,8 +7606,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerCore: {fileID: 1530817295313602419}
   _input: {fileID: 20021027}
-  _ui: {fileID: 1988692052}
   _cameraCore: {fileID: 400402143}
+  _inventoryCore: {fileID: 1024725991520919366}
+  _equipmentCore: {fileID: 1024725991520919369}
   _resourceLoader: {fileID: 450537495}
   _itemDatabase: {fileID: 182729214}
   _mouseSystem: {fileID: 1007656242}
@@ -8299,8 +8264,9 @@ GameObject:
   - component: {fileID: 1915216768}
   - component: {fileID: 1915216770}
   - component: {fileID: 1915216771}
+  - component: {fileID: 1915216772}
   m_Layer: 5
-  m_Name: Invenotry_Armor
+  m_Name: Page_Armor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8357,6 +8323,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _openAnimation: {fileID: 0}
+--- !u!114 &1915216772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1915216767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83cf177b46e8c0449a19127db3b0f9e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _helmetSlot: {fileID: 1646083684}
+  _chestSlot: {fileID: 1498580004}
+  _glovesSlot: {fileID: 1276311267}
+  _bootsSlot: {fileID: 1655031135}
 --- !u!114 &1918192586 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6032309570452213183, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
@@ -8592,8 +8574,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CrossHairUI: {fileID: 2095504453}
   StateUI: {fileID: 1992083674}
-  InventoryView: {fileID: 1024725991520919364}
-  EquipmentView: {fileID: 1024725991520919365}
 --- !u!1 &1992083672
 GameObject:
   m_ObjectHideFlags: 0
@@ -9041,15 +9021,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00feee5bd33c0841ac2588b23fe86e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 0}
-  _dragImage: {fileID: 0}
-  _dragFlow: {fileID: 0}
-  _canvas: {fileID: 0}
-  _slotSearchRoot: {fileID: 0}
-  _sourceTrigger: {fileID: 0}
-  _isSlotDragging: 0
-  _savedHorizontal: 0
-  _savedVertical: 0
 --- !u!1 &2081170003
 GameObject:
   m_ObjectHideFlags: 0
@@ -10030,8 +10001,9 @@ GameObject:
   - component: {fileID: 499523441320616698}
   - component: {fileID: 6070223928836769323}
   - component: {fileID: 6070223928836769324}
+  - component: {fileID: 6070223928836769325}
   m_Layer: 5
-  m_Name: Invenotry_Weapon
+  m_Name: Page_Weapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10203,10 +10175,15 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 301374375682271876}
+  - component: {fileID: 1024725991520919366}
+  - component: {fileID: 1024725991520919368}
+  - component: {fileID: 1024725991520919367}
   - component: {fileID: 1024725991520919364}
+  - component: {fileID: 1024725991520919369}
+  - component: {fileID: 1024725991520919370}
   - component: {fileID: 1024725991520919365}
   m_Layer: 5
-  m_Name: InventoryUI
+  m_Name: InventoryUI & EquipmentUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10238,13 +10215,76 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1f0554bdb2b04438dfabd34b8f7f3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _melee: {fileID: 1608373788}
-  _range: {fileID: 226578862}
-  _special: {fileID: 1918192586}
-  _helmet: {fileID: 1646083684}
-  _chest: {fileID: 1498580004}
-  _gloves: {fileID: 1276311267}
-  _boots: {fileID: 1655031135}
+  _weaponPage: {fileID: 6070223928836769325}
+  _armorPage: {fileID: 1915216772}
+--- !u!114 &1024725991520919366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024725991520919361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268c873c8a9fa4649bc756d0377e6c13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _module: {fileID: 1024725991520919368}
+  _flow: {fileID: 1024725991520919367}
+  _view: {fileID: 1024725991520919364}
+--- !u!114 &1024725991520919367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024725991520919361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e16a45b88d7bef4199d5d46f2dacee3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1024725991520919368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024725991520919361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 212a110cc80ee4045b914d4bb264483d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weaponSlotCount: 10
+  _armorSlotCount: 10
+  _commonSlotCount: 10
+--- !u!114 &1024725991520919369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024725991520919361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7df5f0c2cd11c44e850d4b5577d499a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _module: {fileID: 1024725991520919370}
+  _view: {fileID: 1024725991520919365}
+--- !u!114 &1024725991520919370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024725991520919361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5af06dd0814219f46a3ad0f64ceb8003, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1140171266742819213
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12338,7 +12378,7 @@ GameObject:
   - component: {fileID: 493227702647748406}
   - component: {fileID: 8422386741828306453}
   m_Layer: 5
-  m_Name: Invenotry_Quest
+  m_Name: Page_Quest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12914,7 +12954,7 @@ GameObject:
   - component: {fileID: 4672606025902835820}
   - component: {fileID: 6338322424680461396}
   m_Layer: 5
-  m_Name: Category
+  m_Name: Page_Category
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17094,7 +17134,7 @@ GameObject:
   - component: {fileID: 7172867264214940324}
   - component: {fileID: 7172867264214940325}
   m_Layer: 5
-  m_Name: Invenotry_Consumable
+  m_Name: Page_Consumable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19260,6 +19300,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _openAnimation: {fileID: 0}
+--- !u!114 &6070223928836769325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 720724710158025658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e0df88b6d353b44ba1b808bb4e201f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meleeSlot: {fileID: 1608373788}
+  _rangeSlot: {fileID: 226578862}
+  _specialSlot: {fileID: 1918192586}
 --- !u!114 &6087644476140033540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20764,7 +20819,7 @@ GameObject:
   - component: {fileID: 5560596127027883303}
   - component: {fileID: 8412375233135034748}
   m_Layer: 5
-  m_Name: Invenotry_Material
+  m_Name: Page_Material
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

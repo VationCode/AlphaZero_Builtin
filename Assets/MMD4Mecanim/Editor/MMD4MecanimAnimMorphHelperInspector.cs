@@ -81,7 +81,7 @@ public class MMD4MecanimAnimMorphHelperInspector : Editor
 		EditorGUILayout.Separator();
 			
 		{
-			GUILayout.Label( "Add Animation", EditorStyles.boldLabel );
+			GUILayout.Label( "AddItem Animation", EditorStyles.boldLabel );
 			EditorGUILayout.BeginHorizontal();
 			GUILayout.Space(26.0f);
 			TextAsset animFile = (TextAsset)EditorGUILayout.ObjectField( "Anim File", (Object)null, typeof(TextAsset), false );

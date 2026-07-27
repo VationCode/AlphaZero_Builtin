@@ -1,5 +1,5 @@
 using Alpha.Item;
-using Alpha.Player.Inventory;
+using Alpha.Inventory;
 using System;
 using UnityEngine;
 
@@ -7,29 +7,33 @@ namespace Alpha.Player
 {
     public class ItemPickupFlow : MonoBehaviour
     {
-        private PlayerInventoryModule _inventoryModule;
+        private InventoryCore _inventoryCore;
         private ItemDatabaseManager _itemDatabase;
 
-        public void Bind(PlayerInventoryModule p_inventoryModule, ItemDatabaseManager p_itemDatabase)
+        public void Bind(InventoryCore p_inventoryCore, ItemDatabaseManager p_itemDatabase)
         {
-            _inventoryModule = p_inventoryModule;
+            _inventoryCore = p_inventoryCore;
             _itemDatabase = p_itemDatabase;
         }
 
         public bool Pickup(PickupItemInfo p_pickup)
         {
-            if (p_pickup == null || _inventoryModule == null || _itemDatabase == null)
+            if (p_pickup == null || p_pickup.Count <= 0 || _inventoryCore == null || _itemDatabase == null)
+            {
                 return false;
+            }
 
             if (!_itemDatabase.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDTO item))
                 return false;
 
-            //int addedCount = _inventoryModule.TryAdd(item, p_pickup.Count);
+            if (!_inventoryCore.TryAddItem(item, p_pickup.Count, out int addedCount))
+            {
+                return false;
+            }
 
-            //if (addedCount <= 0)
-            //    return false;
+            // 인벤토리에 추가된 수량만 월드 아이템에서 차감
+            p_pickup.Consume(addedCount);
 
-           // p_pickup.Consume(addedCount);
             return true;
         }
 

@@ -15,7 +15,7 @@ namespace Alpha.Item
         public int Count => _count;
         public EItemType ItemType => _itemType;
 
-        // 월드 아이템의 남은 수량과 제거를 담당
+        // 월드 아이템 픽업 시 남은 수량과 제거를 담당
         public int Consume(int p_count)
         {
             if (p_count <= 0 || _count <= 0)

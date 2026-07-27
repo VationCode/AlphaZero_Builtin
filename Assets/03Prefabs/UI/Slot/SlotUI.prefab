@@ -194,9 +194,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3242523865606719130}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8866c33e04c8d764780505120b903a85, type: 3}
+  m_Script: {fileID: 11500000, guid: c40c56508a95fee4a8fdf0dc27029a96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _dragIconSize: {x: 80, y: 80}
 --- !u!1 &4559159633653240277
 GameObject:
   m_ObjectHideFlags: 0
