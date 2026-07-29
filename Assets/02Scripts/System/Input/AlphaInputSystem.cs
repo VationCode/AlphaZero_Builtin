@@ -27,12 +27,16 @@ public class AlphaInputSystem : MonoBehaviour
     public bool IsAttack => _isAttack;
     private bool _isAttack;
 
-    public bool IsAim => _isAim;
-    private bool _isAim;
+    public bool IsAiming => _isAiming;
+    private bool _isAiming;
 
     public int SwapNum { get; private set; }
     public bool IsSwapInput => m_swapFrame == Time.frameCount;
     private int m_swapFrame;
+
+    // Camera Test
+    public bool IsQuarter => _isQuarter;
+    private bool _isQuarter;
 
     #endregion ==================== /Player
 
@@ -72,8 +76,8 @@ public class AlphaInputSystem : MonoBehaviour
         _action.Player.Attack.performed += i => _isAttack = true;
         _action.Player.Attack.canceled += i => _isAttack = false;
 
-        _action.Player.Aim.performed += i => _isAim = true;
-        _action.Player.Aim.canceled += i => _isAim = false;
+        _action.Player.Aim.performed += i => _isAiming = true;
+        _action.Player.Aim.canceled += i => _isAiming = false;
 
         _action.Player.Swap.performed += OnSwap;
 
@@ -84,11 +88,13 @@ public class AlphaInputSystem : MonoBehaviour
         _action.Camera.MouseScroll.performed += i => _mouseScroll = i.ReadValue<Vector2>();
         _action.Camera.MouseScroll.canceled += i => _mouseScroll = Vector2.zero;
 
-
         _action.Camera.MousePos.performed += i => _mousePos = i.ReadValue<Vector2>();
         _action.Camera.MousePos.canceled += i => _mousePos = Vector2.zero;
 
         _action.UI.Inventory.performed += i => _inventoryFrame = Time.frameCount;
+
+        // 테스트 중에는 Q를 누르고 있는 동안 QuarterView를 사용한다.
+        _action.Camera.Quarter.performed += OnQuarter;
 
         // 활성화해야 동작
         _action.Enable();
@@ -99,11 +105,13 @@ public class AlphaInputSystem : MonoBehaviour
             return;
 
         _action.Player.Swap.performed -= OnSwap;
+        _action.Camera.Quarter.performed -= OnQuarter;
 
         _moveInput = Vector2.zero;
         _isSprint = false;
         _isAttack = false;
-        _isAim = false;
+        _isAiming = false;
+        _isQuarter = false;
 
         m_swapFrame = -1;
 
@@ -122,5 +130,11 @@ public class AlphaInputSystem : MonoBehaviour
             SwapNum = number - 1;
             m_swapFrame = Time.frameCount;
         }
+    }
+
+
+    private void OnQuarter(InputAction.CallbackContext p_context)
+    {
+        _isQuarter = !_isQuarter;
     }
 }

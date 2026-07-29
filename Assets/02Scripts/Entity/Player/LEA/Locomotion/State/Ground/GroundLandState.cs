@@ -7,7 +7,7 @@ namespace Alpha.Player.Locomotion
     public class GroundLandState : StateBase
     {
         public GroundLandState(PlayerCore p_core, StateFlowBase p_stateFlow) : base(p_core, p_stateFlow) { }
-        public override EStateType Type => EStateType.Land;
+        public override ELocoStateType Type => ELocoStateType.Land;
         private float _elapsedTime;
 
         protected override void Enter()
@@ -21,7 +21,7 @@ namespace Alpha.Player.Locomotion
 
             if (_elapsedTime < _Core.LocomotionModule.LandDuration) return;
 
-            _StateFlow.ChangeState(EStateType.Move);
+            _StateFlow.ChangeState(ELocoStateType.Move);
         }
 
         protected override void Exit()

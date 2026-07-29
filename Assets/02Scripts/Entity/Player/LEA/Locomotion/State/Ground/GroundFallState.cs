@@ -5,7 +5,7 @@ namespace Alpha.Player.Locomotion
     public class GroundFallState : StateBase
     {
         public GroundFallState(PlayerCore p_core, StateFlowBase p_stateFlow) : base(p_core, p_stateFlow) { }
-        public override EStateType Type => EStateType.Fall;
+        public override ELocoStateType Type => ELocoStateType.Fall;
         protected override void Enter()
         {
             _Core.AnimationView.PlayFall();
@@ -17,7 +17,7 @@ namespace Alpha.Player.Locomotion
 
             if (_Core.LocomotionModule.IsGrounded && _Core.LocomotionModule.VerticalVelocity <= 0f)
             {
-                _StateFlow.ChangeState(EStateType.Land);
+                _StateFlow.ChangeState(ELocoStateType.Land);
             }
         }
         protected override void Exit()

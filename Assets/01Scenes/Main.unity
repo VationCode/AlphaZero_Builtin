@@ -1672,9 +1672,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 400402138}
-  - component: {fileID: 400402143}
   - component: {fileID: 400402145}
   - component: {fileID: 400402144}
+  - component: {fileID: 400402146}
   m_Layer: 0
   m_Name: CameraRig
   m_TagString: Untagged
@@ -1698,7 +1698,23 @@ Transform:
   - {fileID: 270382886}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &400402143
+--- !u!114 &400402144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 400402136}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da684252140a7a54785da8daabde10f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cameraPivot: {fileID: 270382886}
+  _cameraShoulder: {fileID: 57131284}
+  _cameraPositionRoot: {fileID: 556756781}
+  _renderCamera: {fileID: 963194227}
+--- !u!114 &400402145
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1710,7 +1726,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fc70d3d606f18b48a61ece176adc23e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &400402144
+  _thirdPersonViewProfile: {fileID: 11400000, guid: 355829d5d00ae5f43a03b23ee541fad8, type: 2}
+  _aimViewProfile: {fileID: 11400000, guid: f1e1cff2679da994b9b5a1e24e431a65, type: 2}
+  _quarterViewProfile: {fileID: 11400000, guid: 21e0ae2cadbeabf4aa4474deb9bc31cf, type: 2}
+  _useViewInputTest: 1
+  _transitionSettings:
+    _tpsAimDuration: 0.18
+    _quarterDuration: 0.45
+--- !u!114 &400402146
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1719,34 +1742,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 400402136}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ee4c661cffc85341816dde4a41b62b1, type: 3}
+  m_Script: {fileID: 11500000, guid: f42c2dd991aba874a886e1af4fbeeadd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _initialViewType: 0
-  _thirdPersonProfile: {fileID: 11400000, guid: bcd1805b4f559d84a897761f70f26011, type: 2}
-  _aimProfile: {fileID: 11400000, guid: f1e1cff2679da994b9b5a1e24e431a65, type: 2}
-  _quarterProfile: {fileID: 11400000, guid: 21e0ae2cadbeabf4aa4474deb9bc31cf, type: 2}
---- !u!114 &400402145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 400402136}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7c4388f443b52143be001107f3314ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _cameraPivot: {fileID: 270382886}
-  _cameraShoulder: {fileID: 57131284}
-  _cameraZoomHolder: {fileID: 556756781}
-  _renderCamera: {fileID: 963194227}
-  _collisionMask:
+  _obstructionMask:
     serializedVersion: 2
     m_Bits: 1
-  _collisionPadding: 0.1
-  _collisionMinDistance: 0.2
+  _castRadius: 0.2
+  _surfacePadding: 0.05
+  _recoverySpeed: 15
 --- !u!1001 &405911483
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3692,6 +3696,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 776998317}
+  - component: {fileID: 776998319}
+  - component: {fileID: 776998318}
   m_Layer: 6
   m_Name: Combat
   m_TagString: Untagged
@@ -3714,6 +3720,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9056764102366596953}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &776998318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776998316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46366803d4cb5d641b2140dc660cd971, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &776998319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776998316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17fd97855fa5391429afd4a50e8e4e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &787540962
 GameObject:
   m_ObjectHideFlags: 0
@@ -5384,7 +5414,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _worldMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   _rayDistance: 1000
 --- !u!1 &1011568656
 GameObject:
@@ -6107,6 +6137,9 @@ MonoBehaviour:
     WalkSpeed: 4
     SprintSpeed: 6
     CombatSpeed: 3
+  _rotationSmoothTime: 0.1
+  _spatialRotationSmoothness: 10
+  _combatRotationSmoothTime: 0.05
   _jumpHeight: 2.5
   _landDuration: 0.15
   _dashDistance: 6
@@ -7606,7 +7639,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerCore: {fileID: 1530817295313602419}
   _input: {fileID: 20021027}
-  _cameraCore: {fileID: 400402143}
+  _cameraCore: {fileID: 400402145}
   _inventoryCore: {fileID: 1024725991520919366}
   _equipmentCore: {fileID: 1024725991520919369}
   _resourceLoader: {fileID: 450537495}
@@ -8910,6 +8943,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2076227035}
+  - component: {fileID: 2076227036}
   m_Layer: 6
   m_Name: Equipment
   m_TagString: Untagged
@@ -8932,6 +8966,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9056764102366596953}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2076227036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2076227034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b79ce102a8c0d8a4d92db809d348d710, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _handPivot: {fileID: 2122549744}
 --- !u!1 &2079832939
 GameObject:
   m_ObjectHideFlags: 0
@@ -21279,10 +21326,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bfdb41986e375498e277084540886f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _unarmedOverrideController: {fileID: 0}
-  _meleeOverrideController: {fileID: 0}
-  _rangeOverrideController: {fileID: 0}
-  _specialOverrideController: {fileID: 0}
+  _unarmedOverrideController: {fileID: 22100000, guid: 64c20a7c82c403e4ca94e227a09ff7e9, type: 2}
+  _meleeOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
+  _rangeOverrideController: {fileID: 22100000, guid: 34976b7d7579db54a873721598e98762, type: 2}
+  _specialOverrideController: {fileID: 22100000, guid: c2489d0853f6b6e42ae85cb2a04bc33c, type: 2}
 --- !u!114 &9056764102366596959
 MonoBehaviour:
   m_ObjectHideFlags: 0

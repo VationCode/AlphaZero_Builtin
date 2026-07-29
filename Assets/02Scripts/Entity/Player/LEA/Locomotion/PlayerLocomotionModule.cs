@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.Windows;
+
 public enum EMoveSpace
 {
     Planar,  // 수평면
@@ -38,8 +37,9 @@ namespace Alpha.Player.Locomotion
         [SerializeField] private MoveSpeedSet _flightMoveSpeed;
 
         [Header("Rotation")]
-        private float _rotationSmoothTime = 0.1f;
-        private float _spatialRotationSmoothness = 10f;
+        [SerializeField, Min(0f)] private float _rotationSmoothTime = 0.1f;               // Y축 회전 시간
+        [SerializeField, Min(0f)] private float _spatialRotationSmoothness = 10f;         // 3차원 회전 속도
+        [SerializeField, Min(0.01f)] private float _combatRotationSmoothTime = 0.05f;
 
         [Header("Jump")]
         [SerializeField] private float _jumpHeight = 2.5f;
@@ -71,6 +71,7 @@ namespace Alpha.Player.Locomotion
         private float _airMoveSpeed;
 
         public bool IsGroundCollisionBelow { get; private set; }
+
         private void Awake()
         {
             _controller = GetComponentInParent<CharacterController>();
@@ -90,11 +91,12 @@ namespace Alpha.Player.Locomotion
         }
 
         public void Movement(Vector2 p_inputDir, Transform p_cameraTransform, 
-                             bool p_isSprint, bool p_isCombat, ELocomotionMode p_mode)
+                             bool p_isSprint, bool p_isCombat, ELocomotionMode p_mode,
+                             Vector3 p_facingDirection = default)
         {
             bool isSpatial = p_mode == ELocomotionMode.Flight;
 
-            // 방향
+            // 이동 방향
             Vector3 direction = CalculateMoveDirection(p_inputDir, p_cameraTransform, isSpatial); // Ground는 수평 이동
 
             // 속력
@@ -107,10 +109,11 @@ namespace Alpha.Player.Locomotion
             if (!isSpatial)
                 velocity.y = VerticalVelocity;
 
-            Transform playerTransform = _controller.transform;
+            // 회전 방향
+            Vector3 rotationDirection = p_facingDirection.sqrMagnitude > 0.0001f? p_facingDirection : direction;
 
             // 계산된 회전을 실제 Player에 적용
-            ApplyMoveRotation(direction, p_cameraTransform, isSpatial, p_isCombat);
+            ApplyMoveRotation(rotationDirection, p_cameraTransform, isSpatial, p_isCombat);
 
             Move(velocity);
         }
@@ -169,8 +172,11 @@ namespace Alpha.Player.Locomotion
         private Quaternion CalculateMoveRotation(Vector3 p_inputDir, Transform p_cameraTransform, 
                                                 bool p_isSpatial = false, bool p_isCombat = false, bool p_isInstant = false)
         {
+            // 실제 Player Transform의 현재 회전을 기준으로 계산한다.
+            Quaternion currentRotation = _controller.transform.rotation;
+
             // Combat/Aim은 이동 입력과 무관하게 카메라 정면을 바라봄
-            Vector3 forward = p_isCombat ? p_cameraTransform.forward : p_inputDir;
+            Vector3 forward = p_inputDir;
 
             if (!p_isSpatial)
             {
@@ -180,35 +186,55 @@ namespace Alpha.Player.Locomotion
 
             // 회전할 방향이 없다면 현재 회전 유지
             if (forward.sqrMagnitude < 0.0001f)
-                return transform.rotation;
+            {
+                // 목표 방향이 없으면 현재 회전을 유지한다.
+                return currentRotation;
+            }
 
             Vector3 up = p_isSpatial? p_cameraTransform.up : Vector3.up;
 
             Quaternion targetRotation = Quaternion.LookRotation(forward.normalized, up);
 
-            // Combat은 즉시 회전
-            if (p_isCombat || p_isInstant)
+            // 점프·대시처럼 방향을 즉시 확정해야 하는 경우만 사용한다.
+            if (p_isInstant)
             {
                 _rotationVelocity = 0f;
                 return targetRotation;
             }
 
+            // 비행 등의 3차원 회전시
             // 공간 회전에는 SmoothDampAngle이 적합하지 않으며 짐벌락 발생할 수도 있다.
             if (p_isSpatial)
             {
                 // 프레임률에 독립적인 보간 비율
                 float lerpRatio = 1f - Mathf.Exp(-_spatialRotationSmoothness * Time.deltaTime);
 
-                return Quaternion.Slerp(transform.rotation, targetRotation, lerpRatio);
+                return Quaternion.Slerp(currentRotation, targetRotation, lerpRatio);
             }
 
-            // Ground는 Y축을 부드럽게 회전
-            float smoothYaw = 
-                Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation.eulerAngles.y, ref _rotationVelocity, _rotationSmoothTime);
+            // 지상 회전 보간 시간을 상태에 따라 선택
+            // 지상 이동과 공격/Aim의 Y축 회전
+            float rotationSmoothTime = p_isCombat? _combatRotationSmoothTime : _rotationSmoothTime;
+            float smoothYaw =  Mathf.SmoothDampAngle(currentRotation.eulerAngles.y, 
+                                                     targetRotation.eulerAngles.y, ref _rotationVelocity, rotationSmoothTime);
 
             return Quaternion.Euler(0f, smoothYaw, 0f);
         }
+        // 회전 완료 판정
+        // 현재 방향과 공격 방향의 각도를 확인
+        public bool IsFacingDirection(Vector3 p_direction, float p_toleranceAngle)
+        {
+            Vector3 currentForward = Vector3.ProjectOnPlane(_controller.transform.forward, Vector3.up);
 
+            Vector3 targetDirection = Vector3.ProjectOnPlane(p_direction, Vector3.up);
+
+            if (targetDirection.sqrMagnitude < 0.0001f)
+                return false;
+
+            float angle = Vector3.Angle(currentForward, targetDirection);
+
+            return angle <= Mathf.Max(0f, p_toleranceAngle);
+        }
         #endregion ======================================== /Move & Rotation
 
 

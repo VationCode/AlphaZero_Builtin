@@ -34,12 +34,7 @@ namespace Alpha.Player.Locomotion
 
             _flowDict.Add(ELocomotionMode.Flight, new FlightStateFlow(p_core));
 
-            ChangeMode(ELocomotionMode.Ground, EStateType.Move);
-        }
-
-        private void Start()
-        {
-            
+            ChangeMode(ELocomotionMode.Ground, ELocoStateType.Move);
         }
 
         private void Update()
@@ -52,7 +47,7 @@ namespace Alpha.Player.Locomotion
             _core.LocomotionModule.UpdateEnvironment(gravityScale);
 
             // Mode 전환
-            if (_currentStateFlow.CanChangeMode(out ELocomotionMode nextMode, out EStateType entryState))
+            if (_currentStateFlow.CanChangeMode(out ELocomotionMode nextMode, out ELocoStateType entryState))
             {
                 ChangeMode(nextMode, entryState);
             }
@@ -61,7 +56,7 @@ namespace Alpha.Player.Locomotion
             _currentStateFlow?.TickFlow();
         }
 
-        public void ChangeMode(ELocomotionMode p_nextMode, EStateType p_entryState)
+        public void ChangeMode(ELocomotionMode p_nextMode, ELocoStateType p_entryState)
         {
             if (!_flowDict.TryGetValue(p_nextMode, out StateFlowBase nextFlow) ||
                 ReferenceEquals(_currentStateFlow, nextFlow))

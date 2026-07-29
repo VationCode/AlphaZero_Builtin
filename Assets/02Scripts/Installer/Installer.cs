@@ -37,18 +37,31 @@ public class Installer : MonoBehaviour
 
     private async void Start()
     {
+        // Camera는 Item Database와 무관하므로 즉시 연결한다.
+        if (_cameraCore.Bind(_input, _playerCore.transform))
+        {
+            _mouseSystem.Bind(_cameraCore.RenderCamera);
+
+            _cameraCore.OnBaseViewChanged += viewType => _mouseSystem.SetViewCursor(viewType == ECameraViewType.Quarter);
+
+            // 시작 View는 TPS이므로 커서를 잠근다.
+            _mouseSystem.SetViewCursor(false);
+        }
+
         await _itemDatabase.InitializeAsync();
 
-        _cameraCore.Bind(_input, _playerCore.transform, _mouseSystem);
-        _mouseSystem.Bind(_cameraCore.RenderCamera);
         _playerCore.ItemPickupFlow.Bind(_inventoryCore, _itemDatabase);
 
         // UI Entity 내부 상태 초기화
         // Inventory Presenter가 먼저 생성되어야 한다.
         _inventoryCore.Bind(_input, _resourceLoader);
         _equipmentCore.Bind(_resourceLoader, _inventoryCore.Presenter);
-        
-        // Inventory 외부 연결
+
+        // Equipment 상태를 Player의 CombatFlow에 연결한다.
+        _playerCore.CombatFlow.Bind(_playerCore, _equipmentCore, _resourceLoader);
+
+        // Inventory Window 외부 연결
         _inventoryCore.Flow.OnWindowActivate += _mouseSystem.SetUICursor;
+        _inventoryCore.Flow.OnWindowActivate += _playerCore.SetCombatBlocked;   // 인벤토리창 활성화 시 Combat 입력처리 무시
     }
 }

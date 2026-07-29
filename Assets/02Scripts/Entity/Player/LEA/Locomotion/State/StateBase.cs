@@ -8,7 +8,7 @@ namespace Alpha.Player
         protected readonly StateFlowBase _StateFlow;
         protected AlphaInputSystem _Input => _Core.Input;
         
-        public abstract EStateType Type { get; }
+        public abstract ELocoStateType Type { get; }
         protected StateBase(PlayerCore p_core, StateFlowBase p_stateFlow)
         {
             _Core = p_core;

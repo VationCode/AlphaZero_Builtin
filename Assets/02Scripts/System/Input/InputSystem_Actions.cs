@@ -352,6 +352,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Quarter"",
+                    ""type"": ""Button"",
+                    ""id"": ""2fe5f21d-4d80-437a-bdfb-2044115ebb26"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -385,6 +394,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""MousePos"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c9cd4f15-c663-47e2-81f4-54d7f250f791"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Quarter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -436,6 +456,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Camera_Look = m_Camera.FindAction("Look", throwIfNotFound: true);
         m_Camera_MouseScroll = m_Camera.FindAction("MouseScroll", throwIfNotFound: true);
         m_Camera_MousePos = m_Camera.FindAction("MousePos", throwIfNotFound: true);
+        m_Camera_Quarter = m_Camera.FindAction("Quarter", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Inventory = m_UI.FindAction("Inventory", throwIfNotFound: true);
@@ -697,6 +718,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Camera_Look;
     private readonly InputAction m_Camera_MouseScroll;
     private readonly InputAction m_Camera_MousePos;
+    private readonly InputAction m_Camera_Quarter;
     /// <summary>
     /// Provides access to input actions defined in input action map "Camera".
     /// </summary>
@@ -720,6 +742,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Camera/MousePos".
         /// </summary>
         public InputAction @MousePos => m_Wrapper.m_Camera_MousePos;
+        /// <summary>
+        /// Provides access to the underlying input action "Camera/Quarter".
+        /// </summary>
+        public InputAction @Quarter => m_Wrapper.m_Camera_Quarter;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -755,6 +781,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @MousePos.started += instance.OnMousePos;
             @MousePos.performed += instance.OnMousePos;
             @MousePos.canceled += instance.OnMousePos;
+            @Quarter.started += instance.OnQuarter;
+            @Quarter.performed += instance.OnQuarter;
+            @Quarter.canceled += instance.OnQuarter;
         }
 
         /// <summary>
@@ -775,6 +804,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @MousePos.started -= instance.OnMousePos;
             @MousePos.performed -= instance.OnMousePos;
             @MousePos.canceled -= instance.OnMousePos;
+            @Quarter.started -= instance.OnQuarter;
+            @Quarter.performed -= instance.OnQuarter;
+            @Quarter.canceled -= instance.OnQuarter;
         }
 
         /// <summary>
@@ -996,6 +1028,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnMousePos(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Quarter" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnQuarter(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

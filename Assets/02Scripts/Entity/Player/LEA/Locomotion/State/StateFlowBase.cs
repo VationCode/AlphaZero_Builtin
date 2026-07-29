@@ -14,12 +14,12 @@ namespace Alpha.Player.Locomotion
 
         public StateBase CurrentState { get; private set; }
 
-        internal void EnterFlow(EStateType p_entryState)
+        internal void EnterFlow(ELocoStateType p_entryState)
         {
             ChangeState(p_entryState);
         }
 
-        internal void ChangeState(EStateType p_nextStateType)
+        internal void ChangeState(ELocoStateType p_nextStateType)
         {
             StateBase nextState = GetState(p_nextStateType);
             ChangeState(nextState);
@@ -56,7 +56,7 @@ namespace Alpha.Player.Locomotion
         }
 
         // 각 Flow가 자신의 Dictionary에서 State를 반환한다.
-        protected abstract StateBase GetState(EStateType p_stateType);
-        internal abstract bool CanChangeMode(out ELocomotionMode p_nextMode, out EStateType p_entryState);
+        protected abstract StateBase GetState(ELocoStateType p_stateType);
+        internal abstract bool CanChangeMode(out ELocomotionMode p_nextMode, out ELocoStateType p_entryState);
     }
 }

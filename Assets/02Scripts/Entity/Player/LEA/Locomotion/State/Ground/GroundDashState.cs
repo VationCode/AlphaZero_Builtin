@@ -5,13 +5,12 @@ namespace Alpha.Player.Locomotion
     public class GroundDashState : StateBase
     {
         public GroundDashState(PlayerCore p_core, StateFlowBase p_stateFlow) : base(p_core, p_stateFlow) { }
-        public override EStateType Type => EStateType.Dash;
+        public override ELocoStateType Type => ELocoStateType.Dash;
 
         private float _elapsedTime;
         protected override void Enter()
         {
-            Transform cameraTr = _Core.CameraCore.RenderCamera.transform;
-
+            Transform cameraTr = Camera.main.transform;
 
             _Core.LocomotionModule.StartDash(_Input.MoveInput, cameraTr);
 
@@ -28,7 +27,7 @@ namespace Alpha.Player.Locomotion
             if (_elapsedTime < _Core.LocomotionModule.DashDuration)
                 return;
 
-            EStateType nextState = _Core.LocomotionModule.IsGrounded? EStateType.Move : EStateType.Fall;
+            ELocoStateType nextState = _Core.LocomotionModule.IsGrounded? ELocoStateType.Move : ELocoStateType.Fall;
 
             _StateFlow.ChangeState(nextState);
         }

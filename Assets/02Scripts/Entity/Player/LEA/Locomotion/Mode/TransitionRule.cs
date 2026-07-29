@@ -10,10 +10,10 @@ namespace Alpha.Player.Locomotion
             if (!p_context.CurrentState.HasValue)
                 return false;
 
-            if (p_context.CurrentState == EStateType.Dash)
+            if (p_context.CurrentState == ELocoStateType.Dash)
                 return false;
 
-            if (p_context.CurrentState == EStateType.Die)
+            if (p_context.CurrentState == ELocoStateType.Die)
                 return false;
 
             return true;
@@ -24,13 +24,13 @@ namespace Alpha.Player.Locomotion
             if (!p_context.CurrentState.HasValue)
                 return false;
 
-            if (p_context.CurrentState == EStateType.Dash)
+            if (p_context.CurrentState == ELocoStateType.Dash)
                 return false;
 
             if (!p_context.IsGrounded) 
                 return false;
 
-            if (p_context.CurrentState == EStateType.Die)
+            if (p_context.CurrentState == ELocoStateType.Die)
                 return false;
 
             return true;

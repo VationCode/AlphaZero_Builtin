@@ -5,29 +5,29 @@ namespace Alpha.Player.Locomotion
 {
     public class FlightStateFlow : StateFlowBase
     {
-        private Dictionary<EStateType, StateBase> _stateDict;
+        private Dictionary<ELocoStateType, StateBase> _stateDict;
         public FlightStateFlow(PlayerCore p_core) : base(p_core)
         {
-            _stateDict = new Dictionary<EStateType, StateBase>
+            _stateDict = new Dictionary<ELocoStateType, StateBase>
             {
-                { EStateType.Rising, new FlightRisingState(p_core, this) },
-                { EStateType.Move, new FlightMoveState(p_core, this) },
-                { EStateType.Fall, new FlightFallState(p_core, this) },
-                { EStateType.Dash, new FlightDashState(p_core, this) }
+                { ELocoStateType.Rising, new FlightRisingState(p_core, this) },
+                { ELocoStateType.Move, new FlightMoveState(p_core, this) },
+                { ELocoStateType.Fall, new FlightFallState(p_core, this) },
+                { ELocoStateType.Dash, new FlightDashState(p_core, this) }
             };
         }
 
-        protected override StateBase GetState(EStateType p_stateType)
+        protected override StateBase GetState(ELocoStateType p_stateType)
         {
             return _stateDict[p_stateType];
         }
 
-        internal override bool CanChangeMode(out ELocomotionMode p_nextMode, out EStateType p_entryState)
+        internal override bool CanChangeMode(out ELocomotionMode p_nextMode, out ELocoStateType p_entryState)
         {
             if (_Core.Input.IsFlight && _Rule.CanGround(_Core.LocomotionContext))
             {
                 p_nextMode = ELocomotionMode.Ground;
-                p_entryState = EStateType.Move;
+                p_entryState = ELocoStateType.Move;
                 return true;
             }
 

@@ -5,7 +5,7 @@ namespace Alpha.Player.Locomotion
     {
         public FlightDashState(PlayerCore p_core, StateFlowBase p_stateFlow) : base(p_core, p_stateFlow) { }
 
-        public override EStateType Type => EStateType.Dash;
+        public override ELocoStateType Type => ELocoStateType.Dash;
 
         protected override void Enter()
         {
@@ -15,7 +15,7 @@ namespace Alpha.Player.Locomotion
         {
             if (_Input.IsJump)
             {
-                _StateFlow.ChangeState(EStateType.Move);
+                _StateFlow.ChangeState(ELocoStateType.Move);
                 return;
             }
         }

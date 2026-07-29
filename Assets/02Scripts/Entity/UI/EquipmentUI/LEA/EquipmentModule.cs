@@ -1,6 +1,8 @@
 using Alpha.Slot;
 using System.Collections.Generic;
+
 using UnityEngine;
+using System;
 
 namespace Alpha.Equipment
 {
@@ -11,6 +13,9 @@ namespace Alpha.Equipment
         private readonly Dictionary<EArmorType, EquipmentArmorSlot> _armorSlots = new();
 
         public bool IsInitialized { get; private set; }
+
+        // 특정 무기 슬롯의 장착 아이템이 변경됐음을 전달한다.
+        public event Action<EWeaponType, WeaponDTO> OnEquippedWeaponChanged;
 
         public void Initialize()
         {
@@ -40,7 +45,12 @@ namespace Alpha.Equipment
 
         private void AddWeaponSlot(EWeaponType p_type)
         {
-            _weaponSlots.Add(p_type, new EquipmentWeaponSlot(p_type));
+            EquipmentWeaponSlot slot = new EquipmentWeaponSlot(p_type);
+
+            // 슬롯 변경을 Equipment의 무기 변경 이벤트로 변환한다.
+            slot.OnSlotChanged += (item, count) => HandleWeaponSlotChanged(p_type, item);
+
+            _weaponSlots.Add(p_type, slot);
         }
 
         private void AddArmorSlot(EArmorType p_type)
@@ -78,6 +88,24 @@ namespace Alpha.Equipment
 
             return false;
         }
+
+        // 장착 무기 조회
+        public bool TryGetEquippedWeapon(EWeaponType p_type, out WeaponDTO p_weapon)
+        {
+            p_weapon = null;
+
+            if (!IsInitialized || !_weaponSlots.TryGetValue(
+                    p_type,
+                    out EquipmentWeaponSlot slot))
+            {
+                return false;
+            }
+
+            p_weapon = slot.Item as WeaponDTO;
+
+            return p_weapon != null;
+        }
+
         #region ======================================== Slot Item Change
         // Inventory 슬롯과 Equipment 슬롯 사이의 이동 또는 교환
         public bool TrySwapSlotItem(SlotBase p_source, SlotBase p_target)
@@ -137,6 +165,13 @@ namespace Alpha.Equipment
             // 두 슬롯 중 정확히 하나만 Equipment 슬롯이어야 한다.
             return isSourceEquipmentSlot != isTargetEquipmentSlot;
         }
+
+        // 장착 아이템이 변경 이벤트 전달 함수
+        private void HandleWeaponSlotChanged(EWeaponType p_type, ItemDTO p_item)
+        {
+            OnEquippedWeaponChanged?.Invoke(p_type, p_item as WeaponDTO);
+        }
+
         #endregion ======================================== /Slot Item Change
     }
 }
