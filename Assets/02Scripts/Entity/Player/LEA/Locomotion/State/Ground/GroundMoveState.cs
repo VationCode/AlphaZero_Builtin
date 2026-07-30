@@ -1,3 +1,4 @@
+using Alpha.Player.Combat;
 using UnityEngine;
 
 namespace Alpha.Player.Locomotion
@@ -14,37 +15,39 @@ namespace Alpha.Player.Locomotion
         }
         protected override void Tick()
         {
+            bool allowsManualMove = AllowsManualMovement();
+
+
             #region 상태 전환
-            // 상태 전환을 먼저 처리
-            if (_Input.IsDash)
+            // 이동이 잠긴 공격 중에는 Dash와 Jump 입력도 차단한다.
+            if (allowsManualMove && _Input.IsDash)
             {
                 _StateFlow.ChangeState(ELocoStateType.Dash);
                 return;
             }
 
-            if (_Input.IsJump)
+            if (allowsManualMove && _Input.IsJump)
             {
                 _StateFlow.ChangeState(ELocoStateType.Jump);
                 return;
             }
 
-            // 절벽 등에서 지면을 벗어난 경우
+            // 공격 중이라도 지면을 벗어나면 낙하 상태는 처리한다.
             if (!_Core.LocomotionModule.IsGrounded)
             {
-                // 직전 지상 이동의 수평 속도 보존
                 _Core.LocomotionModule.StartFall();
-
                 _StateFlow.ChangeState(ELocoStateType.Fall);
                 return;
             }
             #endregion
 
-            Transform cameraTr = Camera.main.transform;
+            Transform cameraTr = _Core.CameraCore?.RenderCameraTransform;
 
-            bool isSprint = _Input.IsSprint;
-            Vector2 moveInput = _Input.MoveInput;
+            bool isSprint = allowsManualMove && _Input.IsSprint;
 
-            bool shouldFaceAim = !_Core.BlockCombat &&  _Core.CombatContext.IsCombatFacing;
+            Vector2 moveInput = allowsManualMove? _Input.MoveInput : Vector2.zero;
+
+            bool shouldFaceAim = !_Core.BlockCombat && _Core.CombatContext.IsCombatFacing;
 
             // 바라볼 방향 결정 (Input, Aim, Mouse)
             Vector3 facingDirection = Vector3.zero;
@@ -60,7 +63,7 @@ namespace Alpha.Player.Locomotion
                 _Core.CombatContext.ClearAimDirection();
             }
 
-            _Core.LocomotionModule.Movement(moveInput, cameraTr, isSprint, shouldFaceAim, ELocomotionMode.Ground, facingDirection);
+            _Core.LocomotionModule.MoveGround(moveInput, cameraTr, isSprint, shouldFaceAim, facingDirection);
 
             Vector2 animationMoveInput = ResolveAnimationMoveInput(moveInput);
 
@@ -94,7 +97,9 @@ namespace Alpha.Player.Locomotion
         // 실제 월드 이동 방향을 Player 기준 전후좌우 값으로 변환한다.
         private Vector2 ResolveAnimationMoveInput(Vector2 p_rawMoveInput)
         {
-            Vector3 horizontalVelocity = Vector3.ProjectOnPlane(_Core.LocomotionModule.Velocity, Vector3.up);
+            Vector3 horizontalVelocity = Vector3.ProjectOnPlane(
+                _Core.LocomotionModule.Velocity,
+                Vector3.up);
 
             if (horizontalVelocity.sqrMagnitude < 0.0001f)
                 return Vector2.zero;
@@ -106,6 +111,19 @@ namespace Alpha.Player.Locomotion
             Vector2 localMoveInput = new(localMoveDirection.x, localMoveDirection.z);
 
             return Vector2.ClampMagnitude(localMoveInput * inputMagnitude, 1f);
+        }
+
+        // 현재 공격 정책에 따라 일반 이동 입력 허용 여부를 판단한다.
+        private bool AllowsManualMovement()
+        {
+            AttackDefinition activeAttack =
+                _Core.CombatContext.ActiveAttack;
+
+            if (activeAttack == null)
+                return true;
+
+            return activeAttack.MovePolicy ==
+                   EAttackMovePolicy.Free;
         }
     }
 }

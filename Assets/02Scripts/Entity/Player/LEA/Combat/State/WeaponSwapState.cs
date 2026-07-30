@@ -21,9 +21,6 @@ namespace Alpha.Player.Combat
             if (!_isSwapStarted)
                 return;
 
-            // 무기에 맞는 Controller로 전환
-            _Core.AnimationView?.ApplyWeaponOverrideController(_Core.EquipmentContext.CurrentWeaponType);
-
             // Swap 애니메이션
             _Core.AnimationView?.PlayWeaponSwap();
             _remainingTime = SwapDuration;

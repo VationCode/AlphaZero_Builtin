@@ -5,26 +5,24 @@ using System;
 
 namespace Alpha.Inventory
 {
+    // SlotViewBase → SlotBase로의 전달 역할
     public class InventoryPresenter
     {
         private readonly InventoryModule _inventoryModule;
         private readonly InventoryView _inventoryView;
-
         private readonly ResourceLoadSystem _resourceLoader;
 
-        // 논리 -> View
-        private readonly Dictionary<InventoryPage, InventoryPageView> _pageViewDict = new();
-        private readonly Dictionary<SlotGroup, SlotGroupView> _slotGroupViewDict = new();
-        private readonly Dictionary<SlotBase, SlotViewBase> _slotViewDict = new();
 
-        // 역방향 요청 View -> 논리
+        // Drag & Drop에 대한SlotView의 요청을 실제 Inventory Slot으로 변환할 때 사용한다.
         private readonly Dictionary<SlotViewBase, SlotBase> _slotDict = new();
+
+        // Slot 추가 버튼에 연결한 람다를 해제하기 위해 보관한다.
+        private readonly Dictionary<SlotGroupView, Action> _addSlotHandlerDict = new();
 
         // Inventory 외부 슬롯이 포함된 Drop 요청을 전달한다.(Equipment -> Inventory로 Drop요청)
         public event Action<SlotViewBase, SlotViewBase> OnExternalDropRequested;
 
         private bool _isInitialized;
-
 
         public InventoryPresenter(InventoryModule p_inventoryModule, InventoryView p_inventoryView, ResourceLoadSystem p_resourceLoader)
         {
@@ -34,7 +32,7 @@ namespace Alpha.Inventory
         }
 
 
-        #region ======================================== Initialize
+        #region ============================== Initialize
 
         public void Initialize()
         {
@@ -54,10 +52,10 @@ namespace Alpha.Inventory
             _isInitialized = true;
         }
 
-        #endregion ======================================== /Initialize
+        #endregion ============================== /Initialize
 
         // Page 조회 및 전체 연결 흐름
-        #region ======================================== Setup Flow
+        #region ============================== Setup Flow
         private void SetupPage(EItemType p_itemType, EInventoryPage p_pageType)
         {
             if (!_inventoryModule.TryGetPage(p_itemType, out InventoryPage page))
@@ -68,27 +66,44 @@ namespace Alpha.Inventory
             if (pageView == null)
                 return;
 
-            BindPage(page, pageView);
-
             SetupSlotGroupList(p_itemType, page, pageView);
         }
 
-        // Page 내부 SlotGroup 연결 흐름
+        /// <summary>
+        /// InventoryPage 내부 SlotGroup을 대응하는 SlotGroupView에 연결한다.
+        /// Slot 추가 요청과 기존 Slot View 생성을 함께 처리한다.
+        /// </summary>
         private void SetupSlotGroupList(EItemType p_itemType, InventoryPage p_page, InventoryPageView p_pageView)
         {
+            if (p_page == null || p_pageView == null)
+                return;
+
             foreach (KeyValuePair<int, SlotGroup> pair in p_page.SlotGroupDict)
             {
                 int groupIndex = pair.Key;
                 SlotGroup slotGroup = pair.Value;
 
+                if (slotGroup == null)
+                    continue;
+
                 if (!p_pageView.TryGetViewGroup(groupIndex, out SlotGroupView slotGroupView))
                     continue;
 
-                BindSlotGroup(slotGroup, slotGroupView);
+                // 재초기화 시 기존 Slot 추가 이벤트를 먼저 해제한다.
+                if (_addSlotHandlerDict.TryGetValue(slotGroupView, out Action previousHandler))
+                {
+                    slotGroupView.OnRequestAddSlot -= previousHandler;
+                }
 
-                // AddSlotBtn 요청 연결
-                slotGroupView.OnRequestAddSlot += () => HandleAddSlotRequest(p_itemType,groupIndex, slotGroupView);
+                // 람다를 보관해야 Unbind에서 같은 Handler를 해제할 수 있다.
+                Action addSlotHandler = () => HandleAddSlotRequest(p_itemType, groupIndex, slotGroupView);
 
+                _addSlotHandlerDict[slotGroupView] = addSlotHandler;
+
+                // 추가 Slot 요청(버튼 이벤트)을 InventoryModule에 전달한다.
+                slotGroupView.OnRequestAddSlot += addSlotHandler;
+
+                // 현재 SlotGroup에 포함된 Slot을 View로 생성하고 연결한다.
                 SetupSlotList(slotGroup, slotGroupView);
             }
         }
@@ -106,41 +121,23 @@ namespace Alpha.Inventory
                 BindSlot(slot, slotView);
             }
         }
-        #endregion ======================================== /Setup Flow
+        #endregion ============================== /Setup Flow
 
-        // Page와 PageView 연결
-        #region ======================================== Bind
-        private void BindPage(InventoryPage p_page, InventoryPageView p_pageView)
-        {
-            if (p_page == null || p_pageView == null)
-                return;
-
-            _pageViewDict[p_page] = p_pageView;
-        }
-
-        // SlotGroup과 SlotGroupView 연결
-        private void BindSlotGroup(SlotGroup p_slotGroup, SlotGroupView p_slotGroupView)
-        {
-            if (p_slotGroup == null || p_slotGroupView == null)
-                return;
-
-            _slotGroupViewDict[p_slotGroup] = p_slotGroupView;
-        }
-
+        #region ============================== Bind
         // Slot과 SlotView 연결
         private void BindSlot(SlotBase p_slot, SlotViewBase p_slotView)
         {
             if (p_slot == null || p_slotView == null)
                 return;
 
-            // 양방향 연결 (논리 <-> View)
-            _slotViewDict[p_slot] = p_slotView;
+            // UI 요청을 실제 Inventory Slot으로 변환하기 위한 매핑
             _slotDict[p_slotView] = p_slot;
 
             // 아이콘 로딩 연결
             p_slotView.Bind(_resourceLoader);
 
             // 슬롯 변경 시 View 갱신을 위한 연결
+            p_slot.OnSlotChanged -= p_slotView.SetSlot;
             p_slot.OnSlotChanged += p_slotView.SetSlot;
 
             // 현재 슬롯 상태 반영
@@ -153,10 +150,47 @@ namespace Alpha.Inventory
                 dragView.OnDropRequested += HandleDropRequested;
             }
         }
-        #endregion ======================================== /Bind
 
-        // AddSlotBtn 요청 처리
-        #region ======================================== Request Add Slot
+        /// <summary>
+        /// Slot, SlotGroup, Drag View에 연결한 이벤트를 모두 해제한다.
+        /// </summary>
+        public void Unbind()
+        {
+            foreach (KeyValuePair<SlotViewBase, SlotBase> pair in _slotDict)
+            {
+                SlotViewBase slotView = pair.Key;
+                SlotBase slot = pair.Value;
+
+                if (slot != null && slotView != null)
+                {
+                    slot.OnSlotChanged -= slotView.SetSlot;
+                }
+
+                if (slotView != null && slotView.TryGetComponent(out SlotDragView dragView))
+                {
+                    dragView.OnDropRequested -= HandleDropRequested;
+                }
+            }
+
+            foreach (KeyValuePair<SlotGroupView, Action> pair in _addSlotHandlerDict)
+            {
+                if (pair.Key != null)
+                {
+                    pair.Key.OnRequestAddSlot -= pair.Value;
+                }
+            }
+
+            _slotDict.Clear();
+            _addSlotHandlerDict.Clear();
+
+            // EquipmentPresenter 등의 외부 구독도 제거한다.
+            OnExternalDropRequested = null;
+
+            _isInitialized = false;
+        }
+        #endregion ============================== /Bind
+
+        #region ============================== Request
         private void HandleAddSlotRequest(EItemType p_itemType, int p_groupIndex, SlotGroupView p_slotGroupView)
         {
             // 논리 Slot 생성 및 SlotGroup 추가
@@ -173,8 +207,6 @@ namespace Alpha.Inventory
 
             BindSlot(slot, slotView);
         }
-
-        #endregion ======================================== /Request Add Slot
 
         // Drop 요청
         private void HandleDropRequested(SlotViewBase p_sourceView, SlotViewBase p_targetView)
@@ -196,31 +228,24 @@ namespace Alpha.Inventory
 
             _inventoryModule.TrySwapSlotItem(source, target);
         }
+        #endregion ============================== /Request
 
         // View 조회
-        #region Lookup
-        public bool TryGetPageView(InventoryPage p_page, out InventoryPageView p_pageView)
-        {
-            return _pageViewDict.TryGetValue(
-                p_page,
-                out p_pageView);
-        }
-
-        public bool TryGetSlotGroupView(SlotGroup p_slotGroup, out SlotGroupView p_slotGroupView)
-        {
-            return _slotGroupViewDict.TryGetValue(p_slotGroup, out p_slotGroupView);
-        }
-
-        public bool TryGetSlotView(SlotBase p_slot, out SlotViewBase p_slotView)
-        {
-            return _slotViewDict.TryGetValue(p_slot, out p_slotView);
-        }
-
-        // 역방향 조회
+        #region ============================== Lookup
+        /// <summary>
+        /// Inventory SlotView에 대응하는 실제 Slot을 조회한다.
+        /// Equipment와의 Drag & Drop 연결에서 사용한다.
+        /// </summary>
         public bool TryGetSlot(SlotViewBase p_slotView, out SlotBase p_slot)
         {
+            if (p_slotView == null)
+            {
+                p_slot = null;
+                return false;
+            }
+
             return _slotDict.TryGetValue(p_slotView, out p_slot);
         }
-        #endregion
+        #endregion ============================== /Lookup
     }
 }

@@ -8,6 +8,8 @@ namespace Alpha.Player.Combat
         public ECombatStateType CurrentState { get; internal set; } = ECombatStateType.Idle;
 
         public EWeaponType PendingWeaponType { get; internal set; } = EWeaponType.None;
+        public AttackDefinition BasicAttack { get; private set; }
+        public AttackDefinition ActiveAttack { get; private set; }
 
         public bool IsBusy => CurrentState != ECombatStateType.Idle;
         public bool IsAiming { get; private set; }
@@ -22,6 +24,9 @@ namespace Alpha.Player.Combat
         public Vector3 AimDirection { get; private set; }
 
         public bool HasAimDirection => AimDirection.sqrMagnitude > 0.0001f;
+
+        // Attack 
+        public bool HasActiveAttack => ActiveAttack != null;
 
         internal void ClearPendingWeapon()
         {
@@ -39,6 +44,37 @@ namespace Alpha.Player.Combat
         internal void ClearAimDirection()
         {
             AimDirection = Vector3.zero;
+        }
+
+        // 무기를 변경할 때 해당 무기의 기본 공격도 교체한다.
+        internal void SetBasicAttack(AttackDefinition p_attack)
+        {
+            BasicAttack = p_attack;
+            ActiveAttack = null;
+        }
+
+        internal bool TryActivateBasicAttack()
+        {
+            if (BasicAttack == null)
+                return false;
+
+            ActiveAttack = BasicAttack;
+            return true;
+        }
+
+        // 이후 Skill 공격도 같은 경로로 등록할 수 있다.
+        internal bool TrySetActiveAttack(AttackDefinition p_attack)
+        {
+            if (p_attack == null)
+                return false;
+
+            ActiveAttack = p_attack;
+            return true;
+        }
+
+        internal void ClearActiveAttack()
+        {
+            ActiveAttack = null;
         }
     }
 }

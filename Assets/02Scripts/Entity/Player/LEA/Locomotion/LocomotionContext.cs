@@ -13,6 +13,9 @@ namespace Alpha.Player.Locomotion
         
         public Vector3 Velocity { get; internal set; }
 
+        /// <summary>
+        /// 고정 방향
+        /// </summary>
         public Vector3 LockedMoveDirection { get; internal set; }
     }
 }

@@ -21,7 +21,7 @@ namespace Alpha.Player
         public LocomotionModeFlow LocomotionModeFlow { get; private set; }
         public CombatFlow CombatFlow { get; private set; }
         public ItemPickupFlow ItemPickupFlow { get; private set; }
-
+        public PlayerEquipmentFlow EquipmentFlow { get; } = new();
         #endregion
 
         #region ========== Domain
@@ -36,7 +36,8 @@ namespace Alpha.Player
 
         #region ========== Module
         public PlayerLocomotionModule LocomotionModule { get; private set; }
-        public CombatModule CombatModule { get; private set; }
+        public PlayerEquipmentModule EquipmentModule { get; private set; }
+        public PlayerCombatModule CombatModule { get; private set; }
         #endregion
 
         #region ========== View
@@ -44,7 +45,7 @@ namespace Alpha.Player
         public PlayerEquipmentView EquipmentView { get; private set; }
 
         #endregion
-        public Transform PlayerTr;
+        public Transform PlayerTr {  get; private set; }
 
         public bool CanLocomotion => _canLocomotion;
         private bool _canLocomotion;
@@ -60,6 +61,10 @@ namespace Alpha.Player
             DamageSystem = p_damageSystem;
             MouseSystem = p_mouseSystem;
         }
+        private void OnDestroy()
+        {
+            EquipmentFlow.Unbind();
+        }
 
         private void Awake()
         {
@@ -70,7 +75,8 @@ namespace Alpha.Player
 
             // Module
             LocomotionModule = GetComponentInChildren<PlayerLocomotionModule>(true);
-            CombatModule = GetComponentInChildren<CombatModule>(true);
+            EquipmentModule = GetComponentInChildren<PlayerEquipmentModule>(true);
+            CombatModule = GetComponentInChildren<PlayerCombatModule>(true);
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
@@ -83,8 +89,9 @@ namespace Alpha.Player
         {
             LocomotionModeFlow.Bind(this);
 
-            LocomotionModule.Bind(LocomotionContext);
-            CombatModule.Bind(EquipmentContext);
+            LocomotionModule.Bind(LocomotionContext, PlayerTr);
+
+            //CombatModule.Bind(EquipmentContext);
 
             AnimationView.Bind(PlayerTr);
         }
@@ -94,5 +101,34 @@ namespace Alpha.Player
             _isCombatBlocked = p_isBlocked;
         }
 
+        /// <summary>
+        /// Player 장비 상태, Resource, View를 EquipmentModule에 연결한다.
+        /// Installer에서 외부 의존성이 준비된 후 호출한다.
+        /// </summary>
+        public bool BindEquipment(ResourceLoadSystem p_resourceLoader)
+        {
+            if (EquipmentModule == null)
+            {
+                Debug.LogError($"{nameof(PlayerEquipmentModule)}을 찾을 수 없습니다.", this);
+                return false;
+            }
+
+            return EquipmentModule.Bind(EquipmentContext, p_resourceLoader, EquipmentView, AnimationView);
+        }
+
+        /// <summary>
+        /// Player 내부 Combat Module을 조립한다.
+        /// Equipment 연결이 완료된 후 호출해야 한다.
+        /// </summary>
+        public bool BindCombat()
+        {
+            if (CombatModule == null)
+            {
+                Debug.LogError($"{nameof(PlayerCombatModule)}을 찾을 수 없습니다.", this);
+                return false;
+            }
+
+            return CombatModule.Bind(this);
+        }
     }
 }

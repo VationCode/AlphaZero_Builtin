@@ -120,7 +120,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Dash"",
+                    ""name"": ""DashUpdate"",
                     ""type"": ""Button"",
                     ""id"": ""4cbec347-c0fd-41d9-962f-4198179bd19e"",
                     ""expectedControlType"": """",
@@ -261,7 +261,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Dash"",
+                    ""action"": ""DashUpdate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -446,7 +446,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
-        m_Player_Dash = m_Player.FindAction("Dash", throwIfNotFound: true);
+        m_Player_Dash = m_Player.FindAction("DashUpdate", throwIfNotFound: true);
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
         m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
         m_Player_Flight = m_Player.FindAction("Flight", throwIfNotFound: true);

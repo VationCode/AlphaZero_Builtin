@@ -48,7 +48,7 @@ namespace Alpha.Player.Animation
         private static readonly int Land =
             Animator.StringToHash("Base Layer.Land");
 
-        private static readonly int Dash =
+        private static readonly int DashState =
             Animator.StringToHash("Base Layer.Dash");
 
 
@@ -89,9 +89,10 @@ namespace Alpha.Player.Animation
         {
             _playerTr = p_playerTr;
         }
+
         // p_transitionDuration 전환 비율
         // p_normalizedTimeOffset 클립의 0%부터 재생
-        private void CrossFadeBase(int p_stateHash, float p_transitionDuration = 0.15f,
+        private void CrossFadeBase(int p_stateHash, float p_transitionDuration = 0.15f, 
                                    float p_normalizedTimeOffset = 0f, bool p_forceReplay = false)
         {
             // 같은 애니메이션을 매 프레임 재실행하지 않음
@@ -101,7 +102,7 @@ namespace Alpha.Player.Animation
             _currentBaseState = p_stateHash;
 
             // 초 단위 전환 시간이 관리하기 편함
-            _anim.CrossFadeInFixedTime(p_stateHash, 0.15f, BaseLayer, p_normalizedTimeOffset);
+            _anim.CrossFadeInFixedTime(p_stateHash, p_transitionDuration, BaseLayer, p_normalizedTimeOffset);
         }
 
         #region ======================================== Locomotion
@@ -138,7 +139,8 @@ namespace Alpha.Player.Animation
 
         public void PlayDash()
         {
-            CrossFadeBase(Dash);
+            // 연속 Dash 입력에도 처음부터 재생한다.
+            CrossFadeBase(DashState, 0.05f, 0f, true);
         }
 
         public void PlayFall()

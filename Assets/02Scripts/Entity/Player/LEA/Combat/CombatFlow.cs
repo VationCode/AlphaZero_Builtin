@@ -8,34 +8,31 @@ namespace Alpha.Player.Combat
     public class CombatFlow : MonoBehaviour
     {
         private PlayerCore _core;
-        private EquipmentCore _equipmentCore;
-        private ResourceLoadSystem _resourceLoader;
 
         private readonly Dictionary<ECombatStateType, CombatStateBase> _stateDict = new();
 
         public CombatStateBase CurrentState { get; private set; }
         public bool IsBound { get; private set; }
 
-        public void Bind(PlayerCore p_core, EquipmentCore p_equipmentCore, ResourceLoadSystem p_resourceLoader)
+        public void Bind(PlayerCore p_core)
         {
-            if (p_core == null || p_equipmentCore == null || p_resourceLoader == null)
+            if (p_core == null || p_core.EquipmentModule == null || 
+                !p_core.EquipmentModule.IsBound || p_core.CombatModule == null||
+                !p_core.CombatModule.IsBound)
             {
-                Debug.LogError("CombatFlow의 외부 참조가 설정되지 않았습니다.");
-
+                Debug.LogError($"{nameof(CombatFlow)}의 참조가 설정되지 않았습니다.", this);
                 return;
             }
 
-            // 재연결 시 이전 Equipment 이벤트를 제거한다.
-            if (_equipmentCore != null)
+            // 재연결 시 이전 활성 무기 이벤트를 해제한다.
+            if (_core?.EquipmentModule != null)
             {
-                _equipmentCore.OnEquippedWeaponChanged -= HandleEquippedWeaponChanged;
+                _core.EquipmentModule.OnActiveWeaponChanged -= HandleActiveWeaponChanged;
             }
 
             _core = p_core;
-            _equipmentCore = p_equipmentCore;
-            _resourceLoader = p_resourceLoader;
 
-            _equipmentCore.OnEquippedWeaponChanged += HandleEquippedWeaponChanged;
+            _core.EquipmentModule.OnActiveWeaponChanged += HandleActiveWeaponChanged;
 
             InitializeStates();
 
@@ -52,13 +49,6 @@ namespace Alpha.Player.Combat
             RegisterState(new AttackState(_core, this));
         }
 
-        private void OnDestroy()
-        {
-            if (_equipmentCore == null)
-                return;
-
-            _equipmentCore.OnEquippedWeaponChanged -= HandleEquippedWeaponChanged;
-        }
 
         private void Update()
         {
@@ -69,28 +59,15 @@ namespace Alpha.Player.Combat
         }
 
         // 장비
-        // 장비 변경 이벤트 판단
-        private void HandleEquippedWeaponChanged(EWeaponType p_type, WeaponDTO p_weapon)
+        /// <summary>
+        /// 활성 무기가 변경되면 Combat에서 사용할 기본 공격만 갱신한다.
+        /// 무기 외형과 Animator 처리는 PlayerEquipmentModule이 담당한다.
+        /// </summary>
+        private void HandleActiveWeaponChanged(WeaponDTO p_weapon)
         {
-            // 현재 사용 중인 무기 종류와 관계없는 슬롯 변경은 무시한다.
-            if (_core.EquipmentContext.CurrentWeaponType != p_type)
-                return;
+            AttackDefinition basicAttack = CreateBasicAttackDefinition(p_weapon);
 
-            if (p_weapon == null)
-            {
-                if (!_core.CombatModule.TryClearWeapon())
-                    return;
-
-                // 무기 장착 해제시
-                _core.EquipmentView?.TryClearWeapon();
-                _core.AnimationView?.ApplyWeaponOverrideController(EWeaponType.None);
-
-
-                return;
-            }
-
-            // 같은 장비 슬롯의 아이템이 교체되었다면 현재 무기도 갱신한다.
-            TryApplyWeapon(p_weapon);
+            _core.CombatContext.SetBasicAttack(basicAttack);
         }
 
         // 상태
@@ -150,39 +127,15 @@ namespace Alpha.Player.Combat
         // 아직 실제 무기는 변경하지 않음
         internal bool TryRequestWeaponSwap(int p_slotIndex)
         {
-            if (!IsBound || _core.BlockCombat || CurrentState?.Type != ECombatStateType.Idle || !CanWeaponSwap())
+            if (!IsBound || _core.BlockCombat || CurrentState?.Type != ECombatStateType.Idle)
             {
                 return false;
             }
 
-            _core.CombatContext.ClearPendingWeapon();
-
-            // 입력의 0, 1, 2를 장비 무기 종류로 변환한다.
-            if (p_slotIndex < (int)EWeaponType.Melee ||
-                p_slotIndex > (int)EWeaponType.Special)
-            {
+            if (!CanWeaponSwap())
                 return false;
-            }
 
-            EWeaponType weaponType = (EWeaponType)p_slotIndex;
-
-            // 비어 있는 장비 슬롯은 Swap 대상으로 선택하지 않는다.
-            if (!_equipmentCore.TryGetEquippedWeapon(weaponType, out WeaponDTO weapon))
-            {
-                return false;
-            }
-
-            // 현재 사용 중인 동일한 무기는 다시 선택하지 않는다.
-            WeaponDTO currentWeapon = _core.EquipmentContext.CurrentWeapon;
-
-            if (currentWeapon != null && currentWeapon.Id == weapon.Id)
-            {
-                return false;
-            }
-
-            _core.CombatContext.PendingWeaponType = weaponType;
-
-            return true;
+            return _core.CombatModule.TryPrepareWeaponSwap(p_slotIndex);
         }
 
         // 2. 미리 저장된 무기 교체 요청을 실제 무기 변경으로 확정
@@ -191,49 +144,9 @@ namespace Alpha.Player.Combat
         // TryApplyWeapon()을 통해 실제 상태와 프리팹 변경
         internal bool TryExecutePendingWeaponSwap()
         {
-            if (!IsBound || !_core.CombatContext.HasPendingWeapon)
-            {
-                return false;
-            }
-
-            EWeaponType weaponType = _core.CombatContext.PendingWeaponType;
-
-            // 실행 직전에 장비 상태를 다시 검증한다.
-            if (!_equipmentCore.TryGetEquippedWeapon(weaponType, out WeaponDTO weapon))
-            {
-                return false;
-            }
-
-            return TryApplyWeapon(weapon);
+            return IsBound && _core.CombatModule.TryExecutePendingWeaponSwap();
         }
 
-        // 3. 실제 상태와 프리팹 변경
-        private bool TryApplyWeapon(WeaponDTO p_weapon)
-        {
-            if (p_weapon == null || _core.EquipmentView == null)
-                return false;
-
-            GameObject prefab = _resourceLoader.GetItemPrefab(p_weapon.ItemType, p_weapon.PrefabKey);
-
-            if (prefab == null)
-                return false;
-
-            WeaponDTO previousWeapon = _core.EquipmentContext.CurrentWeapon;
-
-            if (!_core.CombatModule.TrySwapWeapon(p_weapon))
-                return false;
-
-            if (_core.EquipmentView.TryShowWeapon(prefab))
-                return true;
-
-            // 외형 변경 실패 시 상태를 복구한다.
-            if (previousWeapon == null)
-                _core.CombatModule.TryClearWeapon();
-            else
-                _core.CombatModule.TrySwapWeapon(previousWeapon);
-
-            return false;
-        }
         private bool CanWeaponSwap()
         {
             if (_core.BlockCombat)
@@ -242,6 +155,7 @@ namespace Alpha.Player.Combat
             return _core.LocomotionContext.CurrentState switch
             {
                 ELocoStateType.Dash => false,
+                ELocoStateType.Jump => false,
                 ELocoStateType.Die => false,
                 _ => true
             };
@@ -288,5 +202,56 @@ namespace Alpha.Player.Combat
             _core.CombatContext.SetAiming(shouldAim);
         }
         #endregion ======================================== /Aim
+
+        #region ======================================== Attack
+        // 장착 무기에 대한 기본 공격 정책을 만든다.
+        private static AttackDefinition CreateBasicAttackDefinition(WeaponDTO p_weapon)
+        {
+            switch (p_weapon)
+            {
+                case MeleeWeaponDTO:
+                    return new AttackDefinition
+                    {
+                        AnimationKey = "BasicAttack",
+                        MovePolicy = EAttackMovePolicy.AnimationDriven,
+                        AnimationPolicy = EAttackAnimationPolicy.FullBody,
+                        RotationPolicy = EAttackRotationPolicy.TrackAim,
+                        DeliveryType = EAttackDeliveryType.MeleeHitbox,
+
+                        // 근접 공격 종료는 이후 애니메이션 이벤트로 판단한다.
+                        Cooldown = 0f
+                    };
+
+                case RangeWeaponDTO rangeWeapon:
+                    return new AttackDefinition
+                    {
+                        AnimationKey = "BasicAttack",
+                        MovePolicy = EAttackMovePolicy.Free,
+                        AnimationPolicy = EAttackAnimationPolicy.UpperBody,
+                        RotationPolicy = EAttackRotationPolicy.TrackAim,
+                        DeliveryType = EAttackDeliveryType.HitScan,
+
+                        // 현재는 Rate를 공격 간격(초)으로 사용한다.
+                        Cooldown = Mathf.Max(0f, rangeWeapon.Rate)
+                    };
+
+                default:
+                    return null;
+            }
+        }
+
+        internal bool TryPrepareBasicAttack()
+        {
+            return _core.CombatContext.TryActivateBasicAttack();
+        }
+        #endregion ======================================== /Attack
+
+        private void OnDestroy()
+        {
+            if (_core?.EquipmentModule != null)
+            {
+                _core.EquipmentModule.OnActiveWeaponChanged -= HandleActiveWeaponChanged;
+            }
+        }
     }
 }

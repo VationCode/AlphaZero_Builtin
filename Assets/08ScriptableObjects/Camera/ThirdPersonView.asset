@@ -15,9 +15,9 @@ MonoBehaviour:
   _viewSettings:
     _pivotLocalPosition: {x: 0, y: 1.8, z: 0}
     _shoulderLocalPosition: {x: 0, y: 0, z: 0}
-    _defaultDistance: 3
+    _defaultDistance: 3.5
     _minDistance: 1
-    _maxDistance: 5
+    _maxDistance: 3.5
     _fieldOfView: 60
     _zoomSpeed: 1
     _followSpeed: 10

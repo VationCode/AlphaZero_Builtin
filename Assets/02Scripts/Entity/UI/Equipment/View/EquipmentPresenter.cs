@@ -13,7 +13,6 @@ namespace Alpha.Equipment
         private readonly ResourceLoadSystem _resourceLoader;
         private InventoryPresenter _inventoryPresenter;
 
-        private readonly Dictionary<SlotBase, SlotViewBase> _slotViewDict = new();
         private readonly Dictionary<SlotViewBase, SlotBase> _slotDict = new();
 
         private bool _isInitialized;
@@ -38,8 +37,7 @@ namespace Alpha.Equipment
 
         private void SetupWeaponPage()
         {
-            if (!_view.TryGetWeaponPage(
-                    out EquipmentWeaponPageView pageView))
+            if (!_view.TryGetWeaponPage(out EquipmentWeaponPageView pageView))
             {
                 return;
             }
@@ -51,8 +49,7 @@ namespace Alpha.Equipment
 
         private void SetupArmorPage()
         {
-            if (!_view.TryGetArmorPage(
-                    out EquipmentArmorPageView pageView))
+            if (!_view.TryGetArmorPage(out EquipmentArmorPageView pageView))
             {
                 return;
             }
@@ -62,6 +59,8 @@ namespace Alpha.Equipment
             BindArmorSlot(EArmorType.Gloves, pageView);
             BindArmorSlot(EArmorType.Boots, pageView);
         }
+
+        #region ============================== Bind
         // Inventory Presenter 연결 함수
         public void BindInventory(InventoryPresenter p_inventoryPresenter)
         {
@@ -105,7 +104,7 @@ namespace Alpha.Equipment
 
         private void BindSlot(SlotBase p_slot, SlotViewBase p_slotView)
         {
-            _slotViewDict[p_slot] = p_slotView;
+            // Drop 요청을 실제 Equipment Slot으로 변환하기 위한 매핑
             _slotDict[p_slotView] = p_slot;
 
             // 아이콘 로딩과 슬롯 변경 상태를 View에 연결한다.
@@ -125,6 +124,39 @@ namespace Alpha.Equipment
             }
         }
 
+        /// <summary>
+        /// Inventory, Slot, Drag View에 연결한 이벤트를 모두 해제한다.
+        /// </summary>
+        public void Unbind()
+        {
+            if (_inventoryPresenter != null)
+            {
+                _inventoryPresenter.OnExternalDropRequested -= HandleDropRequested;
+                _inventoryPresenter = null;
+            }
+
+            foreach (KeyValuePair<SlotViewBase, SlotBase> pair in _slotDict)
+            {
+                SlotViewBase slotView = pair.Key;
+                SlotBase slot = pair.Value;
+
+                if (slot != null && slotView != null)
+                {
+                    slot.OnSlotChanged -= slotView.SetSlot;
+                }
+
+                if (slotView != null && slotView.TryGetComponent(out SlotDragView dragView))
+                {
+                    dragView.OnDropRequested -= HandleDropRequested;
+                }
+            }
+
+            _slotDict.Clear();
+            _isInitialized = false;
+        }
+
+        #endregion ============================== /Bind
+
         private void HandleDropRequested(SlotViewBase p_sourceView, SlotViewBase p_targetView)
         {
             if (!_isInitialized || _inventoryPresenter == null)
@@ -139,6 +171,7 @@ namespace Alpha.Equipment
             _module.TrySwapSlotItem(source, target);
         }
 
+        // Dict 전체 탐색
         private bool TryResolveSlot(SlotViewBase p_slotView, out SlotBase p_slot)
         {
             if (_slotDict.TryGetValue(p_slotView, out p_slot))
@@ -146,16 +179,6 @@ namespace Alpha.Equipment
 
             // 장비 슬롯이 아니면 Inventory 슬롯에서 조회한다.
             return _inventoryPresenter.TryGetSlot(p_slotView, out p_slot);
-        }
-
-        public bool TryGetSlot(SlotViewBase p_slotView, out SlotBase p_slot)
-        {
-            return _slotDict.TryGetValue(p_slotView, out p_slot);
-        }
-
-        public bool TryGetSlotView(SlotBase p_slot, out SlotViewBase p_slotView)
-        {
-            return _slotViewDict.TryGetValue(p_slot, out p_slotView);
         }
     }
 }

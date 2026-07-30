@@ -29,10 +29,14 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            if (!_Input.IsAttack || !CanStartAttack())
+            if (!_Input.IsAttack || !CanStartAttack() || !TryPrepareBasicAttack())
                 return;
 
-            TryChangeState(ECombatStateType.Attack);
+
+            if (!TryChangeState(ECombatStateType.Attack))
+            {
+                _Context.ClearActiveAttack();
+            }
         }
 
         protected override void Exit()

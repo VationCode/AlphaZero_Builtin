@@ -38,6 +38,8 @@ namespace Alpha.Player.Combat
 
         protected override void Exit()
         {
+            // 현재 공격만 정리
+            _Context.ClearActiveAttack();
         }
     }
 }

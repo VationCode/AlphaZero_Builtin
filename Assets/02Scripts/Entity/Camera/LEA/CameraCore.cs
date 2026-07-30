@@ -26,6 +26,16 @@ namespace Alpha.AlphaCamera
         public CameraObstructionModule ObstructionModule{get; private set;}
 
         public Camera RenderCamera => RigModule != null ? RigModule.RenderCamera : null;
+
+        // 플레이어 이동과 회전의 기준으로 사용할 실제 렌더 카메라 Transform
+        public Transform RenderCameraTransform
+        {
+            get
+            {
+                return RenderCamera != null? RenderCamera.transform : null;
+            }
+        }
+
         public bool IsBound { get; private set; }
 
         // 기본 View 변경을 외부 표현 시스템에 알린다.
