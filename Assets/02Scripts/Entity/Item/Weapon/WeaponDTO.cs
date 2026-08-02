@@ -15,6 +15,7 @@ public abstract class WeaponDTO : ItemDTO
     public abstract EWeaponType WeaponType { get; }
 
     public float BaseDamage;
+
 }
 [Serializable]
 public sealed class MeleeWeaponDTO : WeaponDTO

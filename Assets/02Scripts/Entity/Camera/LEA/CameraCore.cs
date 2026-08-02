@@ -86,7 +86,7 @@ namespace Alpha.AlphaCamera
 
             Context.BaseViewType = ECameraViewType.ThirdPerson;
 
-            Context.CurrentViewType = ECameraViewType.ThirdPerson;
+            Context.SetCurrentView(ECameraViewType.ThirdPerson);
 
             _input = p_input;
             IsBound = true;
@@ -187,7 +187,7 @@ namespace Alpha.AlphaCamera
                 return false;
             }
 
-            Context.CurrentViewType = p_viewType;
+            Context.SetCurrentView(p_viewType);
             return true;
         }
     }

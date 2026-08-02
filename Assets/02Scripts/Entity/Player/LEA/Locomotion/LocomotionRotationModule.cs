@@ -48,23 +48,6 @@ namespace Alpha.Player.Locomotion
             _playerTransform.rotation = CalculateRotation(p_direction, p_cameraTransform, p_isSpatial, p_isCombat, p_isInstant);
         }
 
-        // 바라볼 방향 결정(Input, Aim, Mouse)
-        // IsFacingDirection 호출 -> ApplyRotation에 바라볼 방향 입력
-        public bool IsFacingDirection(Vector3 p_direction, float p_toleranceAngle)
-        {
-            if (!IsBound)
-                return false;
-
-            Vector3 currentForward = Vector3.ProjectOnPlane(_playerTransform.forward, Vector3.up);
-            Vector3 targetDirection = Vector3.ProjectOnPlane(p_direction, Vector3.up);
-
-            if (targetDirection.sqrMagnitude < 0.0001f)
-                return false;
-
-            float angle = Vector3.Angle(currentForward, targetDirection);
-            return angle <= Mathf.Max(0f, p_toleranceAngle);
-        }
-
         private Quaternion CalculateRotation(Vector3 p_direction, Transform p_cameraTransform,
                                              bool p_isSpatial, bool p_isCombat, bool p_isInstant)
         {

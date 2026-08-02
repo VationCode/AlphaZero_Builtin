@@ -99,15 +99,6 @@ namespace Alpha.Player.Locomotion
             _moveModule.Move(moveVelocity);
         }
 
-        /// <summary>
-        /// 외부에서는 세부 Rotation Module을 직접 사용하지 않는다.
-        /// 회전할 방향 결정(Input, Aim, Mouse 방향)
-        /// </summary>
-        public bool IsFacingDirection(Vector3 p_direction, float p_toleranceAngle)
-        {
-            return _rotationModule.IsFacingDirection(p_direction, p_toleranceAngle);
-        }
-
         #endregion ======================================== /Movement
 
         #region ======================================== Jump

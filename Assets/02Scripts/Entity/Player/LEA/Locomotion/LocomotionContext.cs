@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Alpha.Player.Locomotion
@@ -13,9 +14,21 @@ namespace Alpha.Player.Locomotion
         
         public Vector3 Velocity { get; internal set; }
 
-        /// <summary>
-        /// 고정 방향
-        /// </summary>
+        // 고정방향
         public Vector3 LockedMoveDirection { get; internal set; }
+
+        // 현재 Locomotion 상태가 확정되었음을 외부 View에 알린다.
+        public event Action<ELocomotionMode, ELocoStateType> OnStateChanged;
+
+        internal void SetCurrentMode(ELocomotionMode p_mode)
+        {
+            CurrentMode = p_mode;
+        }
+
+        internal void SetCurrentState(ELocoStateType p_state)
+        {
+            CurrentState = p_state;
+            OnStateChanged?.Invoke(CurrentMode, p_state);
+        }
     }
 }

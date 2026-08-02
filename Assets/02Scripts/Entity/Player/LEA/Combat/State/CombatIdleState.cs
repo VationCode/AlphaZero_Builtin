@@ -1,5 +1,3 @@
-using Unity.VisualScripting;
-
 namespace Alpha.Player.Combat
 {
     // 별도의 Combat 행동을 수행하지 않는 기본 대기 상태
@@ -29,14 +27,6 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            if (!_Input.IsAttack || !CanStartAttack() || !TryPrepareBasicAttack())
-                return;
-
-
-            if (!TryChangeState(ECombatStateType.Attack))
-            {
-                _Context.ClearActiveAttack();
-            }
         }
 
         protected override void Exit()

@@ -19,6 +19,9 @@ namespace Alpha.Player.Equipment
         public WeaponDTO CurrentWeapon => _context?.CurrentWeapon;
         public EWeaponType CurrentWeaponType => _context?.CurrentWeaponType ?? EWeaponType.None;
 
+        // 공격 Flow가 실제 무기 기능을 호출할 때 사용한다.
+        public Weapon CurrentRuntimeWeapon { get; private set; }
+
         public bool IsBound { get; private set; }
 
         /// <summary>
@@ -61,17 +64,35 @@ namespace Alpha.Player.Equipment
             if (prefab == null)
                 return false;
 
+            // 기존 무기는 새 무기의 모든 준비가 끝날 때까지 유지한다.
+            if (!_equipmentView.TryCreateWeapon(prefab, out Weapon nextWeapon))
+            {
+                return false;
+            }
+
+            if (!nextWeapon.TryInitialize(p_weapon))
+            {
+                _equipmentView.TryDiscardWeapon(nextWeapon);
+                return false;
+            }
+
             WeaponDTO previousWeapon = _context.CurrentWeapon;
 
             if (!_context.TrySetWeapon(p_weapon))
-                return false;
-
-            if (!_equipmentView.TryShowWeapon(prefab))
             {
-                // 외형 적용 실패 시 현재 무기 상태를 이전 값으로 복구한다.
-                RestoreWeapon(previousWeapon);
+                _equipmentView.TryDiscardWeapon(nextWeapon);
                 return false;
             }
+
+            if (!_equipmentView.TryCommitWeapon(nextWeapon))
+            {
+                // Context 변경을 되돌리고 기존 외형은 그대로 유지한다.
+                RestoreWeapon(previousWeapon);
+                _equipmentView.TryDiscardWeapon(nextWeapon);
+                return false;
+            }
+
+            CurrentRuntimeWeapon = nextWeapon;
 
             _animationView.ApplyWeaponOverrideController(p_weapon.WeaponType);
 
@@ -88,6 +109,7 @@ namespace Alpha.Player.Equipment
 
             // 외형이 이미 없더라도 Player의 무기 상태는 정상적으로 해제한다.
             _equipmentView.TryClearWeapon();
+            CurrentRuntimeWeapon = null;
 
             _animationView.ApplyWeaponOverrideController(EWeaponType.None);
 
@@ -137,6 +159,7 @@ namespace Alpha.Player.Equipment
             _resourceLoader = null;
             _equipmentView = null;
             _animationView = null;
+            CurrentRuntimeWeapon = null;
 
             IsBound = false;
             OnActiveWeaponChanged = null;

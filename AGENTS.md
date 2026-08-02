@@ -1466,3 +1466,81 @@ Manager
 - 코드가 변경된 경우 가능한 범위에서 컴파일 또는 정적 검증을 수행한다.
 - 검증하지 못한 내용은 성공한 것으로 단정하지 않는다.
 - 경고와 오류를 구분하며, 기존 경고를 새 변경으로 인한 문제처럼 보고하지 않는다.
+
+---
+
+# 19. Feature 내부 구성 규칙
+
+## 19.1 실행 흐름
+
+복잡한 Feature는 다음 흐름을 기본으로 한다.
+
+```text
+Flow / State
+    ↓
+대표 Module
+    ↓
+세부 Module
+```
+
+- `Flow / State`는 실행 시점, 조건, 상태 전이를 판단한다.
+- 대표 `Module`은 외부 진입점과 세부 기능의 실행 순서를 담당한다.
+- 세부 `Module`은 이동, 회전, 무기 교체처럼 하나의 기능을 실행한다.
+- 외부에서는 세부 Module보다 대표 Module을 통해 기능을 사용한다.
+- 단순 전달이나 UI 활성화만을 위해 Flow 또는 Module을 추가하지 않는다.
+
+예시:
+
+```text
+GroundMoveState → PlayerLocomotionModule → Move / Rotation Module
+Combat State    → PlayerCombatModule     → WeaponSwapModule
+Inventory View  → InventoryModule        → Slot / Item Module
+Equipment View  → EquipmentModule        → Slot / Item Module
+```
+
+## 19.2 분리 기준
+
+- 현재 클래스가 비대해졌을 때만 독립적인 책임을 세부 Module로 분리한다.
+- 기존 Scene 또는 Prefab이 참조하는 `MonoBehaviour`는 가능하면 대표 진입점으로 유지한다.
+- 빈 구조나 사용하지 않는 Module을 미리 만들지 않는다.
+- UI 표시와 단순 열기·닫기는 View에서 처리할 수 있다.
+- 게임 상태와 규칙 판단이 포함될 때만 Flow로 분리한다.
+
+## 19.3 조립과 초기화
+
+- Core는 대표 Module을 조립하고 외부에 제공한다.
+- 세부 Module 참조는 대표 Module 내부에 감춘다.
+- Installer는 의존 순서대로 `Bind()`와 `Initialize()`를 호출한다.
+- 초기화 함수가 `bool`을 반환하면 실패 시 다음 초기화를 진행하지 않는다.
+- `RequireComponent` 추가 후에는 기존 Prefab과 Scene의 실제 참조 상태를 확인한다.
+
+초기화 순서 예시:
+
+```text
+Inventory
+→ Equipment
+→ Player Equipment
+→ Player Combat
+→ Combat Flow
+```
+
+## 19.4 이벤트 수명 관리
+
+- 이벤트를 구독한 객체가 해제 책임도 가진다.
+- 람다를 구독할 때는 같은 델리게이트 인스턴스를 저장해 해제한다.
+- View, Drag, Domain 등 구독 경로가 여러 개라면 모두 `Unbind()`에서 정리한다.
+- Core의 `OnDestroy()`에서는 Presenter 또는 Flow를 먼저 해제한 뒤 Module 이벤트를 정리한다.
+
+## 19.5 UI와 월드 표현 구분
+
+- UI 기능은 `Entity/UI/<Feature>` 범위에 두고 필요에 따라 `LEA`와 `View`로 나눈다.
+- Inventory와 Equipment UI는 각 Feature가 자신의 View와 기능을 소유한다.
+- 장비 UI 표현과 Player 월드 장비 표현은 분리한다.
+
+```text
+EquipmentView
+= 장비 UI 표현
+
+PlayerEquipmentView
+= Player에 장착된 무기·방어구의 월드 표현
+```

@@ -28,23 +28,62 @@ namespace Alpha.Player.Equipment
 
         private readonly Dictionary<EArmorType, List<GameObject>> _currentArmorInstanceDict = new();
 
-        public bool TryShowWeapon(GameObject p_prefab)
+        // 새 무기 외형을 만들고 런타임 Weapon을 반환한다.
+        // 이 단계에서는 기존 무기를 제거하지 않는다.
+        public bool TryCreateWeapon(GameObject p_prefab, out Weapon p_weapon)
         {
+            p_weapon = null;
+
             if (p_prefab == null || _weaponHandPivot == null)
                 return false;
 
-            GameObject nextInstance = Instantiate(p_prefab, _weaponHandPivot, false);
+            GameObject instance = Instantiate(p_prefab, _weaponHandPivot, false);
 
-            nextInstance.name = $"{p_prefab.name}_Equipped";
-            nextInstance.transform.localPosition = Vector3.zero;
-            nextInstance.transform.localRotation = Quaternion.identity;
+            instance.name = $"{p_prefab.name}_Equipped";
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+
+            // 무기 Prefab의 Root에는 구체 Weapon 컴포넌트가 필요하다.
+            if (!instance.TryGetComponent(out p_weapon))
+            {
+                Destroy(instance);
+                return false;
+            }
+
+            return true;
+
+        }
+
+        // 초기화가 끝난 무기를 현재 외형으로 확정한다.
+        public bool TryCommitWeapon(Weapon p_weapon)
+        {
+            if (p_weapon == null ||
+                p_weapon.transform.parent != _weaponHandPivot)
+            {
+                return false;
+            }
 
             GameObject previousInstance = CurrentWeaponInstance;
-            CurrentWeaponInstance = nextInstance;
+            CurrentWeaponInstance = p_weapon.gameObject;
 
-            if (previousInstance != null)
+            if (previousInstance != null &&
+                previousInstance != CurrentWeaponInstance)
+            {
                 Destroy(previousInstance);
+            }
 
+            return true;
+        }
+
+        // 초기화에 실패한 임시 무기만 제거한다.
+        public bool TryDiscardWeapon(Weapon p_weapon)
+        {
+            if (p_weapon == null || p_weapon.gameObject == CurrentWeaponInstance)
+            {
+                return false;
+            }
+
+            Destroy(p_weapon.gameObject);
             return true;
         }
 

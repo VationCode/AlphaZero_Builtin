@@ -13,7 +13,6 @@ namespace Alpha.Player
         #region ========== OutSideBind
         public AlphaInputSystem Input { get; private set; }
         public CameraCore CameraCore { get; private set; }
-        public DamageSystem DamageSystem { get; private set; }
         public MouseSystem MouseSystem { get; private set; }
         #endregion
 
@@ -45,6 +44,7 @@ namespace Alpha.Player
         public PlayerEquipmentView EquipmentView { get; private set; }
 
         #endregion
+
         public Transform PlayerTr {  get; private set; }
 
         public bool CanLocomotion => _canLocomotion;
@@ -54,11 +54,10 @@ namespace Alpha.Player
         private bool _isCombatBlocked;
 
         public void Bind(AlphaInputSystem p_input, CameraCore p_camera,
-                         DamageSystem p_damageSystem, MouseSystem p_mouseSystem)
+                         MouseSystem p_mouseSystem)
         {
             Input = p_input;
             CameraCore = p_camera;
-            DamageSystem = p_damageSystem;
             MouseSystem = p_mouseSystem;
         }
         private void OnDestroy()

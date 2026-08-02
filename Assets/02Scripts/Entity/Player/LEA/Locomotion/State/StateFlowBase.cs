@@ -6,6 +6,7 @@ namespace Alpha.Player.Locomotion
     {
         protected readonly PlayerCore _Core;
         protected TransitionRule _Rule;
+
         protected StateFlowBase(PlayerCore p_core)
         {
             _Core = p_core;
@@ -39,8 +40,8 @@ namespace Alpha.Player.Locomotion
 
             CurrentState = p_nextState;
 
-            // Context에 현재 State 기록
-            _Core.LocomotionContext.CurrentState = CurrentState.Type;
+            // 상태 확정 후 Context와 View 구독자에게 알린다.
+            _Core.LocomotionContext.SetCurrentState(CurrentState.Type);
 
             CurrentState.EnterState();
         }

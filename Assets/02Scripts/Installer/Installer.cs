@@ -3,7 +3,7 @@ using Alpha.Equipment;
 using Alpha.Inventory;
 using Alpha.Mouse;
 using Alpha.Player;
-using Unity.VisualScripting;
+using Alpha.UI;
 using UnityEngine;
 
 public class Installer : MonoBehaviour
@@ -30,13 +30,18 @@ public class Installer : MonoBehaviour
     [Header("Mouse")]
     [SerializeField] private MouseSystem _mouseSystem;
 
-    private DamageSystem _damageSystem;
+    [Header("UI")]
+    [SerializeField] private UIManager _uiManager;
 
     private void Awake()
     {
-        _damageSystem = new DamageSystem();
         // 외부 의존성만 Player에 연결한다.
-        _playerCore.Bind(_input,_cameraCore,_damageSystem,_mouseSystem);
+        _playerCore.Bind(_input, _cameraCore, _mouseSystem);
+
+        // Playerd의 Locomotion, Combat과 카메라 ViewType을 UI View에 연결한다.
+        _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;
+        _playerCore.CombatContext.OnStateChanged += _uiManager.StateUI.ChangeCombatState;
+        _cameraCore.Context.OnCameraViewChanged += _uiManager.StateUI.ChangeViewType;
     }
 
     private async void Start()
@@ -98,6 +103,7 @@ public class Installer : MonoBehaviour
         }
         // Equipment 상태를 Player의 CombatFlow에 연결한다.
         _playerCore.CombatFlow.Bind(_playerCore);
+
     }
 
     private void OnDestroy()
@@ -120,12 +126,9 @@ PlayerEquipmentModule
 PlayerEquipmentView
  */
 
-/* 무기 변경 시 Equipment와 Combat 흐름
+/* 무기 변경 시 Equipment 흐름
 Equipment Slot 변경
 → PlayerEquipmentFlow
 → PlayerEquipmentModule
 → 무기 상태·외형·Animator 변경
-→ OnActiveWeaponChanged
-→ CombatFlow
-→ 기본 공격 정보 갱신
  */

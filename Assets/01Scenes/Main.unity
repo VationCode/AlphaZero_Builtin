@@ -3555,6 +3555,7 @@ GameObject:
   - component: {fileID: 776998317}
   - component: {fileID: 776998319}
   - component: {fileID: 776998318}
+  - component: {fileID: 776998320}
   m_Layer: 6
   m_Name: Combat
   m_TagString: Untagged
@@ -3599,6 +3600,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17fd97855fa5391429afd4a50e8e4e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &776998320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 776998316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc6b784956c206b4a8eade7ba5b1af1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &787540962
@@ -7306,6 +7319,7 @@ MonoBehaviour:
   _resourceLoader: {fileID: 450537495}
   _itemDatabase: {fileID: 182729214}
   _mouseSystem: {fileID: 1007656242}
+  _uiManager: {fileID: 1988692052}
 --- !u!1 &1751135430
 GameObject:
   m_ObjectHideFlags: 0

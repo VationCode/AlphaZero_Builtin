@@ -38,16 +38,6 @@ namespace Alpha.Player.Combat
             return _Flow.TryExecutePendingWeaponSwap();
         }
 
-        protected bool CanStartAttack()
-        {
-            return _Flow.CanStartAttack();
-        }
-
-        protected bool TryPrepareBasicAttack()
-        {
-            return _Flow.TryPrepareBasicAttack();
-        }
-
         protected abstract void Enter();
         protected abstract void Tick();
         protected abstract void Exit();

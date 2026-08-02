@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 public enum ECameraViewType
 {
@@ -20,6 +21,8 @@ namespace Alpha.AlphaCamera
         public ECameraViewType BaseViewType { get; internal set; } = ECameraViewType.ThirdPerson;
 
         public ECameraViewType CurrentViewType { get; internal set; } = ECameraViewType.ThirdPerson;
+
+        public event Action<ECameraViewType> OnCameraViewChanged;
         internal void SetRotation(float p_pitch, float p_yaw)
         {
             Pitch = p_pitch;
@@ -29,6 +32,12 @@ namespace Alpha.AlphaCamera
         internal void SetZoomDistance(float p_distance)
         {
             ZoomDistance = Mathf.Max(0f, p_distance);
+        }
+
+        internal void SetCurrentView(ECameraViewType p_viewType)
+        {
+            CurrentViewType = p_viewType;
+            OnCameraViewChanged?.Invoke(CurrentViewType);
         }
     }
 }

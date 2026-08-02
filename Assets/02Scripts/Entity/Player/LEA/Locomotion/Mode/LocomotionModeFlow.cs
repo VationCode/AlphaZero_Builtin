@@ -1,6 +1,6 @@
 // 모드 전환 관리
+using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 public enum ELocomotionMode
 {
@@ -26,6 +26,7 @@ namespace Alpha.Player.Locomotion
         public StateFlowBase CurrentFlow => _currentStateFlow;
         private StateFlowBase _currentStateFlow;
 
+        public event Action<string> OnStateFlowChanged;
         public void Bind(PlayerCore p_core)
         {
             _core = p_core;
@@ -52,7 +53,7 @@ namespace Alpha.Player.Locomotion
                 ChangeMode(nextMode, entryState);
             }
 
-            // 해당 Mode의 상태 Update
+            // 해당 Mode의 상태를 Update
             _currentStateFlow?.TickFlow();
         }
 
@@ -76,7 +77,7 @@ namespace Alpha.Player.Locomotion
             CurrentMode = p_nextMode;
 
             // Context에 현재 Mode 기록
-            _core.LocomotionContext.CurrentMode = p_nextMode;
+            _core.LocomotionContext.SetCurrentMode(p_nextMode);
 
             // 지정한 State로 새 Flow 시작
             _currentStateFlow.EnterFlow(p_entryState);
