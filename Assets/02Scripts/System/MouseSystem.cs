@@ -8,12 +8,12 @@ namespace Alpha.Mouse
         [SerializeField] private LayerMask _worldMask;
         [SerializeField] private float _rayDistance = 1000f;
 
-        private UnityEngine.Camera _renderCamera;
+        private Camera _renderCamera;
 
         private bool _isViewCursorActive;
         private bool _isUICursorActive;
         // 마우스 좌표 계산에 사용할 Camera를 연결한다.
-        public void Bind(UnityEngine.Camera p_renderCamera)
+        public void Bind(Camera p_renderCamera)
         {
             _renderCamera = p_renderCamera;
         }

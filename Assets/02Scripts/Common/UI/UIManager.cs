@@ -1,5 +1,3 @@
-using Alpha.Equipment;
-using Alpha.Inventory;
 using UnityEngine;
 
 namespace Alpha.UI

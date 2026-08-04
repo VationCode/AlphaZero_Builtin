@@ -9,20 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de2105ff3fc7ac240b62452396a51b4a, type: 3}
+  m_Script: {fileID: 11500000, guid: e9754104b096b31479d4fc32e1b417b2, type: 3}
   m_Name: ThirdPersonView
   m_EditorClassIdentifier: 
-  _viewSettings:
-    _pivotLocalPosition: {x: 0, y: 1.8, z: 0}
-    _shoulderLocalPosition: {x: 0, y: 0, z: 0}
-    _defaultDistance: 3.5
-    _minDistance: 1
-    _maxDistance: 3.5
-    _fieldOfView: 60
-    _zoomSpeed: 1
-    _followSpeed: 10
-  _orbitSettings:
-    _lookSensitivity: 15
-    _minPitch: -70
-    _maxPitch: 70
-  _initialPitch: 0
+  _viewType: 0
+  _pivotLocalPosition: {x: 0, y: 1.8, z: 0}
+  _shoulderLocalPosition: {x: 0, y: 0, z: 0}
+  _pivotEulerAngles: {x: 0, y: 0, z: 0}
+  _zoomDistance: 5
+  _minZoomDistance: 1
+  _maxZoomDistance: 5
+  _zoomStep: 0.5
+  _fieldOfView: 60
+  _rigFollowSpeed: 10

@@ -1,9 +1,9 @@
 using Alpha.AlphaCamera;
-using Alpha.Equipment;
-using Alpha.Inventory;
 using Alpha.Mouse;
 using Alpha.Player;
+using Alpha.Player.Inventory;
 using Alpha.UI;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Installer : MonoBehaviour
@@ -17,12 +17,6 @@ public class Installer : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private CameraCore _cameraCore;
 
-    [Header("Inventory")]
-    [SerializeField] private InventoryCore _inventoryCore;
-
-    [Header("Equipment")]
-    [SerializeField] private EquipmentCore _equipmentCore;
-
     [Header("Data")]
     [SerializeField] private ResourceLoadSystem _resourceLoader;
     [SerializeField] private ItemDatabaseManager _itemDatabase;
@@ -32,6 +26,7 @@ public class Installer : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private UIManager _uiManager;
+    [SerializeField] private InventoryView _inventoryView;
 
     private void Awake()
     {
@@ -41,17 +36,20 @@ public class Installer : MonoBehaviour
         // Playerd의 Locomotion, Combat과 카메라 ViewType을 UI View에 연결한다.
         _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;
         _playerCore.CombatContext.OnStateChanged += _uiManager.StateUI.ChangeCombatState;
-        _cameraCore.Context.OnCameraViewChanged += _uiManager.StateUI.ChangeViewType;
+        //_cameraCore.Context.OnCameraViewChanged += _uiManager.StateUI.ChangeViewType;
     }
 
     private async void Start()
     {
         // Camera는 Item Database와 무관하므로 즉시 연결한다.
-        if (_cameraCore.Bind(_input, _playerCore.transform))
+        if (_cameraCore.Bind(_input))
         {
             _mouseSystem.Bind(_cameraCore.RenderCamera);
 
-            _cameraCore.OnBaseViewChanged += viewType => _mouseSystem.SetViewCursor(viewType == ECameraViewType.Quarter);
+            //_cameraCore.OnBaseViewChanged += viewType => _mouseSystem.SetViewCursor(viewType == ECameraViewType.Quarter);
+
+            // 초기 View는 즉시 적용한다.
+            _cameraCore.RequestView(ECameraViewType.ThirdPerson, 0f);
 
             // 시작 View는 TPS이므로 커서를 잠근다.
             _mouseSystem.SetViewCursor(false);
@@ -59,76 +57,56 @@ public class Installer : MonoBehaviour
 
         await _itemDatabase.InitializeAsync();
 
-        // UI Entity 내부 상태 초기화
-        // Inventory 상태와 View 연결을 먼저 완료한다.
-        if (!_inventoryCore.Bind(_input, _resourceLoader))
-        {
-            Debug.LogError("Inventory 초기화에 실패했습니다.", this);
-            return;
-        }
+        _inventoryView.Bind(_playerCore.InventoryContext, _resourceLoader);
 
-        // Inventory 창 상태를 외부 시스템에 연결한다.(마우스 활성, Combat 입력 제어)
-        _inventoryCore.OnWindowActiveChanged += _mouseSystem.SetUICursor;
-        _inventoryCore.OnWindowActiveChanged += _playerCore.SetCombatBlocked;
+        ConnectInventoryEvents();
+    }
 
-        // 아이템 습득 대상을 초기화된 Inventory에 연결한다.
-        _playerCore.ItemPickupFlow.Bind(_inventoryCore, _itemDatabase);
+    private void ConnectInventoryEvents()
+    {
+        InventoryFlow flow = _playerCore.InventoryFlow;
 
-        // Equipment UI는 Inventory Presenter가 생성된 후 연결한다.
-        if (!_equipmentCore.Bind(_resourceLoader, _inventoryCore.Presenter))
-        {
-            Debug.LogError("Equipment 초기화에 실패했습니다.", this);
-            return;
-        }
-
-        // Player 장비 상태와 실제 장비 외형을 연결한다.
-        if (!_playerCore.BindEquipment(_resourceLoader))
-        {
-            Debug.LogError("Player Equipment Module 연결에 실패했습니다.", this);
-            return;
-        }
-
-        if (!_playerCore.EquipmentFlow.Bind(_equipmentCore, _playerCore.EquipmentModule))
-        {
-            Debug.LogError("Player Equipment Flow 연결에 실패했습니다.", this);
-            return;
-        }
+        // Slot 관련
+        _inventoryView.OnAddSlotRequested -= flow.RequestAddSlot;
+        _inventoryView.OnAddSlotRequested += flow.RequestAddSlot;
 
 
-        // Equipment가 준비된 이후 Combat 내부 Module을 조립한다.
-        if (!_playerCore.BindCombat())
-        {
-            Debug.LogError("Player Combat Module 연결에 실패했습니다.", this);
-            return;
-        }
-        // Equipment 상태를 Player의 CombatFlow에 연결한다.
-        _playerCore.CombatFlow.Bind(_playerCore);
+        // 인벤토리창 관련
+        flow.OnViewStateChanged -= HandleInventoryStateChanged; // 중복 연결 방지
+        flow.OnViewStateChanged += HandleInventoryStateChanged;
 
+        _inventoryView.OnCloseInventoryRequested -= flow.RequestCloseInventory;
+        _inventoryView.OnCloseInventoryRequested += flow.RequestCloseInventory;
+
+        _inventoryView.OnPageRequested -= flow.RequestOpenPage;
+        _inventoryView.OnPageRequested += flow.RequestOpenPage;
+
+        // 이벤트 연결 전의 현재 상태도 반영한다.
+        HandleInventoryStateChanged(flow.IsOpen, flow.CurrentWindow);
+    }
+
+
+    private void HandleInventoryStateChanged(bool p_isInventoryOpen, EItemType p_pageType)
+    {
+        // 인벤토리 UI 상태 적용
+        _inventoryView.ApplyViewState(p_isInventoryOpen, p_pageType);
+
+        // 인벤토리가 열리면 커서를 표시하고 잠금을 해제한다.
+        _mouseSystem.SetUICursor(p_isInventoryOpen);
     }
 
     private void OnDestroy()
     {
-        if (_inventoryCore == null) return;
+        if (_playerCore == null || _playerCore.InventoryFlow == null)
+        {
+            return;
+        }
 
-        _inventoryCore.OnWindowActiveChanged -= _mouseSystem.SetUICursor;
-        _inventoryCore.OnWindowActiveChanged -= _playerCore.SetCombatBlocked;
+        InventoryFlow flow = _playerCore.InventoryFlow;
+
+        _inventoryView.OnAddSlotRequested -= flow.RequestAddSlot;
+        _inventoryView.OnCloseInventoryRequested -= flow.RequestCloseInventory;
+        _inventoryView.OnPageRequested -= flow.RequestOpenPage;
+        flow.OnViewStateChanged -= HandleInventoryStateChanged;
     }
 }
-
-// Equipment 흐름
-/*
- EquipmentCore.OnEquippedArmorChanged
-              ↓
-PlayerEquipmentFlow
-              ↓
-PlayerEquipmentModule
-              ↓
-PlayerEquipmentView
- */
-
-/* 무기 변경 시 Equipment 흐름
-Equipment Slot 변경
-→ PlayerEquipmentFlow
-→ PlayerEquipmentModule
-→ 무기 상태·외형·Animator 변경
- */

@@ -120,7 +120,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7410366299691140941}
   m_HandleRect: {fileID: 8691078367194950318}
   m_Direction: 0
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -282,12 +282,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2586624596823163045}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53d57987ebbf9084bb1b866dd1c1dc8d, type: 3}
+  m_Script: {fileID: 11500000, guid: 7b2265075699cd040883bba772e44e3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _slotViewPrefab: {fileID: 6032309570452213183, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
   _contentRoot: {fileID: 5764540742822440398}
-  _slotPrefab: {fileID: 6032309570452213183, guid: f8677de47e21289459ac5e2cc39486c0, type: 3}
-  _scrollRect: {fileID: 5732672928878508805}
 --- !u!1 &3699105777157324469
 GameObject:
   m_ObjectHideFlags: 0
@@ -787,11 +786,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1674599101038401837, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 14.9
+      value: -25
       objectReference: {fileID: 0}
     - target: {fileID: 1674599101038401837, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -63.499985
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 1674599101038401837, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -810,12 +809,16 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7406245935055561107, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 7789281546584577052}
+    - target: {fileID: 7406245935055561107, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: RequestAddSlot
       objectReference: {fileID: 0}
     - target: {fileID: 7406245935055561107, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: SlotGroupView, Assembly-CSharp
+      value: Alpha.Player.Inventory.InventorySlotScrollView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7769521849718791193, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_Name

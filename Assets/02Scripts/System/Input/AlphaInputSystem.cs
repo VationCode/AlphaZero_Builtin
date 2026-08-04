@@ -23,12 +23,13 @@ public class AlphaInputSystem : MonoBehaviour
     public bool IsFlight => _isFlight;
     private bool _isFlight => _flightFrame == Time.frameCount;
     private int _flightFrame;
-    // Combat
-    public bool IsAttack => _isAttack;
-    private bool _isAttack;
 
-    public bool IsAiming => _isAiming;
-    private bool _isAiming;
+    // Combat
+    public bool IsPrimaryAction => _isPrimaryAction;
+    private bool _isPrimaryAction;
+
+    public bool IsSecondaryAction => _isSecondaryAction;
+    private bool _isSecondaryAction;
 
     public int SwapNum { get; private set; }
     public bool IsSwapInput => m_swapFrame == Time.frameCount;
@@ -73,11 +74,11 @@ public class AlphaInputSystem : MonoBehaviour
         _action.Player.Flight.performed += i => _flightFrame = Time.frameCount;
 
         // Combat
-        _action.Player.Attack.performed += i => _isAttack = true;
-        _action.Player.Attack.canceled += i => _isAttack = false;
+        _action.Player.PrimaryAction.performed += i => _isPrimaryAction = true;
+        _action.Player.PrimaryAction.canceled += i => _isPrimaryAction = false;
 
-        _action.Player.Aim.performed += i => _isAiming = true;
-        _action.Player.Aim.canceled += i => _isAiming = false;
+        _action.Player.SecondaryAction.performed += i => _isSecondaryAction = true;
+        _action.Player.SecondaryAction.canceled += i => _isSecondaryAction = false;
 
         _action.Player.Swap.performed += OnSwap;
 
@@ -109,8 +110,8 @@ public class AlphaInputSystem : MonoBehaviour
 
         _moveInput = Vector2.zero;
         _isSprint = false;
-        _isAttack = false;
-        _isAiming = false;
+        _isPrimaryAction = false;
+        _isSecondaryAction = false;
         _isQuarter = false;
 
         m_swapFrame = -1;

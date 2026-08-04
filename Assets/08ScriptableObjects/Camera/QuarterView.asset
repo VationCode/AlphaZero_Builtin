@@ -9,16 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e4a24f56e20656b47aea6673a6e16a8a, type: 3}
+  m_Script: {fileID: 11500000, guid: e9754104b096b31479d4fc32e1b417b2, type: 3}
   m_Name: QuarterView
   m_EditorClassIdentifier: 
-  _viewSettings:
-    _pivotLocalPosition: {x: 0, y: 0, z: 0}
-    _shoulderLocalPosition: {x: 0, y: 0, z: 0}
-    _defaultDistance: 10
-    _minDistance: 10
-    _maxDistance: 10
-    _fieldOfView: 70
-    _zoomSpeed: 1
-    _followSpeed: 10
-  _pivotLocalEulerAngles: {x: 60, y: 0, z: 0}
+  _viewType: 2
+  _pivotLocalPosition: {x: 0, y: 0, z: 0}
+  _shoulderLocalPosition: {x: 0, y: 0, z: 0}
+  _pivotEulerAngles: {x: 60, y: 0, z: 0}
+  _zoomDistance: 7
+  _minZoomDistance: 7
+  _maxZoomDistance: 7
+  _zoomStep: 0.5
+  _fieldOfView: 70
+  _rigFollowSpeed: 10

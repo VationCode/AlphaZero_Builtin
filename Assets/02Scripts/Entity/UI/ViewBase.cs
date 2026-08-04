@@ -1,28 +1,30 @@
 using UnityEngine;
 
-
-public class ViewBase : MonoBehaviour
+namespace Alpha.UI
 {
-    [SerializeField]
-    private Animation _openAnimation;
-
-    public bool IsOpen => gameObject.activeSelf;
-
-    private void Awake()
+    public class ViewBase : MonoBehaviour
     {
-        TryGetComponent<Animation>(out _openAnimation);
-    }
+        [SerializeField]
+        private Animation _openAnimation;
 
-    internal virtual void Open()
-    {
-        gameObject.SetActive(true);
+        public bool IsOpen => gameObject.activeSelf;
 
-        if (_openAnimation != null)
-            _openAnimation.Play();
-    }
+        private void Awake()
+        {
+            TryGetComponent<Animation>(out _openAnimation);
+        }
 
-    internal virtual void Close()
-    {
-        gameObject.SetActive(false);
+        internal virtual void Open()
+        {
+            gameObject.SetActive(true);
+
+            if (_openAnimation != null)
+                _openAnimation.Play();
+        }
+
+        internal virtual void Close()
+        {
+            gameObject.SetActive(false);
+        }
     }
 }
