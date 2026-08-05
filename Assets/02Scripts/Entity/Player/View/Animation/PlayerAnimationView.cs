@@ -90,8 +90,14 @@ namespace Alpha.Player.Animation
             _playerTr = p_playerTr;
         }
 
-        // p_transitionDuration 전환 비율
-        // p_normalizedTimeOffset 클립의 0%부터 재생
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="p_stateHash"></param>
+        /// <param name="p_transitionDuration"> 전환 비율 </param>
+        /// <param name="p_normalizedTimeOffset"> 클립의 %부터 재생 </param>
+        /// <param name="p_forceReplay"> 재실행 여부 </param>
         private void CrossFadeBase(int p_stateHash, float p_transitionDuration = 0.15f, 
                                    float p_normalizedTimeOffset = 0f, bool p_forceReplay = false)
         {
@@ -134,7 +140,15 @@ namespace Alpha.Player.Animation
 
         public void PlayJump()
         {
-            CrossFadeBase(Jump);
+            CrossFadeBase(Jump, 0.15f, 0);
+        }
+        public void PlayFall()
+        {
+            CrossFadeBase(Fall, 0.15f, 0f);
+        }
+        public void PlayLand()
+        {
+            CrossFadeBase(Land, 0.143f, 0.443f);
         }
 
         public void PlayDash()
@@ -143,15 +157,7 @@ namespace Alpha.Player.Animation
             CrossFadeBase(DashState, 0.05f, 0f, true);
         }
 
-        public void PlayFall()
-        {
-            CrossFadeBase(Fall, 0, 0.15f);
-        }
 
-        public void PlayLand()
-        {
-            CrossFadeBase(Land, 0.143f, 0.443f);
-        }
         #endregion ======================================== /Locomotion
 
 

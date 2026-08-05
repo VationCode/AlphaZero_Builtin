@@ -31,7 +31,7 @@ public class Installer : MonoBehaviour
     private void Awake()
     {
         // 외부 의존성만 Player에 연결한다.
-        _playerCore.Bind(_input, _cameraCore, _mouseSystem);
+        _playerCore.Bind(_input, _cameraCore, _mouseSystem, _itemDatabase);
 
         // Playerd의 Locomotion, Combat과 카메라 ViewType을 UI View에 연결한다.
         _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;

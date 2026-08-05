@@ -6,7 +6,7 @@ namespace Alpha.Player.Inventory
     // Player가 보유한 모든 InventorySlot 상태를 보관한다.
     public sealed  class InventoryContext
     {
-        // 각 창(Group)마다의 InventorySlot을 그룹화하여 관리한다.
+        // 아이템 타입에 맞는 리스트들(Weapon(melee, range, special), Armor(,,,,), Consumable....)을 Dict로 관리
         private readonly Dictionary<EItemType, List<InventorySlot>> _slotGroupDict = new();
 
         public event Action<EItemType, InventorySlot> OnSlotAdded;

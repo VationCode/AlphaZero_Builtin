@@ -36,6 +36,8 @@ namespace Alpha.Player.Inventory
             }
         }
 
+        #region ============================== Slot 관리
+        // 요청
         public void RequestAddSlot(EItemType p_itemType, int p_groupIndex)
         {
             // 현재 열린 페이지의 요청만 허용한다.
@@ -44,7 +46,9 @@ namespace Alpha.Player.Inventory
 
             _module.AddSlot(p_itemType, p_groupIndex);
         }
+        #endregion ============================== /Slot 관리
 
+        #region ============================== 창 관리
         private void ToggleInventory()
         {
             if (IsOpen)
@@ -99,5 +103,19 @@ namespace Alpha.Player.Inventory
         {
             OnViewStateChanged?.Invoke(IsOpen, CurrentWindow);
         }
+        #endregion ============================== /창 관리
+
+        #region ============================== Drag & Drop 관리
+        // 요청
+        public void RequestTransferItem(InventorySlot p_source, InventorySlot p_target)
+        {
+            if (!IsOpen || p_source == null || p_target == null)
+            {
+                return;
+            }
+
+            _module.TransferItem(p_source, p_target);
+        }
+        #endregion ============================== /Drag & Drop 관리
     }
 }

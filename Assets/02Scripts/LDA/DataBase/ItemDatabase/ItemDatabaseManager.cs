@@ -109,6 +109,7 @@ public class ItemDatabaseManager : MonoBehaviour
         }
 
         p_data = null;
+        Debug.LogWarning("데이터가 없습니다.");
         return false;
     }
 }

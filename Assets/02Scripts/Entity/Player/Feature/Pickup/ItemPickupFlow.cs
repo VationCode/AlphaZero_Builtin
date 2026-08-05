@@ -1,15 +1,17 @@
 using Alpha.Item;
-using System;
+using Alpha.Player.Inventory;
 using UnityEngine;
 
 namespace Alpha.Player
 {
     public class ItemPickupFlow : MonoBehaviour
     {
+        private InventoryModule _inventoryModule;
         private ItemDatabaseManager _itemDatabase;
 
-        public void Bind(ItemDatabaseManager p_itemDatabase)
+        public void Bind(InventoryModule p_inventoryModule, ItemDatabaseManager p_itemDatabase)
         {
+            _inventoryModule = p_inventoryModule;
             _itemDatabase = p_itemDatabase;
         }
 
@@ -17,14 +19,18 @@ namespace Alpha.Player
         {
             if (p_pickup == null || p_pickup.Count <= 0 ||  _itemDatabase == null)
             {
+                Debug.Log($"{p_pickup} " + $"{p_pickup.Count} " + $"{_itemDatabase} ");
                 return false;
             }
 
             if (!_itemDatabase.TryGetItem(p_pickup.ItemType, p_pickup.ItemId, out ItemDTO item))
                 return false;
+            
+
+            int remainingCount = _inventoryModule.AddItem(item, p_pickup.Count);
 
             // 인벤토리에 추가된 수량만 월드 아이템에서 차감
-           // p_pickup.Consume(addedCount);
+            p_pickup.Consume(remainingCount);
 
             return true;
         }

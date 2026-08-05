@@ -16,6 +16,7 @@ namespace Alpha.Player
         public AlphaInputSystem Input { get; private set; }
         public CameraCore CameraCore { get; private set; }
         public MouseSystem MouseSystem { get; private set; }
+        public ItemDatabaseManager ItemDatabase { get; private set; }
         #endregion
 
         #region ========== Flow
@@ -57,11 +58,12 @@ namespace Alpha.Player
         public bool BlockCombat => _isCombatBlocked;
         private bool _isCombatBlocked;
 
-        public void Bind(AlphaInputSystem p_input, CameraCore p_camera, MouseSystem p_mouseSystem)
+        public void Bind(AlphaInputSystem p_input, CameraCore p_camera, MouseSystem p_mouseSystem, ItemDatabaseManager p_itemDatabase)
         {
             Input = p_input;
             CameraCore = p_camera;
             MouseSystem = p_mouseSystem;
+            ItemDatabase = p_itemDatabase;
         }
 
         private void Awake()
@@ -70,7 +72,7 @@ namespace Alpha.Player
             LocomotionModeFlow = GetComponentInChildren<LocomotionModeFlow>(true);
             InventoryFlow = GetComponentInChildren<InventoryFlow>(true);
             CombatFlow = GetComponentInChildren<CombatFlow>(true);
-            ItemPickupFlow = GetComponent<ItemPickupFlow>();
+            ItemPickupFlow = GetComponentInChildren<ItemPickupFlow>();
 
             // Module
             LocomotionModule = GetComponentInChildren<LocomotionModule>(true);
@@ -94,6 +96,7 @@ namespace Alpha.Player
             InventoryModule.Initialize(InventoryContext);
             InventoryFlow.Bind(InventoryContext, InventoryModule, Input);
 
+            ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
             //CombatModule.Bind(EquipmentContext);
 
             AnimationView.Bind(PlayerTr);

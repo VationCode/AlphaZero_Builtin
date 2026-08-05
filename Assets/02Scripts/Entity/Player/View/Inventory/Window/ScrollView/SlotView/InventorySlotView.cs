@@ -36,6 +36,7 @@ namespace Alpha.Player.Inventory
             Refresh();
         }
 
+        #region ============================== Slot 관리
         private void HandleSlotChanged(InventorySlot p_slot)
         {
             Refresh();
@@ -77,7 +78,11 @@ namespace Alpha.Player.Inventory
             if (_countText != null)
                 _countText.text = string.Empty;
         }
+        #endregion ============================== /Slot 관리
 
+        #region ============================== Drag & Drop 관리
+
+        #endregion ============================== /Drag & Drop 관리
         public void Unbind()
         {
             if (_slot != null)

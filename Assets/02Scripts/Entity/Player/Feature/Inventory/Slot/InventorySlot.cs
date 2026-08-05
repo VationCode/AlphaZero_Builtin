@@ -67,6 +67,7 @@ namespace Alpha.Player.Inventory
         }
 
         // 가능한 만큼 제거하고 실제 제거 수량 반환
+
         internal int Remove(int p_count)
         {
             if (IsEmpty || p_count <= 0)
@@ -87,13 +88,18 @@ namespace Alpha.Player.Inventory
         }
 
         // 드래그 앤 드롭 Swap 시 슬롯 전체 상태 교체
+        // 검증
+        internal bool CanReplace(ItemDTO p_item, int p_count)
+        {
+            return p_item != null && p_count > 0 &&
+                   CanStore(p_item) && p_count <= GetMaxCount(p_item);
+        }
+
+        // 교체
         internal bool Replace(ItemDTO p_item, int p_count)
         {
-            if (p_item == null || p_count <= 0 ||
-                !CanStore(p_item) || p_count > GetMaxCount(p_item))
-            {
+            if (!CanReplace(p_item, p_count))
                 return false;
-            }
 
             Item = p_item;
             Count = p_count;
