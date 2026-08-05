@@ -66,13 +66,16 @@ public class Installer : MonoBehaviour
     {
         InventoryFlow flow = _playerCore.InventoryFlow;
 
-        // Slot 관련
+        // 슬롯 추가 요청
         _inventoryView.OnAddSlotRequested -= flow.RequestAddSlot;
         _inventoryView.OnAddSlotRequested += flow.RequestAddSlot;
 
+        // 슬롯 간 아이템 이전 요청
+        _inventoryView.OnTransferRequested -= flow.RequestTransferItem;
+        _inventoryView.OnTransferRequested += flow.RequestTransferItem;
 
-        // 인벤토리창 관련
-        flow.OnViewStateChanged -= HandleInventoryStateChanged; // 중복 연결 방지
+        // 인벤토리 화면 상태
+        flow.OnViewStateChanged -= HandleInventoryStateChanged;
         flow.OnViewStateChanged += HandleInventoryStateChanged;
 
         _inventoryView.OnCloseInventoryRequested -= flow.RequestCloseInventory;
@@ -80,7 +83,7 @@ public class Installer : MonoBehaviour
 
         _inventoryView.OnPageRequested -= flow.RequestOpenPage;
         _inventoryView.OnPageRequested += flow.RequestOpenPage;
-
+        
         // 이벤트 연결 전의 현재 상태도 반영한다.
         HandleInventoryStateChanged(flow.IsOpen, flow.CurrentWindow);
     }
@@ -105,6 +108,7 @@ public class Installer : MonoBehaviour
         InventoryFlow flow = _playerCore.InventoryFlow;
 
         _inventoryView.OnAddSlotRequested -= flow.RequestAddSlot;
+        _inventoryView.OnTransferRequested -= flow.RequestTransferItem;
         _inventoryView.OnCloseInventoryRequested -= flow.RequestCloseInventory;
         _inventoryView.OnPageRequested -= flow.RequestOpenPage;
         flow.OnViewStateChanged -= HandleInventoryStateChanged;

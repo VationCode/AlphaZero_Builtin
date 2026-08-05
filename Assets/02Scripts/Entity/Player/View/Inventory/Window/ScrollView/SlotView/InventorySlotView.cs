@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace Alpha.Player.Inventory
 {
+    // 전달받은 화면 데이터만 표현한다.
     public class InventorySlotView : MonoBehaviour
     {
         [Header("Slot UI")]
@@ -12,91 +13,126 @@ namespace Alpha.Player.Inventory
         [SerializeField] private TMP_Text _nameText;
         [SerializeField] private TMP_Text _countText;
 
-        private InventorySlot _slot;
-        private ResourceLoadSystem _resourceLoader;
+        [SerializeField]
+        private Color _normalIconColor = Color.white;
 
-        public InventorySlot Slot => _slot;
+        [SerializeField, Range(0f, 1f)]
+        private float _draggingIconAlpha = 0.25f;
 
-        public void Bind(InventorySlot p_slot, ResourceLoadSystem p_resourceLoader)
+        // Domain 객체 대신 슬롯 식별자만 보관한다.
+        public int SlotIndex { get; private set; } = -1;
+        public bool HasItem { get; private set; }
+        public Sprite Icon => _iconImage != null ? _iconImage.sprite : null;
+
+        private void Awake()
         {
-            Unbind();
+            ConfigureIconImage();
+        }
 
-            _slot = p_slot;
-            _resourceLoader = p_resourceLoader;
-
-            if (_slot == null)
+        private void ConfigureIconImage()
+        {
+            if (_iconImage == null)
             {
-                Clear();
                 return;
             }
 
-            _slot.OnChanged += HandleSlotChanged;
+            _iconImage.enabled = true;
+            _iconImage.raycastTarget = false;
+        }
 
-            // 현재 슬롯 상태를 즉시 표시한다.
-            Refresh();
+        public void Bind(int p_slotIndex)
+        {
+            SlotIndex = p_slotIndex;
+            ClearItem();
         }
 
         #region ============================== Slot 관리
-        private void HandleSlotChanged(InventorySlot p_slot)
+        // 가공이 끝난 화면 정보만 전달받는다.
+        public void Apply(InventorySlotViewData p_viewData, ResourceLoadSystem p_resourceLoader)
         {
-            Refresh();
-        }
+            ConfigureIconImage();
 
-        // 로직 슬롯 상태를 기반으로 UI를 갱신한다.
-        private void Refresh()
-        {
-            if (_slot == null || _slot.IsEmpty)
+            SlotIndex = p_viewData.SlotIndex;
+            HasItem = !p_viewData.IsEmpty;
+
+            if (!HasItem)
             {
-                Clear();
+                ClearItem();
                 return;
             }
 
-            ItemDTO item = _slot.Item;
+            Sprite icon = p_resourceLoader?.GetIcon(p_viewData.ItemType, p_viewData.IconKey);
 
-            Sprite icon = _resourceLoader?.GetIcon(item.ItemType, item.IconKey);
-
-            _iconImage.sprite = icon;
-            _iconImage.enabled = icon != null;
-
-            _nameText.text = item.Name;
-
-            // 수량이 1인 아이템은 숫자를 표시하지 않는다.
-            _countText.text = _slot.Count > 1? _slot.Count.ToString() : string.Empty;
-        }
-
-        private void Clear()
-        {
-            if (_iconImage != null)
-            {
-                _iconImage.sprite = null;
-                _iconImage.enabled = false;
-            }
+            ApplyIcon(icon);
 
             if (_nameText != null)
-                _nameText.text = string.Empty;
-
-            if (_countText != null)
-                _countText.text = string.Empty;
-        }
-        #endregion ============================== /Slot 관리
-
-        #region ============================== Drag & Drop 관리
-
-        #endregion ============================== /Drag & Drop 관리
-        public void Unbind()
-        {
-            if (_slot != null)
             {
-                _slot.OnChanged -= HandleSlotChanged;
+                _nameText.text = p_viewData.ItemName ?? string.Empty;
             }
 
-            _slot = null;
-            _resourceLoader = null;
+            if (_countText != null)
+            {
+                _countText.text = p_viewData.Count > 1? p_viewData.Count.ToString() : string.Empty;
+            }
         }
 
-        private void OnDestroy()
+        private void ApplyIcon(Sprite p_icon)
         {
-            Unbind();
+            if (_iconImage == null)
+            {
+                return;
+            }
+
+            _iconImage.sprite = p_icon;
+
+            Color color = _normalIconColor;
+            color.a = p_icon != null? _normalIconColor.a : 0f;
+
+            _iconImage.color = color;
         }
+
+        public void ResetView()
+        {
+            SlotIndex = -1;
+            HasItem = false;
+
+            ClearItem();
+        }
+
+        // 해당 슬롯이 비었을 때 화면만 초기화한다.
+        private void ClearItem()
+        {
+            HasItem = false;
+
+            ApplyIcon(null);
+
+            if (_nameText != null)
+            {
+                _nameText.text = string.Empty;
+            }
+
+            if (_countText != null)
+            {
+                _countText.text = string.Empty;
+            }
+        }
+
+
+        #endregion ============================== /Slot 관리
+
+        // 드래그 시 반투명하게
+        public void SetDragging(bool p_isDragging)
+        {
+            if (_iconImage == null || !HasItem || _iconImage.sprite == null)
+            {
+                return;
+            }
+
+            Color color = _normalIconColor;
+            color.a = p_isDragging? _draggingIconAlpha : _normalIconColor.a;
+
+            _iconImage.color = color;
+        }
+
     }
 }

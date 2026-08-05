@@ -1,36 +1,45 @@
-using Alpha.UI;
 using System;
 using UnityEngine;
 
 namespace Alpha.Player.Inventory
 {
-    [Serializable]
-    public sealed class ItemWindowActiveEntry
-    {
-        [SerializeField] private EItemType _itemType;
-        [SerializeField] private InventoryActiveView _activeView;
-
-        public EItemType ItemType => _itemType;
-        public InventoryActiveView ActiveView => _activeView;
-    }
-
     public class InventoryView : MonoBehaviour
     {
         private InventoryContext _context;
         private ResourceLoadSystem _resourceLoader;
 
+        [SerializeField] private GameObject _inventoryRoot;
+
         [Header("Active Views")]
-        [SerializeField] private InventoryActiveView _inventoryRoot;
-        [SerializeField] private InventoryActiveView _category;
-        [SerializeField] private ItemWindowActiveEntry[] _itemWindowActives;
+        [SerializeField] private InventoryActiveView[] _inventoryActiveViews;
+        private InventoryActiveView _category;
 
         [Header("Item Group Views")]
-        [SerializeField] private InventoryItemGroupView[] _itemGroupViews;
+        [SerializeField] private InventoryItemPageView[] _itemPageViews;
 
         public event Action<EItemType, int> OnAddSlotRequested;
 
+        // Source SlotIndex, Target SlotIndex
+        public event Action<int, int> OnTransferRequested;
+
+        // 창 관리
         public event Action OnCloseInventoryRequested;
         public event Action<EItemType> OnPageRequested;
+
+        private void Awake()
+        {
+            InventoryActiveView[] inventoryViews = GetComponentsInChildren<InventoryActiveView>(true);
+            _category = inventoryViews[0];
+
+            _inventoryActiveViews = new InventoryActiveView[inventoryViews.Length-1];
+
+            for (int i = 1; i < inventoryViews.Length; i++)
+            {
+                _inventoryActiveViews[i-1] = inventoryViews[i];
+            }
+
+            _itemPageViews = GetComponentsInChildren<InventoryItemPageView>(true);
+        }
 
         public void Bind(InventoryContext p_context, ResourceLoadSystem p_resourceLoader)
         {
@@ -42,18 +51,22 @@ namespace Alpha.Player.Inventory
 
             _context.OnSlotAdded += HandleSlotAdded;
 
-            foreach (InventoryItemGroupView itemGroupView in _itemGroupViews)
+            foreach (InventoryItemPageView itemPageView in _itemPageViews)
             {
-                if (itemGroupView == null)
+                if (itemPageView == null)
                     continue;
 
                 // 슬롯 추가 버튼 요청 연결
-                itemGroupView.OnAddSlotRequested -= HandleAddSlotRequested;
-                itemGroupView.OnAddSlotRequested += HandleAddSlotRequested;
+                itemPageView.OnAddSlotRequested -= HandleAddSlotRequested;
+                itemPageView.OnAddSlotRequested += HandleAddSlotRequested;
 
-                if (_context.TryGetSlotList(itemGroupView.ItemType, out var slotList))
+                // 아이템 이전 요청 연결
+                itemPageView.OnTransferRequested -= HandleTransferRequested;
+                itemPageView.OnTransferRequested += HandleTransferRequested;
+
+                if (_context.TryGetSlotList(itemPageView.ItemType, out var slotList))
                 {
-                    itemGroupView.Bind(slotList, _resourceLoader);
+                    itemPageView.Bind(slotList, _resourceLoader);
                 }
             }
         }
@@ -67,7 +80,7 @@ namespace Alpha.Player.Inventory
         // Context에 실제 슬롯이 추가되면 해당 View를 생성
         private void HandleSlotAdded(EItemType p_itemType, InventorySlot p_slot)
         {
-            foreach (InventoryItemGroupView itemGroupView in _itemGroupViews)
+            foreach (InventoryItemPageView itemGroupView in _itemPageViews)
             {
                 if (itemGroupView == null || itemGroupView.ItemType != p_itemType)
                 {
@@ -91,17 +104,17 @@ namespace Alpha.Player.Inventory
             _category.ApplyActive(showCategory);
 
             // 선택된 ItemType인벤토리만 열고 나머지는 전부 닫는다.
-            foreach (ItemWindowActiveEntry entry in _itemWindowActives)
+            foreach (InventoryActiveView activeView in _inventoryActiveViews)
             {
-                if (entry.ActiveView == null) continue;
+                if (activeView == null) continue;
 
-                bool showItemWindow = p_isInventoryOpen && entry.ItemType == p_pageType;
+                bool showItemWindow = p_isInventoryOpen && activeView.ItemType == p_pageType;
 
-                entry.ActiveView.ApplyActive(showItemWindow);
+                activeView.ApplyActive(showItemWindow);
             }
 
             // Root는 마지막에 처리한다.
-            _inventoryRoot.ApplyActive(p_isInventoryOpen);
+            _inventoryRoot.SetActive(p_isInventoryOpen);
         }
 
 
@@ -122,6 +135,16 @@ namespace Alpha.Player.Inventory
         }
         #endregion ============================== /인벤토리 창 관련
 
+        #region ============================== Drag & Drop 관리
+
+        private void HandleTransferRequested(int p_sourceSlotIndex, int p_targetSlotIndex)
+        {
+            // 판단 없이 외부 Flow 방향으로 전달
+            OnTransferRequested?.Invoke(p_sourceSlotIndex, p_targetSlotIndex);
+        }
+
+        #endregion ============================== /Drag & Drop 관리
+
         private void OnDestroy()
         {
             if (_context != null)
@@ -129,11 +152,12 @@ namespace Alpha.Player.Inventory
                 _context.OnSlotAdded -= HandleSlotAdded;
             }
 
-            foreach (InventoryItemGroupView itemGroupView in _itemGroupViews)
+            foreach (InventoryItemPageView itemGroupView in _itemPageViews)
             {
                 if (itemGroupView != null)
                 {
                     itemGroupView.OnAddSlotRequested -= HandleAddSlotRequested;
+                    itemGroupView.OnTransferRequested -= HandleTransferRequested;
                 }
             }
         }
