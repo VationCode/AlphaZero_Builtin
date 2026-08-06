@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace Alpha.Player.Animation
 {
+    // Player의 이동·전투 상태를 Animator 파라미터와 Override Controller로 표현한다.
     [RequireComponent(typeof(Animator))]
     public class PlayerAnimationView : MonoBehaviour
     {
@@ -69,6 +70,7 @@ namespace Alpha.Player.Animation
 
         private Transform _playerTr;
 
+        // Animator와 기본 Controller를 보관하고 무기 상체 Layer를 초기화한다.
         private void Awake()
         {
             _anim = GetComponent<Animator>();
@@ -85,6 +87,7 @@ namespace Alpha.Player.Animation
             _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
         }
 
+        // 애니메이션 기준으로 사용할 Player Transform을 연결한다.
         public void Bind(Transform p_playerTr)
         {
             _playerTr = p_playerTr;
@@ -92,7 +95,7 @@ namespace Alpha.Player.Animation
 
 
         /// <summary>
-        /// 
+        /// Base Layer의 상태를 전환하며, 강제 재생이 아니면 같은 상태의 중복 전환을 생략한다.
         /// </summary>
         /// <param name="p_stateHash"></param>
         /// <param name="p_transitionDuration"> 전환 비율 </param>
@@ -112,6 +115,7 @@ namespace Alpha.Player.Animation
         }
 
         #region ======================================== Locomotion
+        // 일반 이동과 전투 이동에 맞는 BlendTree를 선택하고 입력 파라미터를 갱신한다.
         public void PlayGroundLocomotion(Vector2 p_moveInput, bool p_isSprint, bool p_isCombat = false)
         {
             Vector2 input = Vector2.ClampMagnitude(p_moveInput, 1f);
@@ -128,6 +132,7 @@ namespace Alpha.Player.Animation
             }
             else
             {
+                // 이동 중 Sprint일 때만 전용 상태를 사용한다.
                 bool isMoving = input.sqrMagnitude > 0.01f;
 
                 targetState = p_isSprint && isMoving ? SprintState : MovementState;
@@ -138,19 +143,23 @@ namespace Alpha.Player.Animation
             CrossFadeBase(targetState);
         }
 
+        // 점프 애니메이션으로 전환한다.
         public void PlayJump()
         {
             CrossFadeBase(Jump, 0.15f, 0);
         }
+        // 낙하 애니메이션으로 전환한다.
         public void PlayFall()
         {
             CrossFadeBase(Fall, 0.15f, 0f);
         }
+        // 착지 클립의 충격 구간부터 재생한다.
         public void PlayLand()
         {
             CrossFadeBase(Land, 0.143f, 0.443f);
         }
 
+        // 연속 입력도 재생되도록 Dash 애니메이션을 강제로 처음부터 실행한다.
         public void PlayDash()
         {
             // 연속 Dash 입력에도 처음부터 재생한다.
@@ -163,6 +172,7 @@ namespace Alpha.Player.Animation
 
 
 
+        // 무기 종류에 맞는 AnimatorOverrideController를 적용하고 상체 Layer를 복구한다.
         public void ApplyWeaponOverrideController(EWeaponType p_weaponType)
         {
             if (_anim == null)
@@ -182,8 +192,7 @@ namespace Alpha.Player.Animation
 
             _anim.runtimeAnimatorController = nextController;
 
-            // 모든 Override Controller가 같은 Base Controller를 사용하지만
-            // 안전하게 Layer Index와 Weight를 다시 확인한다.
+            // Controller 교체 후 달라질 수 있는 Layer Index와 Weight를 다시 확인한다.
             _weaponUpperBodyLayerIndex = _anim.GetLayerIndex(WeaponUpperBodyLayerName);
 
             if (_weaponUpperBodyLayerIndex >= 0)
@@ -191,8 +200,10 @@ namespace Alpha.Player.Animation
                 _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
             }
         }
+        // 무기 종류에 대응하는 Override Controller를 반환한다.
         private RuntimeAnimatorController GetWeaponOverrideController(EWeaponType p_weaponType)
         {
+            // 장비가 없으면 전용 비무장 Controller 또는 최초 Controller를 사용한다.
             switch (p_weaponType)
             {
                 case EWeaponType.Melee:
@@ -218,21 +229,25 @@ namespace Alpha.Player.Animation
 
 
 
+        // 지상 여부를 Animator 파라미터에 반영한다.
         public void IsGround(bool p_isGround)
         {
             _anim.SetBool(_isGround, p_isGround);
         }
 
+        // 비행 상승 애니메이션 확장을 위한 진입점이다.
         public void FlyUp()
         {
 
         }
 
+        // 비행 상승·하강 상태 반영을 위한 확장 지점이다.
         public void IsFlyUpDownPos(bool p_isFly)
         {
             //_flyUpDownAnim.SetBool("IsFly", p_isFly);
         }
 
+        // 상체 Layer를 활성화하고 무기 교체 Trigger를 다시 발생시킨다.
         public void PlayWeaponSwap()
         {
             if (_anim == null) return;

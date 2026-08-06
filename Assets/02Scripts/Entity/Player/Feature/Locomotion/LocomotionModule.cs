@@ -50,6 +50,7 @@ namespace Alpha.Player.Locomotion
         public bool IsGrounded { get; private set; }
         public bool IsGroundCollisionBelow { get; private set; }
 
+        // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
         private void Awake()
         {
             _controller = GetComponentInParent<CharacterController>();
@@ -58,6 +59,7 @@ namespace Alpha.Player.Locomotion
             _rotationModule = GetComponent<LocomotionRotationModule>();
         }
 
+        // 이동 Context와 세부 이동·회전 Module을 Player Transform에 연결한다.
         public void Bind(LocomotionContext p_context, Transform p_playerTransform)
         {
             if (p_context == null || p_playerTransform == null ||
@@ -102,6 +104,7 @@ namespace Alpha.Player.Locomotion
         #endregion ======================================== /Movement
 
         #region ======================================== Jump
+        // 점프 시작 방향과 공중 속도를 고정하고 초기 수직 속도를 계산한다.
         public void StartJump(Vector2 p_moveInput, Transform p_cameraTransform, bool p_isSprint = false, bool p_isCombat = false)
         {
             // 이동 방향
@@ -112,7 +115,7 @@ namespace Alpha.Player.Locomotion
             float moveSpeed =
                 _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint, p_isCombat);
 
-            // 공중에서 유지할 방향과 속도를 저장한다.(Update에서 호출)
+            // 공중 State가 계속 사용할 방향과 속도를 Context에 저장한다.
             _context.LockedMoveDirection = moveDirection;
             _airMoveSpeed = moveSpeed;
 
@@ -123,6 +126,7 @@ namespace Alpha.Player.Locomotion
         }
 
 
+        // 고정된 수평 이동과 현재 수직 속도를 합쳐 공중 이동을 적용한다.
         public void MoveAirborne(Vector3 p_direction)
         {
             Vector3 velocity = p_direction * _airMoveSpeed;
@@ -135,6 +139,7 @@ namespace Alpha.Player.Locomotion
         #endregion ======================================== /Jump
 
         #region ======================================== Fall
+        // 마지막 지상 속도에서 낙하 중 유지할 수평 방향과 속력을 추출한다.
         public void StartFall()
         {
             // 마지막 지상 이동 속도를 기준으로 공중 이동을 유지한다.
@@ -146,6 +151,7 @@ namespace Alpha.Player.Locomotion
         }
         #endregion ======================================== /Fall
 
+        // 입력 또는 Player 정면으로 대시 방향을 결정하고 고정한다.
         public void StartDash(Vector2 p_moveInput, Transform p_cameraTransform)
         {
             Vector3 dashDirection = _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
@@ -162,6 +168,7 @@ namespace Alpha.Player.Locomotion
             _rotationModule.ApplyRotation(dashDirection, p_cameraTransform, false, false, true);
         }
 
+        // 거리와 지속 시간으로 대시 속도를 계산해 매 프레임 이동한다.
         public void DashUpdate(Vector3 p_direction)
         {
             float duration = Mathf.Max(_dashDuration, 0.01f);
@@ -176,12 +183,14 @@ namespace Alpha.Player.Locomotion
         }
 
         #region Ground & Gravity
+        // 접지 판정 후 현재 이동 State의 배율로 중력을 갱신한다.
         public void UpdateEnvironment(float p_gravityScale)
         {
             UpdateGroundCheck();
             UpdateGravity(p_gravityScale);
         }
 
+        // CharacterController 하단을 기준으로 접지 검사 구의 중심을 계산한다.
         private Vector3 CalculateGroundCheckPoint(CharacterController p_controller)
         {
             Vector3 center = p_controller.transform.TransformPoint(p_controller.center);
@@ -191,6 +200,7 @@ namespace Alpha.Player.Locomotion
             return center + (Vector3.down * bottomOffset);
         }
 
+        // 하단 구체 검사 결과를 Module과 Context에 함께 반영한다.
         private void UpdateGroundCheck()
         {
             Vector3 groundPoint = CalculateGroundCheckPoint(_controller);
@@ -201,6 +211,7 @@ namespace Alpha.Player.Locomotion
             _context.IsGrounded = IsGrounded;
         }
 
+        // 접지 중에는 하향 고정력을 유지하고 공중에서는 중력을 누적한다.
         private void UpdateGravity(float p_gravityScale)
         {
             if (IsGrounded && VerticalVelocity <= 0f)
@@ -212,8 +223,10 @@ namespace Alpha.Player.Locomotion
             VerticalVelocity -= (_gravity * p_gravityScale * Time.deltaTime);
         }
 
+        // 접지 검사 범위와 결과를 Scene 뷰 색상으로 표시한다.
         private void OnDrawGizmos()
         {
+            // Play Mode 밖에서도 표시할 수 있도록 Controller 참조를 다시 탐색한다.
             CharacterController controller = _controller;
 
             if (controller == null)
@@ -222,6 +235,7 @@ namespace Alpha.Player.Locomotion
             if (controller == null)
                 return;
 
+            // 현재 접지 결과에 따라 검사 Sphere의 색상을 구분한다.
             Vector3 groundPoint = CalculateGroundCheckPoint(controller);
 
             Gizmos.color = IsGrounded ? Color.green : Color.red;

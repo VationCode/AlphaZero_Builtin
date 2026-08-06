@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Alpha.AlphaCamera
 {
+    // View 전환 시작 시점의 Rig 위치·회전·카메라 값을 묶는다.
     [Serializable]
     public struct CameraTransitionPose
     {
@@ -18,6 +19,7 @@ namespace Alpha.AlphaCamera
         public float RigFollowSpeed;
     }
 
+    // 카메라 Profile 조회와 Rig 추적·전환·회전·줌을 실제로 적용한다.
     public class CameraViewModule : MonoBehaviour
     {
         [Header("Rig Hierachy")]
@@ -63,8 +65,10 @@ namespace Alpha.AlphaCamera
         public bool IsTransitioning { get; private set; }
         public bool IsInitialized { get; private set; }
 
+        // Rig 참조를 확인하고 ViewType별 Profile 검색 캐시를 구성한다.
         public bool Initialize()
         {
+            // 이미 성공한 초기화는 다시 수행하지 않는다.
             if (IsInitialized) return true;
 
             if (_cameraRig == null || _cameraPivot == null ||
@@ -77,6 +81,7 @@ namespace Alpha.AlphaCamera
 
             _viewProfileDict.Clear();
 
+            // null 또는 중복 ViewType이 있으면 잘못된 설정으로 처리한다.
             foreach (CameraViewSO profile in _viewProfiles)
             {
                 if (profile == null || _viewProfileDict.ContainsKey(profile.ViewType))
@@ -93,6 +98,7 @@ namespace Alpha.AlphaCamera
 
 
         #region ============================== Rig Follow
+        // 현재 View의 Follow 속도로 Rig를 Target 위치에 부드럽게 추적시킨다.
         public void UpdateRigFollow()
         {
             if (!IsInitialized || _rigFollowTarget == null || _currentView == null)
@@ -116,6 +122,7 @@ namespace Alpha.AlphaCamera
             return IsInitialized && _viewProfileDict.ContainsKey(p_viewType);
         }
 
+        // 현재 실제 Transform을 시작값으로 저장하고 목표 Profile을 준비한다.
         public bool TryBeginViewTransition(ECameraViewType p_viewType, float p_transitionDuration)
         {
             if (!IsInitialized || !_viewProfileDict.TryGetValue(p_viewType, out CameraViewSO profile))
@@ -123,7 +130,7 @@ namespace Alpha.AlphaCamera
                 return false;
             }
 
-            // 실제 Transform을 저장
+            // 연속 전환에서도 튀지 않도록 현재 실제 값을 시작 Pose로 저장한다.
             _transitionStart.PivotPosition = _cameraPivot.localPosition;
             _transitionStart.PivotRotation = _cameraPivot.localRotation;
             _transitionStart.ShoulderPosition = _cameraShoulder.localPosition;
@@ -145,6 +152,7 @@ namespace Alpha.AlphaCamera
             return true;
         }
 
+        // 경과 시간에 따라 View를 보간하고 완료 여부를 반환한다.
         public bool TransionView()
         {
             if (_targetView == null) return false;
@@ -160,6 +168,7 @@ namespace Alpha.AlphaCamera
 
             float linearT = Mathf.Clamp01(_transitionElapsedTime / _transitionDuration);
 
+            // SmoothStep 곡선으로 전환 시작과 끝의 속도를 완화한다.
             float smoothT = linearT * linearT * (3f - 2f * linearT);
 
             ApplyView(_targetView, smoothT);
@@ -171,6 +180,7 @@ namespace Alpha.AlphaCamera
             return true;
         }
 
+        // 시작 Pose에서 목표 Profile까지 Rig 구성 요소를 같은 비율로 보간한다.
         private void ApplyView(CameraViewSO p_target, float p_t)
         {
             // 현재의 Pivot, Shoulder, Zoom, FOV를 목표 View로 보간한다.
@@ -221,6 +231,7 @@ namespace Alpha.AlphaCamera
 
         #region ============================== Rotation Camera
 
+        // Look 입력을 누적 Yaw·Pitch로 변환하고 Pitch 범위를 제한한다.
         public void UpdateRotation(Vector2 p_lookInput, CameraContext p_context)
         {
             float yaw = p_context.Yaw + p_lookInput.x * _sensitivity;
@@ -236,6 +247,7 @@ namespace Alpha.AlphaCamera
         #endregion ============================== /Rotation Camera
 
         #region ============================== Zoom
+        // 휠 방향을 Profile의 한 단계 거리로 변환해 Zoom 범위 안에 적용한다.
         public void UpdateZoom(float p_scrollY, CameraContext p_context)
         {
             if (_currentView == null || Mathf.Approximately(p_scrollY, 0f))

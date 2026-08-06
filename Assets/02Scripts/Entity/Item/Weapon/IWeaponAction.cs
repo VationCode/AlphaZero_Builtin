@@ -1,3 +1,4 @@
+// IWeaponAction 구현체가 제공해야 하는 기능 계약을 정의한다.
 public interface IWeaponAction
 {
     // 쿨타임, 상태, 자원 등을 확인하고 행동을 시작한다.

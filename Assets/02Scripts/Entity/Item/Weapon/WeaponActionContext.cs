@@ -1,14 +1,15 @@
 using UnityEngine;
 
+// 무기 행동 간 공유 상태를 확장하기 위한 현재 플레이스홀더다.
 public class WeaponActionContext : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // 현재 초기화 로직은 없다.
     void Start()
     {
         
     }
 
-    // Update is called once per frame
+    // 현재 프레임 갱신 로직은 없다.
     void Update()
     {
         

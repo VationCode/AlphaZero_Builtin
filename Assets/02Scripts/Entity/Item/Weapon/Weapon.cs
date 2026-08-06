@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Alpha.Item.Weapon
 {
+    // 모든 런타임 무기의 DTO 검증과 공통 초기화 생명주기를 제공한다.
     public abstract class Weapon : MonoBehaviour
     {
         public WeaponDTO Data { get; private set; }
@@ -14,6 +15,7 @@ namespace Alpha.Item.Weapon
 
         public bool IsInitialized { get; private set; }
 
+        // 구체 무기와 DTO 타입을 검증한 뒤 한 번만 초기화한다.
         public bool TryInitialize(WeaponDTO p_data)
         {
             if (p_data == null || !CanInitialize(p_data))

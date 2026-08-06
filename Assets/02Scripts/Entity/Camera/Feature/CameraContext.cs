@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+// ECameraViewType 관련 선택 값을 정의한다.
 public enum ECameraViewType
 {
     ThirdPerson,
@@ -25,17 +26,20 @@ namespace Alpha.AlphaCamera
 
         public Quaternion PivotRotation => Quaternion.Euler(Pitch, Yaw, 0f);
 
+        // SetViewType 상태 값을 갱신한다.
         internal void SetViewType(ECameraViewType p_viewType)
         {
             CurrentViewType = p_viewType;
         }
 
+        // SetRotation 상태 값을 갱신한다.
         internal void SetRotation(float p_pitch, float p_yaw)
         {
             Pitch = p_pitch;
             Yaw = p_yaw;
         }
 
+        // SetZoomDistance 상태 값을 갱신한다.
         internal void SetZoomDistance(float p_zoomDistance)
         {
             ZoomDistance = p_zoomDistance;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// EItemType 관련 선택 값을 정의한다.
 public enum EItemType
 {
     None = -1,
@@ -12,6 +13,7 @@ public enum EItemType
     QuestItem = 4
 }
 
+// ItemDTO 데이터 표현을 보관한다.
 [Serializable]
 public class ItemDTO
 {
@@ -35,7 +37,7 @@ public class ItemDTO
     public string Description;
 }
 
-// Wrapper
+// JSON의 공용 아이템 배열 구조를 역직렬화한다.
 [Serializable]
 public class ItemWrapper
 {
@@ -44,6 +46,7 @@ public class ItemWrapper
 }
 
 #region ==================== Consumable
+// EConsumableType 관련 선택 값을 정의한다.
 public enum EConsumableType
 {
     None = -1,
@@ -51,6 +54,7 @@ public enum EConsumableType
     Mana = 1,
     Pack = 2,
 }
+// ConsumableDTO 데이터 표현을 보관한다.
 [Serializable]
 public class ConsumableDTO : ItemDTO
 {
@@ -58,6 +62,7 @@ public class ConsumableDTO : ItemDTO
     public EConsumableType ConsumableType;
     public int HealAmount;
 }
+// JSON의 소비 아이템 배열 구조를 역직렬화한다.
 [Serializable]
 public class ConsumableWrapper
 {
@@ -66,6 +71,7 @@ public class ConsumableWrapper
 #endregion ==================== /Consumable
 
 #region ==================== Material
+// EMaterialType 관련 선택 값을 정의한다.
 public enum EMaterialType
 {
     None = -1,
@@ -73,12 +79,14 @@ public enum EMaterialType
     Organic = 1,
     Essence = 2,
 }
+// MaterialDTO 데이터 표현을 보관한다.
 [Serializable]
 public class MaterialDTO : ItemDTO
 {
     EMaterialType MaterialType;
 }
 
+// JSON의 재료 아이템 배열 구조를 역직렬화한다.
 [Serializable]
 public class MaterialWrapper
 {
@@ -87,11 +95,13 @@ public class MaterialWrapper
 #endregion ==================== /Material
 
 #region ==================== Quest
+// QuestItemDTO 데이터 표현을 보관한다.
 [Serializable]
 public class QuestItemDTO : ItemDTO
 {
 
 }
+// JSON의 퀘스트 아이템 배열 구조를 역직렬화한다.
 [Serializable]
 public class QuestItemWrapper
 {

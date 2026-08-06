@@ -1,14 +1,15 @@
 using UnityEngine;
 
+// Rifle 전용 동작을 확장하기 위한 현재 플레이스홀더다.
 public class Rifle : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // 현재 초기화 로직은 없다.
     void Start()
     {
         
     }
 
-    // Update is called once per frame
+    // 현재 프레임 갱신 로직은 없다.
     void Update()
     {
         

@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
 using UnityEngine;
 
-// 보통 로더는 비동기 처리로 데이터를 불러오기 때문에 Task를 반환하는 비동기 메서드를 정의
+// 저장 위치와 관계없이 Key로 데이터를 비동기 적재하는 계약을 정의한다.
 public interface IDataLoader
 {
+    // Key에 대응하는 원본 데이터를 요청한 형식으로 역직렬화한다.
     Task<T> LoadAsync<T>(string p_key);
 }

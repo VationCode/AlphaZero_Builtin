@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Alpha.Player.Locomotion
 {
+    // LocomotionContext 기능의 런타임 상태를 보관하고 변경을 알린다.
     public class LocomotionContext
     {
         // 현재 적용 중인 이동 정책 식별값
@@ -20,11 +21,13 @@ namespace Alpha.Player.Locomotion
         // 현재 Locomotion 상태가 확정되었음을 외부 View에 알린다.
         public event Action<ELocomotionMode, ELocoStateType> OnStateChanged;
 
+        // SetCurrentMode 상태 값을 갱신한다.
         internal void SetCurrentMode(ELocomotionMode p_mode)
         {
             CurrentMode = p_mode;
         }
 
+        // SetCurrentState 상태 값을 갱신한다.
         internal void SetCurrentState(ELocoStateType p_state)
         {
             CurrentState = p_state;

@@ -13,6 +13,7 @@ namespace Alpha.Player.Combat
 
         public bool IsBound { get; private set; }
 
+        // 무기 교체 요청을 기록할 CombatContext를 연결한다.
         public bool Bind(CombatContext p_combatContext)
         {
             if (p_combatContext == null)
@@ -45,6 +46,7 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
+            // 유효한 숫자 입력을 무기 타입으로 변환해 다음 State가 사용할 Pending 값으로 둔다.
             EWeaponType weaponType = (EWeaponType)p_slotIndex;
 
             _combatContext.PendingWeaponType = weaponType;
@@ -52,6 +54,7 @@ namespace Alpha.Player.Combat
             return true;
         }
 
+        // 현재 직접 구독하는 이벤트는 없어 별도 해제 처리가 없다.
         private void OnDestroy()
         {
             

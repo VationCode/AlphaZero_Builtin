@@ -13,6 +13,7 @@ namespace Alpha.AlphaCamera
 
         private bool _isTransitionRequested;
         public CameraContext Context => _context;
+        // CameraCore 요청 이벤트와 입력·Context·Module을 연결한다.
         public void Bind(CameraCore p_core, CameraViewModule p_viewModule, AlphaInputSystem p_input)
         {
             _core = p_core;
@@ -24,21 +25,23 @@ namespace Alpha.AlphaCamera
             _core.OnViewRequested += HandleViewRequested;
         }
 
+        // 외부 View 요청을 검증과 전환 준비 단계로 전달한다.
         private void HandleViewRequested(ECameraViewType p_viewType, float p_transitionDuration)
         {
             TryPrepareViewTransition(p_viewType, p_transitionDuration);
         }
 
+        // 전환·회전·줌 처리 후 Rig가 Target을 따라가도록 갱신한다.
         private void LateUpdate()
         {
-            // 요청에 따라 View 전환을 처리
+            // 전환 중에는 회전·줌 입력을 잠그고 보간만 진행한다.
             if (_isTransitionRequested)
             {
                 UpdateViewTransition();
             }
             else
             {
-                // 요청이 없을때에만 다른 입력처리들 수행
+                // Quarter View는 고정 회전을 사용하므로 Look 입력을 적용하지 않는다.
                 if(_context.CurrentViewType != ECameraViewType.Quarter)
                     UpdateRotation();
                 
@@ -46,8 +49,8 @@ namespace Alpha.AlphaCamera
 
             }
 
-                // 전환 여부와 관계없이 항상 Target을 추적한다.
-                _viewModule.UpdateRigFollow();
+            // 전환 여부와 관계없이 항상 Target을 추적한다.
+            _viewModule.UpdateRigFollow();
         }
 
         // 전환 가능 여부 검증 및 설정
@@ -74,6 +77,7 @@ namespace Alpha.AlphaCamera
             return true;
         }
 
+        // 시간·중복 요청·Profile 존재 여부와 현재 View를 검사한다.
         private bool CanChangeView(ECameraViewType p_targetViewType, float p_transitionDuration)
         {
             if (p_transitionDuration < 0f)
@@ -92,10 +96,12 @@ namespace Alpha.AlphaCamera
             return _context.CurrentViewType != p_targetViewType;
         }
 
+        // Module 전환 완료 시 Context의 View·회전·줌 상태를 확정한다.
         private void UpdateViewTransition()
         {
             bool isCompleted = _viewModule.TransionView();
 
+            // 보간이 끝나기 전에는 현재 Context를 변경하지 않는다.
             if (!isCompleted) return;
 
             CameraViewSO currentView = _viewModule.CurrentView;
@@ -117,6 +123,7 @@ namespace Alpha.AlphaCamera
             _isTransitionRequested = false;
         }
 
+        // 전환 중이 아닐 때 Look 입력을 카메라 회전에 반영한다.
         private void UpdateRotation()
         {
             if (_isTransitionRequested || _viewModule.CurrentView == null)
@@ -126,6 +133,7 @@ namespace Alpha.AlphaCamera
             _viewModule.UpdateRotation(_input.LookInput, _context);
         }
 
+        // 전환 중이 아닐 때 휠 입력을 카메라 거리에 반영한다.
         private void UpdateZoom()
         {
             if (_isTransitionRequested || _viewModule.CurrentView == null)
@@ -153,6 +161,7 @@ namespace Alpha.AlphaCamera
             return p_requestedDuration;
         }
 
+        // 객체 해제 시 등록한 이벤트와 참조를 정리한다.
         private void OnDestroy()
         {
             if (_core != null)

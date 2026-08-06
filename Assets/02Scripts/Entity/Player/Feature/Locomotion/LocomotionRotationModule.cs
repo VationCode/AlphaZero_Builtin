@@ -20,6 +20,7 @@ namespace Alpha.Player.Locomotion
 
         public bool IsBound => _playerTransform != null;
 
+        // 회전을 적용할 Player Transform을 연결한다.
         public void Bind(Transform p_playerTransform)
         {
             if (p_playerTransform == null)
@@ -33,7 +34,7 @@ namespace Alpha.Player.Locomotion
         }
 
         /// <summary>
-        /// 
+        /// 방향과 이동 공간에 맞는 회전을 계산해 Player에 적용한다.
         /// </summary>
         /// <param name="p_direction"></param>
         /// <param name="p_isSpatial"> 3차원 공간판별 </param>
@@ -48,6 +49,7 @@ namespace Alpha.Player.Locomotion
             _playerTransform.rotation = CalculateRotation(p_direction, p_cameraTransform, p_isSpatial, p_isCombat, p_isInstant);
         }
 
+        // 즉시·3차원·지상 회전 방식 중 현재 조건에 맞는 결과를 계산한다.
         private Quaternion CalculateRotation(Vector3 p_direction, Transform p_cameraTransform,
                                              bool p_isSpatial, bool p_isCombat, bool p_isInstant)
         {
@@ -65,14 +67,14 @@ namespace Alpha.Player.Locomotion
 
             Quaternion targetRotation = Quaternion.LookRotation(forward.normalized, up);
 
-            // 타겟방향으로 즉시 회전
+            // 즉시 회전은 이전 SmoothDamp 속도까지 초기화한다.
             if (p_isInstant)
             {
                 _rotationVelocity = 0f;
                 return targetRotation;
             }
 
-            // 3차원 공간 계산으로의 회전
+            // 비행처럼 3차원 회전이 필요한 경우 프레임 독립 지수 보간을 사용한다.
             if (p_isSpatial)
             {
                 float lerpRatio = 1f - Mathf.Exp(-_spatialRotationSmoothness * Time.deltaTime);
@@ -80,7 +82,7 @@ namespace Alpha.Player.Locomotion
                 return Quaternion.Slerp(currentRotation, targetRotation, lerpRatio);
             }
 
-            // Y축 기반 XZ 방향으로의 이동
+            // 지상에서는 Yaw만 부드럽게 보간하고 전투용 회전 시간을 구분한다.
             float smoothTime = p_isCombat? _combatRotationSmoothTime : _rotationSmoothTime;
 
             float smoothYaw = Mathf.SmoothDampAngle(currentRotation.eulerAngles.y, targetRotation.eulerAngles.y,

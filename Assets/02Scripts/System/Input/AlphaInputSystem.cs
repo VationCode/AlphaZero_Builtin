@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Input System Callback을 게임에서 사용하기 쉬운 현재 값과 1 Frame 입력으로 변환한다.
 public class AlphaInputSystem : MonoBehaviour
 {
     private InputSystem_Actions _action;
@@ -58,6 +59,7 @@ public class AlphaInputSystem : MonoBehaviour
     private int _inventoryFrame;
     #endregion ==================== /UI
 
+    // Input Action을 생성하고 Player·Camera·UI 입력 Callback을 연결한다.
     private void OnEnable()
     {
         _action = new InputSystem_Actions();
@@ -100,14 +102,17 @@ public class AlphaInputSystem : MonoBehaviour
         // 활성화해야 동작
         _action.Enable();
     }
+    // 직접 등록한 Callback과 입력 상태를 정리한 뒤 Input Action을 해제한다.
     private void OnDisable()
     {
         if (_action == null)
             return;
 
+        // Method Group으로 직접 연결한 Callback은 명시적으로 구독 해제한다.
         _action.Player.Swap.performed -= OnSwap;
         _action.Camera.Quarter.performed -= OnQuarter;
 
+        // 비활성화 중 이전 입력이 남지 않도록 지속 입력 상태를 초기화한다.
         _moveInput = Vector2.zero;
         _isSprint = false;
         _isPrimaryAction = false;
@@ -116,12 +121,13 @@ public class AlphaInputSystem : MonoBehaviour
 
         m_swapFrame = -1;
 
+        // 생성한 Input Action Wrapper의 생명주기를 함께 종료한다.
         _action.Disable();
         _action.Dispose();
         _action = null;
     }
 
-    // Numpad 대응
+    // 숫자키 표시 이름을 장비 슬롯 번호와 1 Frame 교체 입력으로 변환한다.
     private void OnSwap(InputAction.CallbackContext p_context)
     {
         string key = p_context.control.displayName;
@@ -134,6 +140,7 @@ public class AlphaInputSystem : MonoBehaviour
     }
 
 
+    // Quarter Camera 시험 입력마다 활성 상태를 전환한다.
     private void OnQuarter(InputAction.CallbackContext p_context)
     {
         _isQuarter = !_isQuarter;

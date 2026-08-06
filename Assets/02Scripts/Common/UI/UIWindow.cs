@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+// EUIType 관련 선택 값을 정의한다.
 public enum EUIType
 {
     None,
@@ -13,6 +14,7 @@ public enum EUIType
     ETC
 }
 
+// EUIFlag 관련 선택 값을 정의한다.
 [Flags]
 public enum EUIFlag
 {
@@ -26,6 +28,7 @@ public enum EUIFlag
     ETC = 1 << 6
 }
 
+// UI 종류와 함께 열림 Animation·전투 차단 정보를 보유하는 공통 Window이다.
 public abstract class UIWindow : MonoBehaviour
 {
     public Animation m_UIOpenAnim;
@@ -35,6 +38,7 @@ public abstract class UIWindow : MonoBehaviour
     public EUIFlag CloseTargetUIs;
 
     public bool IsBlockCombat;
+    // 선택적 열림 Animation을 재생하고 Window를 활성화한다.
     public virtual void Open()
     {
         if (m_UIOpenAnim)
@@ -44,6 +48,7 @@ public abstract class UIWindow : MonoBehaviour
 
         this.gameObject.SetActive(true);
     }
+    // Window GameObject를 비활성화한다.
     public virtual void Close() 
     {
         this.gameObject.SetActive(false);

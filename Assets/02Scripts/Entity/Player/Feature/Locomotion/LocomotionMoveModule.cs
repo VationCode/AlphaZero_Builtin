@@ -13,6 +13,7 @@ using UnityEngine;
 
 namespace Alpha.Player.Locomotion
 {
+    // MoveSpeedSet 처리에 함께 사용되는 값들을 묶는다.
     [Serializable]
     public struct MoveSpeedSet
     {
@@ -20,6 +21,7 @@ namespace Alpha.Player.Locomotion
         [Min(0f)] public float SprintSpeed;
         [Min(0f)] public float CombatSpeed;
 
+        // 전투 이동을 우선하고 그 외에는 달리기 여부로 속도를 선택한다.
         public float GetSpeed(bool p_isSprint, bool p_isCombat)
         {
             if (p_isCombat)
@@ -42,11 +44,13 @@ namespace Alpha.Player.Locomotion
 
         public Vector3 Velocity { get; private set; }
 
+        // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
         private void Awake()
         {
             _controller = GetComponentInParent<CharacterController>();
         }
 
+        // 이동 결과를 기록할 Context와 CharacterController를 연결한다.
         public void Bind(LocomotionContext p_context)
         {
             if (_controller == null || p_context == null)
@@ -58,7 +62,7 @@ namespace Alpha.Player.Locomotion
             _context = p_context;
         }
 
-        // 입력 기준 이동 방향 계산 
+        // 카메라 축과 입력을 결합해 이동 모드에 맞는 정규화 방향을 계산한다.
         public Vector3 GetMoveDirection(Vector2 p_input, Transform p_cameraTransform, ELocomotionMode p_mode)
         {
             if (p_cameraTransform == null)
@@ -69,7 +73,7 @@ namespace Alpha.Player.Locomotion
             Vector3 forward = p_cameraTransform.forward;
             Vector3 right = p_cameraTransform.right;
 
-            // 3차원 공간이 아닐경우 XZ값만 처리
+            // 지상 이동은 카메라의 높이 기울기를 제거하고 XZ 평면만 사용한다.
             if (!isSpatial)
             {
                 forward.y = 0f;
@@ -85,6 +89,7 @@ namespace Alpha.Player.Locomotion
             return Vector3.ClampMagnitude(direction, 1f);
         }
 
+        // 이동 모드별 속도 세트에서 전투·달리기 조건에 맞는 값을 선택한다.
         public float GetMoveSpeed(ELocomotionMode p_mode, bool p_isSprint, bool p_isCombat)
         {
             MoveSpeedSet speedSet = p_mode switch
@@ -98,6 +103,7 @@ namespace Alpha.Player.Locomotion
             return speedSet.GetSpeed(p_isSprint, p_isCombat);
         }
 
+        // 이동 방향과 속력을 합치고 지상 모드에는 수직 속도도 반영한다.
         public Vector3 GetMoveVelocity(Vector3 p_direction, float p_moveSpeed, float p_verticalVelocity, ELocomotionMode p_mode)
         {
             Vector3 velocity = p_direction * p_moveSpeed;
@@ -108,7 +114,7 @@ namespace Alpha.Player.Locomotion
             return velocity;
         }
 
-        // 실제 이동 처리
+        // 최종 속도를 Context에 기록하고 CharacterController에 적용한다.
         public void Move(Vector3 p_velocity)
         {
             if (_controller == null || _context == null)

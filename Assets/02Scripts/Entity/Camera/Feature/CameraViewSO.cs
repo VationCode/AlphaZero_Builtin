@@ -38,6 +38,7 @@ namespace Alpha.AlphaCamera
         public float FieldOfView => _fieldOfView;
         public float RigFollowSpeed => _rigFollowSpeed;
 
+        // Inspector 값이 유효한 범위를 유지하도록 보정한다.
         private void OnValidate()
         {
             _minZoomDistance = Mathf.Max(0f, _minZoomDistance);

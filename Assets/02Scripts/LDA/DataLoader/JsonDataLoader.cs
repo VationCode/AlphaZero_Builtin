@@ -4,20 +4,21 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-// 데이터의 출처(Source)로부터 데이터를 가져오는 것
+// 지정된 Root 경로의 JSON 파일을 읽어 요청한 데이터 형식으로 역직렬화한다.
 public class JsonDataLoader : IDataLoader
 {
     private readonly string _rootPath;
 
+    // JSON 파일을 찾을 기준 Root 경로를 보관한다.
     public JsonDataLoader(string p_rootPath)
     {
         _rootPath = p_rootPath;
     }
 
+    // Key.json 파일을 비동기로 읽고 Unity JsonUtility로 역직렬화한다.
     public async Task<T> LoadAsync<T>(string p_key)
     {
-        // LoadAsync<WeaponTableDTO>("Weapon"); 이런식으로 편하게 사용 가능하게 하려고
-        // _rootPath는 현재 리소스폴더 Data폴더 경로로
+        // 호출자는 확장자를 제외한 논리 Key만 전달한다.
         string path = Path.Combine(_rootPath, $"{p_key}.json");
 
         if (!File.Exists(path))
@@ -25,10 +26,10 @@ public class JsonDataLoader : IDataLoader
             throw new FileNotFoundException($"Json file not found : {path}");
         }
 
-        // JSON 파일 읽기
+        // 파일 입출력은 Main Thread를 막지 않도록 비동기로 수행한다.
         string json = await File.ReadAllTextAsync(path);
 
-        //JsonUtility 파싱
+        // JSON 문자열을 호출자가 요청한 Wrapper 또는 DTO 형식으로 변환한다.
         return JsonUtility.FromJson<T>(json);
     }
 }

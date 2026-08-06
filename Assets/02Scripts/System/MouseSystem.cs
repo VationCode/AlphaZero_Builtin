@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace Alpha.Mouse
 {
+    // Camera·UI의 커서 요청을 조합하고 화면 좌표를 월드 좌표와 방향으로 변환한다.
     public class MouseSystem : MonoBehaviour
     {
         [Header("World Raycast")]
@@ -31,7 +32,7 @@ namespace Alpha.Mouse
             ApplyCursor();
         }
 
-        // 현재 요청 상태에 맞춰 커서를 적용한다.
+        // Camera 또는 UI 중 하나라도 커서를 요청하면 잠금을 해제한다.
         private void ApplyCursor()
         {
             bool isActive =
@@ -45,7 +46,7 @@ namespace Alpha.Mouse
             Cursor.visible = isActive;
         }
 
-        // 화면의 마우스 좌표를 월드 좌표로 변환한다.
+        // Render Camera에서 World Mask로 Raycast하여 마우스의 월드 지점을 구한다.
         public bool TryGetWorldPoint(Vector2 p_screenPosition, out Vector3 p_worldPoint)
         {
             Ray ray = _renderCamera.ScreenPointToRay(p_screenPosition);
@@ -60,7 +61,7 @@ namespace Alpha.Mouse
             return false;
         }
 
-        // 기준 위치에서 마우스 월드 좌표 방향을 계산한다.
+        // 기준 위치에서 마우스 월드 지점으로 향하는 수평 단위 방향을 구한다.
         public bool TryGetWorldDirection(Vector2 p_screenPosition, Vector3 p_origin, out Vector3 p_direction)
         {
             if (!TryGetWorldPoint(p_screenPosition, out Vector3 worldPoint))
@@ -88,6 +89,7 @@ namespace Alpha.Mouse
             return dir.normalized;
         }
 
+        // GetMouseWorldPosition 결과를 현재 상태에서 계산해 반환한다.
         private Vector3 GetMouseWorldPosition(Vector2 p_mousePos)
         {
             Ray ray = Camera.main.ScreenPointToRay(p_mousePos);

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+// ELocomotionMode 관련 선택 값을 정의한다.
 public enum ELocomotionMode
 {
     Ground,
@@ -17,6 +18,7 @@ public enum ELocomotionMode
 
 namespace Alpha.Player.Locomotion
 {
+    // LocomotionModeFlow 요청의 조건과 실행 순서를 결정한다.
     public class LocomotionModeFlow : MonoBehaviour
     {
         private PlayerCore _core;
@@ -27,6 +29,7 @@ namespace Alpha.Player.Locomotion
         private StateFlowBase _currentStateFlow;
 
         public event Action<string> OnStateFlowChanged;
+        // 이동 Mode별 StateFlow를 구성하고 지상 이동에서 시작한다.
         public void Bind(PlayerCore p_core)
         {
             _core = p_core;
@@ -38,6 +41,7 @@ namespace Alpha.Player.Locomotion
             ChangeMode(ELocomotionMode.Ground, ELocoStateType.Move);
         }
 
+        // 매 프레임 입력과 현재 상태를 갱신한다.
         private void Update()
         {
             if (_core == null) return;
@@ -57,6 +61,7 @@ namespace Alpha.Player.Locomotion
             _currentStateFlow?.TickFlow();
         }
 
+        // ChangeMode 상태 전환을 수행하고 변경을 알린다.
         public void ChangeMode(ELocomotionMode p_nextMode, ELocoStateType p_entryState)
         {
             if (!_flowDict.TryGetValue(p_nextMode, out StateFlowBase nextFlow) ||
