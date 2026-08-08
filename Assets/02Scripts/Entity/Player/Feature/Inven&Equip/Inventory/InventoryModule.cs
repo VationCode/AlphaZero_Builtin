@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace Alpha.Player.Inventory
 {
-    // Player Inventory 기능의 대표 진입점.
     public class InventoryModule : MonoBehaviour
     {
         [Header("Create Slot")]
@@ -17,29 +16,26 @@ namespace Alpha.Player.Inventory
 
         private CreateInventorySlotModule _slotModule;
         private InventoryStorageModule _storageModule;
-        private InventoryTransferModule _transferModule;
+        private SlotTransferModule _transferModule;
 
         // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
         private void Awake()
         {
             // 슬롯 생성 조회 담당
             _slotModule = new CreateInventorySlotModule(_weaponSlotCount, _armorSlotCount, _commonSlotCount);
-
-            // 드래그 앤 드랍 및 교환 담당
-            _transferModule = new InventoryTransferModule();
         }
 
         // 슬롯을 생성하고 저장·이동 Module을 현재 Context에 연결한다.
-        public bool Initialize(InventoryContext p_context)
+        public bool Initialize(InventoryContext p_context, SlotTransferModule p_transferModule)
         {
-            if (p_context == null)
+            if (p_context == null || p_transferModule == null)
                 return false;
 
             if (!_slotModule.Initialize(p_context))
                 return false;
 
-            _storageModule =
-                new InventoryStorageModule(p_context);
+            _storageModule = new InventoryStorageModule(p_context);
+            _transferModule = p_transferModule;
 
             return true;
         }
@@ -59,49 +55,23 @@ namespace Alpha.Player.Inventory
             return _storageModule.AddItem(p_item, p_count);
         }
 
-        // 특정 슬롯이 요청 수량 전체를 받을 수 있는지 검사한다.
-        public bool CanAddItem(InventorySlot p_slot, ItemDTO p_item, int p_count)
+        // 자동 이동에 사용할 인벤토리 보관 슬롯을 찾는다.
+        internal bool TryGetStorageSlot(ItemDTO p_item, out InventorySlot p_slot)
         {
-            return p_slot != null && p_count > 0 && p_slot.GetAddableCount(p_item) >= p_count;
+            if (_storageModule == null)
+            {
+                p_slot = null;
+                return false;
+            }
+
+            return _storageModule.TryGetTargetSlot(p_item, out p_slot);
         }
 
-        // 지정 슬롯에 아이템을 가능한 만큼 추가한다.
-        public int AddItemToSlot(InventorySlot p_slot, ItemDTO p_item, int p_count)
+        // 두 공통 슬롯의 상태에 따라 이동·병합·교환을 실행한다.
+        public bool TransferItem(ItemSlot p_source, ItemSlot p_target)
         {
-            if (p_slot == null || p_count <= 0)
-                return 0;
-
-            return p_slot.Add(p_item, p_count);
-        }
-
-        // 지정 슬롯에서 아이템을 가능한 만큼 제거한다.
-        public int RemoveItem(InventorySlot p_slot, int p_count)
-        {
-            if (p_slot == null || p_count <= 0)
-                return 0;
-
-            return p_slot.Remove(p_count);
-        }
-
-        // 슬롯 전체를 새 아이템 상태로 교체할 수 있는지 검사한다.
-        public bool CanReplaceItem(InventorySlot p_slot, ItemDTO p_item, int p_count)
-        {
-            return p_slot != null && p_slot.CanReplace(p_item, p_count);
-        }
-
-        // 슬롯 전체를 새 아이템과 수량으로 교체한다.
-        public bool ReplaceItem(InventorySlot p_slot, ItemDTO p_item, int p_count)
-        {
-            return p_slot != null && p_slot.Replace(p_item, p_count);
-        }
-
-        // 두 슬롯의 상태에 따라 이동·병합·교환을 실행한다.
-        public EInventoryTransferResult TransferItem(InventorySlot p_source, InventorySlot p_target)
-        {
-            if (_transferModule == null)
-                return EInventoryTransferResult.Rejected;
-
-            return _transferModule.Transfer(p_source, p_target);
+            return _transferModule != null &&
+                   _transferModule.Transfer(p_source, p_target);
         }
     }
 }

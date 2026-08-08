@@ -30,6 +30,12 @@ namespace Alpha.Player.Slot
 
         public bool IsItemDragging => _dragMode == ESlotDragMode.Item;
 
+        // HandleDoubleClick 이벤트를 받아 필요한 후속 처리를 수행한다.
+        protected abstract void HandleDoubleClick();
+
+        // HandleDrop 이벤트를 받아 필요한 후속 처리를 수행한다.
+        protected abstract void HandleDrop(SlotInteractionViewBase p_source);
+
         // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
         protected virtual void Awake()
         {
@@ -44,35 +50,113 @@ namespace Alpha.Player.Slot
             _scrollRect?.OnInitializePotentialDrag(p_eventData);
         }
 
-        // 포인터 위치와 슬롯 상태에 따라 아이템 드래그와 스크롤을 구분한다.
+        #region ============================== 슬롯 클릭 시 판단
+        // 아이템이 있는 유효한 슬롯의 좌클릭 더블 클릭만 처리한다.
+        public void OnPointerClick(PointerEventData p_eventData)
+        {
+            if (!HasValidSlot() || IsEmptySlot())
+                return;
+
+            // 더블클릭 시 Inventory와 Eqipment에서 정의된 동작 실행
+            if (IsDoubleClick(p_eventData))
+                HandleDoubleClick();    
+        }
+        // 판별
+        private bool HasValidSlot()
+        {
+            return SlotView != null && HasValidSource;
+        }
+        private bool IsEmptySlot()
+        {
+            return !SlotView.HasItem;
+        }
+
+        // 두 번째 좌클릭 이벤트인지 확인한다.
+        private static bool IsDoubleClick(PointerEventData p_eventData)
+        {
+            return p_eventData.button == PointerEventData.InputButton.Left &&
+                   p_eventData.clickCount == 2;
+        }
+        #endregion ============================== /슬롯 클릭시 판단
+
+        #region ============================== 드래그 시작 시 판단
+        // 이동량이 Drag Threshold를 넘었을 때 호출된다.
         public void OnBeginDrag(PointerEventData p_eventData)
         {
-            _dragMode = ESlotDragMode.None;
+            // 드래그 종류 판별
+            _dragMode = ResolveDragMode(p_eventData);
 
-            // 좌클릭만 아이템 또는 스크롤 드래그로 처리한다.
-            if (p_eventData.button != PointerEventData.InputButton.Left)
+            // 아이템 드래그인지 스크롤뷰 드래그인지 판별
+            switch (_dragMode)
             {
-                return;
+                case ESlotDragMode.Item:
+                    BeginItemDrag(p_eventData);
+                    break;
+
+                case ESlotDragMode.Scroll:
+                    BeginScrollDrag(p_eventData);
+                    break;
+            }
+        }
+
+        // 슬롯 상태와 시작 위치를 기준으로 드래그 종류를 결정한다.
+        private ESlotDragMode ResolveDragMode(PointerEventData p_eventData)
+        {
+            // 아무것도 없는(스크롤뷰, 슬롯)곳 클릭한 상태
+            if (p_eventData.button != PointerEventData.InputButton.Left ||
+                SlotView == null || !HasValidSource)
+            {
+                return ESlotDragMode.None;
             }
 
-            // 아이템 영역에서 시작했다면 드래그 아이콘과 원본 피드백을 표시한다.
             if (CanBeginItemDrag(p_eventData))
             {
-                _dragMode = ESlotDragMode.Item;
-                SlotView.SetDragging(true);
-                GetDragIconView()?.Show(SlotView.Icon, p_eventData);
-                return;
+                return ESlotDragMode.Item;
             }
 
+            return _scrollRect != null? ESlotDragMode.Scroll : ESlotDragMode.None;
+        }
+
+        // 아이템 있는 슬롯 선택시 드래그 가능한지 판별
+        private bool CanBeginItemDrag(PointerEventData p_eventData)
+        {
+            if (IsEmptySlot() || SlotView.Icon == null)
+                return false;
+
+            return _itemDragArea == null ||
+                   RectTransformUtility.RectangleContainsScreenPoint(_itemDragArea, p_eventData.pressPosition, p_eventData.pressEventCamera);
+        }
+
+        // 드래그 아이콘 셋팅 및 아이템 드래그 시작.
+        private void BeginItemDrag(PointerEventData p_eventData)
+        {
+            SlotView.SetDragging(true);
+            GetDragIconView()?.Show(SlotView.Icon, p_eventData);
+        }
+
+        // 상위 ScrollRect에 Scroll 드래그 시작을 전달한다.
+        private void BeginScrollDrag(PointerEventData p_eventData)
+        {
             if (_scrollRect == null)
                 return;
 
-            // 아이템 드래그가 아니면 상위 ScrollRect에 동작을 위임한다.
-            _dragMode = ESlotDragMode.Scroll;
             _scrollRect.OnBeginDrag(p_eventData);
         }
 
-        // 시작 시 결정된 드래그 모드에 맞는 대상을 이동시킨다.
+        // 비활성 자식까지 포함해 공용 드래그 아이콘 View를 지연 조회한다.
+        private InventoryDragIconView GetDragIconView()
+        {
+            if (_dragIconView == null)
+            {
+                _dragIconView = GetComponentInParent<InventoryDragIconView>(true);
+            }
+
+            return _dragIconView;
+        }
+        #endregion ============================== 드래그 시작 시 판단
+
+
+        // 결정된 드래그 모드에 맞는 대상을 이동시킨다.
         public void OnDrag(PointerEventData p_eventData)
         {
             switch (_dragMode)
@@ -106,25 +190,15 @@ namespace Alpha.Player.Slot
             _dragMode = ESlotDragMode.None;
         }
 
-        // 아이템이 있는 유효한 슬롯의 좌클릭 더블 클릭만 처리한다.
-        public void OnPointerClick(PointerEventData p_eventData)
-        {
-            if (p_eventData.button != PointerEventData.InputButton.Left || p_eventData.clickCount != 2 ||
-                SlotView == null || !SlotView.HasItem || !HasValidSource)
-            {
-                return;
-            }
-
-            HandleDoubleClick();
-        }
-
-        // 실제 아이템 드래그 원본을 찾아 슬롯별 드롭 처리로 전달한다.
+        #region ============================== Drop 발생 전달
+        // 드래그 원본과 이동 방향만 판별.
+        // 빈 슬롯인지, 교환 가능한지는 판단 X -> 각 Flow에서 판단
         public void OnDrop(PointerEventData p_eventData)
         {
-            SlotInteractionViewBase source =
-                p_eventData.pointerDrag?.GetComponentInParent<SlotInteractionViewBase>();
+            if (!HasValidSource)
+                return;
 
-            if (source == null || !source.IsItemDragging || !HasValidSource)
+            if (!TryGetDragSource(p_eventData, out SlotInteractionViewBase source))
             {
                 return;
             }
@@ -132,34 +206,14 @@ namespace Alpha.Player.Slot
             HandleDrop(source);
         }
 
-        // HandleDoubleClick 이벤트를 받아 필요한 후속 처리를 수행한다.
-        protected abstract void HandleDoubleClick();
-
-        // HandleDrop 이벤트를 받아 필요한 후속 처리를 수행한다.
-        protected abstract void HandleDrop(SlotInteractionViewBase p_source);
-
-        // 아이템과 아이콘이 있고 지정된 드래그 영역에서 시작했는지 검사한다.
-        private bool CanBeginItemDrag(PointerEventData p_eventData)
+        // 실제 아이템 드래그 중인 다른 슬롯을 원본으로 반환한다.
+        private bool TryGetDragSource(PointerEventData p_eventData, out SlotInteractionViewBase p_source)
         {
-            if (SlotView == null || !SlotView.HasItem || SlotView.Icon == null || !HasValidSource)
-            {
-                return false;
-            }
+            p_source = p_eventData.pointerDrag?.GetComponentInParent<SlotInteractionViewBase>();
 
-            return _itemDragArea == null ||
-                   RectTransformUtility.RectangleContainsScreenPoint(_itemDragArea, p_eventData.pressPosition, p_eventData.pressEventCamera);
+            return p_source != null && p_source != this && p_source.IsItemDragging;
         }
-
-        // 비활성 자식까지 포함해 공용 드래그 아이콘 View를 지연 조회한다.
-        private InventoryDragIconView GetDragIconView()
-        {
-            if (_dragIconView == null)
-            {
-                _dragIconView = GetComponentInParent<InventoryDragIconView>(true);
-            }
-
-            return _dragIconView;
-        }
+        #endregion ============================== /Drop 발생 전달
 
         // 비활성화 도중 남을 수 있는 아이템 드래그 피드백을 정리한다.
         private void OnDisable()
@@ -172,5 +226,6 @@ namespace Alpha.Player.Slot
 
             _dragMode = ESlotDragMode.None;
         }
+
     }
 }

@@ -118,13 +118,6 @@ namespace Alpha.Player.Inventory
         // View로부터의 이벤트 요청이 들어왔을 때 로직에서의 인벤토리 처리(Move, Merge, Swap)
         public void RequestTransferItem(int p_sourceSlotIndex, int p_targetSlotIndex)
         {
-            // 인벤토리가 열린 상태에서만 허용
-            if (!IsOpen || _context == null || _module == null)
-            {
-                return;
-            }
-
-            // SlotIndex로 (sourceSlot, targetSlot)Domain 조회 
             if (!_context.TryGetSlot(p_sourceSlotIndex, out InventorySlot sourceSlot))
             {
                 return;

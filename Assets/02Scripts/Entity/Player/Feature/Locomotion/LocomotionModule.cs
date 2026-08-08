@@ -13,6 +13,7 @@ namespace Alpha.Player.Locomotion
         private LocomotionMoveModule _moveModule;
         private LocomotionRotationModule _rotationModule;
         private LocomotionContext _context;
+        private readonly RootMotionModule _rootMotionModule = new();
 
 
         [Header("Jump")]
@@ -45,6 +46,7 @@ namespace Alpha.Player.Locomotion
 
         public float LandDuration => _landDuration;
         public float DashDuration => _dashDuration;
+        public bool UsesRootMotion => _rootMotionModule.IsActive;
 
 
         public bool IsGrounded { get; private set; }
@@ -63,7 +65,7 @@ namespace Alpha.Player.Locomotion
         public void Bind(LocomotionContext p_context, Transform p_playerTransform)
         {
             if (p_context == null || p_playerTransform == null ||
-        _controller == null || _moveModule == null || _rotationModule == null)
+                _controller == null || _moveModule == null || _rotationModule == null)
             {
                 Debug.LogError($"{nameof(LocomotionModule)}의 의존성이 없습니다.", this);
                 return;
@@ -73,6 +75,9 @@ namespace Alpha.Player.Locomotion
 
             _moveModule.Bind(p_context);
             _rotationModule.Bind(p_playerTransform);
+
+            if (!_rootMotionModule.Bind(_moveModule))
+                Debug.LogError($"{nameof(RootMotionModule)}을 연결하지 못했습니다.", this);
         }
 
         #region ======================================== Movement
@@ -99,6 +104,24 @@ namespace Alpha.Player.Locomotion
 
             // 실제 이동
             _moveModule.Move(moveVelocity);
+        }
+
+        // 행동이 사용할 Root Motion 적용 방식을 시작한다.
+        public bool BeginRootMotion(ERootMotionMode p_mode)
+        {
+            return _rootMotionModule.Begin(p_mode);
+        }
+
+        // 현재 Root Motion 행동을 종료하고 입력 이동을 다시 허용한다.
+        public void EndRootMotion()
+        {
+            _rootMotionModule.End();
+        }
+
+        // Animator 이동량을 활성화된 Root Motion Module에 전달한다.
+        public void ApplyRootMotion(Vector3 p_deltaPosition)
+        {
+            _rootMotionModule.Apply(p_deltaPosition, VerticalVelocity);
         }
 
         #endregion ======================================== /Movement

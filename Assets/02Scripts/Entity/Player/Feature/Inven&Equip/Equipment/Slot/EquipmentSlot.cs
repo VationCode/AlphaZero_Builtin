@@ -1,50 +1,30 @@
 using System;
+using Alpha.Player;
 
 namespace Alpha.Player.Equipment
 {
     // EquipmentSlot 상태와 아이템 수용 규칙을 관리한다.
-    public abstract class EquipmentSlot
+    public abstract class EquipmentSlot : ItemSlot
     {
-        public ItemDTO Item { get; private set; }
-        public bool IsEmpty => Item == null;
-
         public event Action<EquipmentSlot> OnChanged;
 
         // 슬롯 종류에 맞는 아이템인지 검사한다.
         public abstract bool CanEquip(ItemDTO p_item);
 
-        // Equip 아이템을 조건에 맞는 장비 슬롯에 장착한다.
-        internal bool Equip(ItemDTO p_item)
+        // 공통 슬롯이 사용하는 장비 수용 규칙을 연결한다.
+        protected override bool CanAccept(ItemDTO p_item)
         {
-            if (p_item == null || !IsEmpty || !CanEquip(p_item))
-            {
-                return false;
-            }
-
-            Item = p_item;
-            NotifyChanged();
-
-            return true;
+            return CanEquip(p_item);
         }
 
-        // Unequip 장비를 슬롯에서 해제해 반환한다.
-        internal ItemDTO Unequip()
+        // 장비 슬롯은 아이템을 항상 한 개만 보유한다.
+        protected override int GetMaxCount(ItemDTO p_item)
         {
-            if (IsEmpty)
-            {
-                return null;
-            }
-
-            ItemDTO previousItem = Item;
-            Item = null;
-
-            NotifyChanged();
-
-            return previousItem;
+            return 1;
         }
 
-        // NotifyChanged 변경 사실을 구독자에게 알린다.
-        private void NotifyChanged()
+        // 장비 슬롯 변경 사실을 View와 Context에 전달한다.
+        protected override void NotifyChanged()
         {
             OnChanged?.Invoke(this);
         }

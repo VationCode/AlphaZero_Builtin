@@ -7,7 +7,7 @@ public enum EWeaponType
     None = -1,
     Melee = 0,
     Range = 1,
-    Special = 2     // 특수 장비(화염방사기, 유탄, 드론 등과 같은)
+    Special = 2     // 특수 장비(수류탄, 드론 등과 같은)
 }
 // WeaponDTO 데이터 표현을 보관한다.
 [Serializable]

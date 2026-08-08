@@ -120,10 +120,31 @@ namespace Alpha.Player.Locomotion
             if (_controller == null || _context == null)
                 return;
 
+            ApplyMovement(
+                p_velocity,
+                p_velocity * Time.deltaTime);
+        }
+
+        // Animator가 계산한 프레임 이동량을 CharacterController 충돌 경로로 적용한다.
+        public void MoveDelta(Vector3 p_deltaPosition)
+        {
+            if (_controller == null || _context == null)
+                return;
+
+            float deltaTime = Mathf.Max(Time.deltaTime, 0.0001f);
+            Vector3 velocity = p_deltaPosition / deltaTime;
+
+            ApplyMovement(velocity, p_deltaPosition);
+        }
+
+        private void ApplyMovement(
+            Vector3 p_velocity,
+            Vector3 p_deltaPosition)
+        {
             Velocity = p_velocity;
             _context.Velocity = p_velocity;
 
-            _controller.Move(p_velocity * Time.deltaTime);
+            _controller.Move(p_deltaPosition);
         }
     }
 }

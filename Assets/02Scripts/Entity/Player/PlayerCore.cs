@@ -5,6 +5,7 @@ using Alpha.Player.Locomotion;
 using Alpha.Player.Inventory;
 using Alpha.Player.Equipment;
 using Alpha.Player.Combat;
+using Alpha.Item.Weapon;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -17,6 +18,7 @@ namespace Alpha.Player
         public CameraCore CameraCore { get; private set; }
         public MouseSystem MouseSystem { get; private set; }
         public ItemDatabaseManager ItemDatabase { get; private set; }
+        public ResourceLoadSystem ResourceLoader { get; private set; }
         #endregion
 
         #region ========== Flow
@@ -58,12 +60,18 @@ namespace Alpha.Player
         private bool _isCombatBlocked;
 
         // Installer가 소유한 입력·카메라·마우스·데이터 참조를 전달받는다.
-        public void Bind(AlphaInputSystem p_input, CameraCore p_camera, MouseSystem p_mouseSystem, ItemDatabaseManager p_itemDatabase)
+        public void Bind(
+            AlphaInputSystem p_input,
+            CameraCore p_camera,
+            MouseSystem p_mouseSystem,
+            ItemDatabaseManager p_itemDatabase,
+            ResourceLoadSystem p_resourceLoader)
         {
             Input = p_input;
             CameraCore = p_camera;
             MouseSystem = p_mouseSystem;
             ItemDatabase = p_itemDatabase;
+            ResourceLoader = p_resourceLoader;
         }
 
         // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
@@ -96,21 +104,32 @@ namespace Alpha.Player
 
             LocomotionModule.Bind(LocomotionContext, PlayerTr);
 
+            // Inventory와 Equipment가 같은 슬롯 이동 규칙을 공유한다.
+            SlotTransferModule slotTransferModule = new();
+
             // 인벤토리 슬롯 생성 후 입력 Flow를 연결한다.
-            InventoryModule.Initialize(InventoryContext);
+            InventoryModule.Initialize(InventoryContext, slotTransferModule);
             InventoryFlow.Bind(InventoryContext, InventoryModule, Input);
 
             // 장비 상태와 인벤토리 간 이동 Flow를 연결한다.
-            EquipmentModule.Bind(EquipmentContext);
-            EquipmentFlow.Bind(EquipmentModule, InventoryContext, InventoryModule);
+            EquipmentModule.Bind(EquipmentContext, InventoryModule, slotTransferModule);
+            EquipmentFlow.Bind(EquipmentModule, InventoryContext);
+
+            // 장비 변경 완료 이벤트를 실제 무기 생성 기능과 연결한다.
+            if (CombatModule.Bind(this))
+            {
+                EquipmentFlow.OnWeaponChanged -= CombatFlow.HandleEquipmentWeaponChanged;
+                EquipmentFlow.OnWeaponChanged += CombatFlow.HandleEquipmentWeaponChanged;
+
+                CombatFlow.Bind(this);
+            }
 
             // 픽업과 애니메이션은 앞에서 준비된 Player 기능을 사용한다.
             ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
 
-            //CombatModule.Bind(EquipmentContext);
-
             AnimationView.Bind(PlayerTr);
-
+            AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
+            AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
 
         }
 
@@ -120,25 +139,14 @@ namespace Alpha.Player
             _isCombatBlocked = p_isBlocked;
         }
 
-        /// <summary>
-        /// Player 내부 Combat Module을 조립한다.
-        /// Equipment 연결이 완료된 후 호출해야 한다.
-        /// </summary>
-        public bool BindCombat()
-        {
-            if (CombatModule == null)
-            {
-                Debug.LogError($"{nameof(Combat.CombatModule)}을 찾을 수 없습니다.", this);
-                return false;
-            }
-
-            return CombatModule.Bind(this);
-        }
-
-        // 현재 PlayerCore가 직접 구독하는 해제 대상은 없다.
+        // Player가 연결한 장비 변경 이벤트를 해제한다.
         private void OnDestroy()
         {
+            if (EquipmentFlow != null && CombatModule != null)
+                EquipmentFlow.OnWeaponChanged -= CombatFlow.HandleEquipmentWeaponChanged;
 
+            if (AnimationView != null && LocomotionModule != null)
+                AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
         }
     }
 }

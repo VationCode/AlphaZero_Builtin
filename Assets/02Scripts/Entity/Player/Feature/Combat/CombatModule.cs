@@ -1,4 +1,5 @@
 using UnityEngine;
+using Alpha.Item.Weapon;
 
 namespace Alpha.Player.Combat
 {
@@ -11,47 +12,70 @@ namespace Alpha.Player.Combat
     {
         private WeaponSwapModule _weaponSwapModule;
 
-        public bool IsBound { get; private set; }
+        // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
+        public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
+        public bool HasWeapon => CurrentWeapon != null;
 
-        // Unity 초기화 시 필요한 컴포넌트와 내부 객체를 준비한다.
+        public EWeaponActionType ActiveActionType =>
+            CurrentWeapon?.ActiveActionType ?? EWeaponActionType.None;
+
+        public bool HasActiveAction =>
+            CurrentWeapon != null && CurrentWeapon.HasActiveAction;
+
         private void Awake()
         {
             _weaponSwapModule = GetComponent<WeaponSwapModule>();
         }
 
-        // Player 전투 기능을 사용할 수 있도록 대표 Module을 활성화한다.
+        // Player 전투 기능과 런타임 무기 생성 의존성을 연결한다.
         public bool Bind(PlayerCore p_core)
         {
-            if (p_core == null || _weaponSwapModule == null)
+            if (p_core == null ||
+                _weaponSwapModule == null ||
+                !_weaponSwapModule.Bind(p_core.ResourceLoader))
             {
                 Debug.LogError($"{nameof(CombatModule)}의 참조가 설정되지 않았습니다.", this);
                 return false;
             }
 
-            IsBound = true;
             return true;
         }
 
         #region ============================== Weapon Swap
-        // 세부 Module에 무기 교체 대상 준비를 위임한다.
-        public bool TryPrepareWeaponSwap(int p_slotIndex)
+        // 공통 무기 교체 요청을 실제 무기 생성 Module에 전달한다.
+        public bool ApplyWeaponChange(WeaponDTO p_weapon)
         {
-            return IsBound &&
-                   _weaponSwapModule.TryPrepare(p_slotIndex);
+            // 기존 무기가 교체되기 전에 진행 중인 행동을 정리한다.
+            CancelWeaponAction();
+            return _weaponSwapModule.Apply(p_weapon);
         }
 
         #endregion ============================== /Weapon Swap
 
-        // 외부 전투 요청을 더 이상 받지 않도록 연결 상태를 해제한다.
-        public void Unbind()
+        #region ============================== CombatAction
+        // 현재 무기의 Action을 선택하고 행동을 시작한다.
+        public bool TryBeginWeaponAction(EWeaponActionType p_type)
         {
-            IsBound = false;
+            return CurrentWeapon != null &&
+                   CurrentWeapon.TryBeginAction(p_type);
         }
 
-        // 객체 해제 시 등록한 이벤트와 참조를 정리한다.
-        private void OnDestroy()
+        // 진행 중인 무기 행동을 갱신한다.
+        public void TickWeaponAction(
+            bool p_isInputHeld,
+            bool p_isInputPressed,
+            float p_deltaTime)
         {
-            Unbind();
+            CurrentWeapon?.TickAction(
+                p_isInputHeld,
+                p_isInputPressed,
+                p_deltaTime);
         }
+
+        public void CancelWeaponAction()
+        {
+            CurrentWeapon?.CancelAction();
+        }
+        #endregion ============================== /CombatAction
     }
 }

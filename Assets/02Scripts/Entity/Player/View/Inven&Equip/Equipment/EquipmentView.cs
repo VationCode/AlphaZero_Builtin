@@ -27,7 +27,7 @@ namespace Alpha.Player.Equipment
         public EquipmentSlotView View => _view;
     }
 
-    // Equipment UI의 대표 진입점이며 사용자 요청을 Flow로 전달한다.
+    // Equipment UI를 표시하고 사용자 요청을 외부 구독자에게 알린다.
     public class EquipmentView : MonoBehaviour
     {
         [Header("Weapon Slots")]
@@ -43,17 +43,20 @@ namespace Alpha.Player.Equipment
 
         private EquipmentContext _context;
         private ResourceLoadSystem _resourceLoader;
-        private EquipmentFlow _flow;
+
+        // 장착 요청을 외부 구독자에게 알린다.
+        public event Action<int, EquipmentSlot> OnEquipRequested;
+
+        // 장비 해제 요청을 외부 구독자에게 알린다.
+        public event Action<EquipmentSlot, int?> OnUnequipRequested;
 
         // 장비 상태와 화면 슬롯을 연결하고 최초 표시를 갱신한다.
         public bool Bind(
             EquipmentContext p_context,
-            ResourceLoadSystem p_resourceLoader,
-            EquipmentFlow p_flow)
+            ResourceLoadSystem p_resourceLoader)
         {
             if (p_context == null ||
-                p_resourceLoader == null ||
-                p_flow == null)
+                p_resourceLoader == null)
             {
                 return false;
             }
@@ -63,7 +66,6 @@ namespace Alpha.Player.Equipment
 
             _context = p_context;
             _resourceLoader = p_resourceLoader;
-            _flow = p_flow;
 
             // 도메인 슬롯과 Inspector에 지정된 View를 일대일로 연결한다.
             RegisterSlotViews();
@@ -73,21 +75,16 @@ namespace Alpha.Player.Equipment
             return true;
         }
 
-        // 장비 슬롯에 드롭된 인벤토리 아이템의 장착을 Flow에 요청한다.
-        internal EEquipmentChangeResult RequestEquip(
-            int p_inventorySlotIndex,
-            EquipmentSlot p_targetSlot)
+        // 장비 슬롯에 드롭된 인벤토리 아이템의 장착 요청을 발행한다.
+        internal void RequestEquip(int p_inventorySlotIndex, EquipmentSlot p_targetSlot)
         {
-            return _flow.RequestEquip(
-                p_inventorySlotIndex,
-                p_targetSlot);
+            OnEquipRequested?.Invoke(p_inventorySlotIndex, p_targetSlot);
         }
 
-        // 더블 클릭한 장비의 해제를 Flow에 요청한다.
-        internal EEquipmentChangeResult RequestUnequip(
-            EquipmentSlot p_slot)
+        // 더블 클릭한 장비의 해제 요청을 발행한다.
+        internal void RequestUnequip(EquipmentSlot p_slot)
         {
-            return _flow.RequestUnequip(p_slot);
+            OnUnequipRequested?.Invoke(p_slot, null);
         }
 
         // 무기·방어구 바인딩을 도메인 슬롯과 화면 슬롯으로 연결한다.
@@ -98,13 +95,9 @@ namespace Alpha.Player.Equipment
             // 무기 타입별 도메인 슬롯을 찾아 대응 View를 등록한다.
             if (_weaponSlotBindings != null)
             {
-                foreach (
-                    WeaponSlotBinding binding
-                    in _weaponSlotBindings)
+                foreach (WeaponSlotBinding binding in _weaponSlotBindings)
                 {
-                    if (_context.TryGetWeaponSlot(
-                        binding.WeaponType,
-                        out WeaponEquipmentSlot slot))
+                    if (_context.TryGetWeaponSlot(binding.WeaponType, out WeaponEquipmentSlot slot))
                     {
                         Register(slot, binding.View);
                     }
@@ -114,13 +107,9 @@ namespace Alpha.Player.Equipment
             // 방어구 타입별 도메인 슬롯을 찾아 대응 View를 등록한다.
             if (_armorSlotBindings != null)
             {
-                foreach (
-                    ArmorSlotBinding binding
-                    in _armorSlotBindings)
+                foreach (ArmorSlotBinding binding in _armorSlotBindings)
                 {
-                    if (_context.TryGetArmorSlot(
-                        binding.ArmorType,
-                        out ArmorEquipmentSlot slot))
+                    if (_context.TryGetArmorSlot(binding.ArmorType, out ArmorEquipmentSlot slot))
                     {
                         Register(slot, binding.View);
                     }
@@ -129,9 +118,7 @@ namespace Alpha.Player.Equipment
         }
 
         // 하나의 도메인 슬롯과 View 및 상호작용 컴포넌트를 묶는다.
-        private void Register(
-            EquipmentSlot p_slot,
-            EquipmentSlotView p_view)
+        private void Register(EquipmentSlot p_slot, EquipmentSlotView p_view)
         {
             if (p_slot == null || p_view == null)
                 return;
@@ -148,19 +135,14 @@ namespace Alpha.Player.Equipment
             }
             else
             {
-                Debug.LogWarning(
-                    $"{p_view.name}에 " +
-                    $"{nameof(EquipmentSlotInteractionView)}가 없습니다.",
-                    p_view);
+                Debug.LogWarning($"{p_view.name}에 " + $"{nameof(EquipmentSlotInteractionView)}가 없습니다.", p_view);
             }
         }
 
         // HandleSlotChanged 이벤트를 받아 필요한 후속 처리를 수행한다.
         private void HandleSlotChanged(EquipmentSlot p_slot)
         {
-            if (!_slotViewDict.TryGetValue(
-                p_slot,
-                out EquipmentSlotView slotView))
+            if (!_slotViewDict.TryGetValue(p_slot, out EquipmentSlotView slotView))
             {
                 return;
             }
@@ -178,26 +160,14 @@ namespace Alpha.Player.Equipment
         }
 
         // 장비 슬롯 상태를 공용 ItemSlotViewData로 변환해 표시한다.
-        private void ApplySlotView(
-            EquipmentSlot p_slot,
-            EquipmentSlotView p_slotView)
+        private void ApplySlotView(EquipmentSlot p_slot, EquipmentSlotView p_slotView)
         {
             ItemDTO item = p_slot.Item;
 
             // 빈 슬롯과 장착 슬롯을 동일한 View 입력 구조로 만든다.
             ItemSlotViewData viewData = item == null
-                ? new ItemSlotViewData(
-                    true,
-                    EItemType.None,
-                    string.Empty,
-                    string.Empty,
-                    0)
-                : new ItemSlotViewData(
-                    false,
-                    item.ItemType,
-                    item.Name,
-                    item.IconKey,
-                    1);
+                ? new ItemSlotViewData(true, EItemType.None, string.Empty, string.Empty, 0)
+                : new ItemSlotViewData(false, item.ItemType, item.Name, item.IconKey, 1);
 
             p_slotView.Apply(viewData, _resourceLoader);
         }
@@ -214,15 +184,12 @@ namespace Alpha.Player.Equipment
             foreach (EquipmentSlotView slotView
                      in _slotViewDict.Values)
             {
-                slotView?
-                    .GetComponent<EquipmentSlotInteractionView>()?
-                    .Unbind();
+                slotView?.GetComponent<EquipmentSlotInteractionView>()?.Unbind();
             }
 
             _slotViewDict.Clear();
             _context = null;
             _resourceLoader = null;
-            _flow = null;
         }
 
         // 객체 해제 시 등록한 이벤트와 참조를 정리한다.

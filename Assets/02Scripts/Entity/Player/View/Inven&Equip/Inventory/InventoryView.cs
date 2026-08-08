@@ -4,13 +4,11 @@ using UnityEngine;
 
 namespace Alpha.Player.Inventory
 {
-    // Inventory UI의 대표 진입점이며 사용자 요청을 Flow로 전달한다.
+    // Inventory UI를 표시하고 사용자 요청을 외부 구독자에게 알린다.
     public class InventoryView : MonoBehaviour
     {
         private InventoryContext _context;
         private ResourceLoadSystem _resourceLoader;
-        private InventoryFlow _inventoryFlow;
-        private EquipmentFlow _equipmentFlow;
 
         [SerializeField] private GameObject _inventoryRoot;
 
@@ -23,6 +21,27 @@ namespace Alpha.Player.Inventory
         [Header("Item Group Views")]
         [SerializeField]
         private InventoryItemPageView[] _itemPageViews;
+
+
+        // 페이지 전환 요청을 외부 구독자에게 알린다.
+        public event Action<EItemType> OnPageRequested;
+
+        // 인벤토리 닫기 요청을 외부 구독자에게 알린다.
+        public event Action OnCloseRequested;
+
+        // 슬롯 추가 요청을 외부 구독자에게 알린다.
+        public event Action<EItemType, int> OnAddSlotRequested;
+
+        // 인벤토리 슬롯 이동 요청을 외부 구독자에게 알린다.
+        public event Action<int, int> OnTransferRequested;
+
+        // 자동 장착 요청을 외부 구독자에게 알린다.
+        public event Action<int, EquipmentSlot> OnEquipRequested;
+
+        // 지정 슬롯 장비 해제 요청을 외부 구독자에게 알린다.
+        public event Action<EquipmentSlot, int?> OnUnequipRequested;
+
+
 
         // 하위 화면을 수집해 카테고리와 아이템 페이지 목록으로 분류한다.
         private void Awake()
@@ -46,12 +65,10 @@ namespace Alpha.Player.Inventory
             _itemPageViews = GetComponentsInChildren<InventoryItemPageView>(true);
         }
 
-        // 인벤토리 상태·Flow와 각 아이템 페이지를 연결한다.
-        public bool Bind(InventoryContext p_context, ResourceLoadSystem p_resourceLoader,
-                         InventoryFlow p_inventoryFlow, EquipmentFlow p_equipmentFlow)
+        // 인벤토리 상태와 각 아이템 페이지를 연결한다.
+        public bool Bind(InventoryContext p_context,ResourceLoadSystem p_resourceLoader)
         {
-            if (p_context == null || p_resourceLoader == null ||
-                p_inventoryFlow == null || p_equipmentFlow == null)
+            if (p_context == null || p_resourceLoader == null)
             {
                 return false;
             }
@@ -64,8 +81,6 @@ namespace Alpha.Player.Inventory
 
             _context = p_context;
             _resourceLoader = p_resourceLoader;
-            _inventoryFlow = p_inventoryFlow;
-            _equipmentFlow = p_equipmentFlow;
 
             _context.OnSlotAdded += HandleSlotAdded;
 
@@ -116,37 +131,37 @@ namespace Alpha.Player.Inventory
                 return;
             }
 
-            _inventoryFlow.RequestOpenPage((EItemType)p_itemTypeValue);
+            OnPageRequested?.Invoke((EItemType)p_itemTypeValue);
         }
 
         // 인벤토리 닫기를 Flow에 요청한다.
         public void RequestCloseInventory()
         {
-            _inventoryFlow.RequestCloseInventory();
+            OnCloseRequested?.Invoke();
         }
 
-        // 더블 클릭한 인벤토리 아이템의 장착을 Flow에 요청한다.
-        internal EEquipmentChangeResult RequestEquip(int p_inventorySlotIndex)
+        // 더블 클릭한 인벤토리 아이템의 장착 요청을 발행한다.
+        internal void RequestEquip(int p_inventorySlotIndex)
         {
-            return _equipmentFlow.RequestEquip(p_inventorySlotIndex);
+            OnEquipRequested?.Invoke(p_inventorySlotIndex, null);
         }
 
         // 두 인벤토리 슬롯 사이의 이동을 Flow에 요청한다.
         internal void RequestTransfer(int p_sourceSlotIndex, int p_targetSlotIndex)
         {
-            _inventoryFlow.RequestTransferItem(p_sourceSlotIndex, p_targetSlotIndex);
+            OnTransferRequested?.Invoke(p_sourceSlotIndex, p_targetSlotIndex);
         }
 
-        // 장비 아이템을 지정 인벤토리 슬롯으로 해제하도록 요청한다.
-        internal EEquipmentChangeResult RequestUnequip(EquipmentSlot p_equipmentSlot, int p_targetInventorySlotIndex)
+        // 장비 아이템을 지정 인벤토리 슬롯으로 이동하는 요청을 발행한다.
+        internal void RequestUnequip(EquipmentSlot p_equipmentSlot, int p_targetInventorySlotIndex)
         {
-            return _equipmentFlow.RequestUnequip(p_equipmentSlot, p_targetInventorySlotIndex);
+            OnUnequipRequested?.Invoke(p_equipmentSlot, p_targetInventorySlotIndex);
         }
 
         // HandleAddSlotRequested 이벤트를 받아 필요한 후속 처리를 수행한다.
         private void HandleAddSlotRequested(EItemType p_itemType, int p_groupIndex)
         {
-            _inventoryFlow.RequestAddSlot(p_itemType, p_groupIndex);
+            OnAddSlotRequested?.Invoke(p_itemType, p_groupIndex);
         }
 
         // 새 슬롯을 같은 아이템 타입의 페이지에 즉시 추가한다.

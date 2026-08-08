@@ -1,50 +1,81 @@
+using Alpha.Item.Weapon;
+using Alpha.Item.Weapon.Melee;
 using UnityEngine;
 
 namespace Alpha.Player.Combat
 {
-    // 선택된 장비 무기로 교체하고 애니메이션 종료까지 대기한다.
+    // Pending 무기를 실제로 적용하고 교체 연출 완료까지 대기한다.
     public class WeaponSwapState : CombatStateBase
     {
         public override ECombatStateType Type => ECombatStateType.WeaponSwap;
-
-        // 전달받은 값으로 초기 상태를 구성한다.
-        public WeaponSwapState(PlayerCore p_core, CombatFlow p_flow) : base(p_core){}
-
         private const float SwapDuration = 0.25f;
 
         private float _remainingTime;
-        private bool _isSwapStarted;
 
-        // 상태 진입 시 필요한 값을 초기화하고 동작을 시작한다.
+
+        public WeaponSwapState(PlayerCore p_core, CombatFlow p_flow) : base(p_core){}
+
         protected override void Enter()
         {
-
-            // Swap 애니메이션
-            _Core.AnimationView?.PlayWeaponSwap();
-            _remainingTime = SwapDuration;
-        }
-
-        // 현재 상태의 입력과 전환 조건을 매 프레임 처리한다.
-        protected override void Tick()
-        {
-            if (!_isSwapStarted)
+            if (!_Context.HasPendingWeaponChange)
             {
                 TryChangeState(ECombatStateType.Idle);
                 return;
             }
 
+            WeaponDTO pendingWeapon = _Context.PendingWeapon;
+
+            // 실제 무기 생성 또는 해제를 먼저 실행한다.
+            if (!_Core.CombatModule.ApplyWeaponChange(pendingWeapon))
+            {
+                Debug.LogError("Pending 무기를 실제 무기로 적용하지 못했습니다.");
+
+                _Context.ClearPendingWeaponChange();
+                TryChangeState(ECombatStateType.Idle);
+                return;
+            }
+
+            ApplyWeaponAnimation();
+
+            // 적용 완료 후에만 Pending 요청을 제거한다.
+            _Context.ClearPendingWeaponChange();
+
+            _remainingTime = SwapDuration;
+            _Core.AnimationView?.PlayWeaponSwap();
+        }
+
+        protected override void Tick()
+        {
             _remainingTime -= Time.deltaTime;
 
             if (_remainingTime <= 0f)
                 TryChangeState(ECombatStateType.Idle);
         }
 
-        // 상태 종료 시 임시 값과 동작을 정리한다.
+        // 상태 종료 시 교체 연출의 임시 시간만 초기화한다.
         protected override void Exit()
         {
-            _isSwapStarted = false;
             _remainingTime = 0f;
-            _Context.ClearPendingWeapon();
+        }
+
+        // 현재 런타임 무기에 맞는 Player 애니메이터를 구성한다.
+        private void ApplyWeaponAnimation()
+        {
+            Weapon currentWeapon =
+                _Core.CombatModule.CurrentWeapon;
+
+            EWeaponType currentType =
+                currentWeapon?.Data?.WeaponType ??
+                EWeaponType.None;
+
+            _Core.AnimationView?
+                .ApplyWeaponOverrideController(currentType);
+
+            if (currentWeapon is MeleeWeapon meleeWeapon)
+            {
+                _Core.AnimationView?
+                    .ApplyMeleeWeapon(meleeWeapon.ComboClips);
+            }
         }
     }
 }

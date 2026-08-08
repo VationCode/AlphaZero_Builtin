@@ -1,17 +1,7 @@
-using UnityEngine;
-
-// Sniper 전용 동작을 확장하기 위한 현재 플레이스홀더다.
-public class Sniper : MonoBehaviour
+namespace Alpha.Item.Weapon.Range
 {
-    // 현재 초기화 로직은 없다.
-    void Start()
+    // RangeWeapon의 공통 행동을 사용하고 이후 줌 차이만 확장하는 Sniper 구현이다.
+    public class Sniper : RangeWeapon
     {
-        
-    }
-
-    // 현재 프레임 갱신 로직은 없다.
-    void Update()
-    {
-        
     }
 }

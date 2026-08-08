@@ -26,15 +26,22 @@ public class AlphaInputSystem : MonoBehaviour
     private int _flightFrame;
 
     // Combat
+    public int SwapNum { get; private set; }
+    public bool IsSwapInput => _swapFrame == Time.frameCount;
+    private int _swapFrame = -1;
+
     public bool IsPrimaryAction => _isPrimaryAction;
     private bool _isPrimaryAction;
+
+    public bool IsPrimaryActionPressed => _primaryActionPressedFrame == Time.frameCount;
+    private int _primaryActionPressedFrame = -1;
 
     public bool IsSecondaryAction => _isSecondaryAction;
     private bool _isSecondaryAction;
 
-    public int SwapNum { get; private set; }
-    public bool IsSwapInput => m_swapFrame == Time.frameCount;
-    private int m_swapFrame;
+    public bool IsSecondaryActionPressed =>
+        _secondaryActionPressedFrame == Time.frameCount;
+    private int _secondaryActionPressedFrame = -1;
 
     // Camera Test
     public bool IsQuarter => _isQuarter;
@@ -76,13 +83,13 @@ public class AlphaInputSystem : MonoBehaviour
         _action.Player.Flight.performed += i => _flightFrame = Time.frameCount;
 
         // Combat
-        _action.Player.PrimaryAction.performed += i => _isPrimaryAction = true;
-        _action.Player.PrimaryAction.canceled += i => _isPrimaryAction = false;
-
-        _action.Player.SecondaryAction.performed += i => _isSecondaryAction = true;
-        _action.Player.SecondaryAction.canceled += i => _isSecondaryAction = false;
-
         _action.Player.Swap.performed += OnSwap;
+
+        _action.Player.PrimaryAction.performed += OnPrimaryActionPerformed;
+        _action.Player.PrimaryAction.canceled += OnPrimaryActionCanceled;
+
+        _action.Player.SecondaryAction.performed += OnSecondaryActionPerformed;
+        _action.Player.SecondaryAction.canceled += OnSecondaryActionCanceled;
 
         // Camera
         _action.Camera.Look.performed += i => _lookInput = i.ReadValue<Vector2>();
@@ -110,6 +117,12 @@ public class AlphaInputSystem : MonoBehaviour
 
         // Method Group으로 직접 연결한 Callback은 명시적으로 구독 해제한다.
         _action.Player.Swap.performed -= OnSwap;
+
+        _action.Player.PrimaryAction.performed -= OnPrimaryActionPerformed;
+        _action.Player.PrimaryAction.canceled -= OnPrimaryActionCanceled;
+        _action.Player.SecondaryAction.performed -= OnSecondaryActionPerformed;
+        _action.Player.SecondaryAction.canceled -= OnSecondaryActionCanceled;
+
         _action.Camera.Quarter.performed -= OnQuarter;
 
         // 비활성화 중 이전 입력이 남지 않도록 지속 입력 상태를 초기화한다.
@@ -119,7 +132,9 @@ public class AlphaInputSystem : MonoBehaviour
         _isSecondaryAction = false;
         _isQuarter = false;
 
-        m_swapFrame = -1;
+        _swapFrame = -1;
+        _primaryActionPressedFrame = -1;
+        _secondaryActionPressedFrame = -1;
 
         // 생성한 Input Action Wrapper의 생명주기를 함께 종료한다.
         _action.Disable();
@@ -135,11 +150,34 @@ public class AlphaInputSystem : MonoBehaviour
         if (int.TryParse(key, out int number))
         {
             SwapNum = number - 1;
-            m_swapFrame = Time.frameCount;
+            _swapFrame = Time.frameCount;
         }
     }
 
+    // Primary 입력의 시작 Frame과 유지 상태를 함께 기록한다.
+    private void OnPrimaryActionPerformed(
+        InputAction.CallbackContext p_context)
+    {
+        _isPrimaryAction = true;
+        _primaryActionPressedFrame = Time.frameCount;
+    }
 
+    private void OnPrimaryActionCanceled(InputAction.CallbackContext p_context)
+    {
+        _isPrimaryAction = false;
+    }
+
+    // Secondary 입력의 시작 Frame과 유지 상태를 함께 기록한다.
+    private void OnSecondaryActionPerformed(InputAction.CallbackContext p_context)
+    {
+        _isSecondaryAction = true;
+        _secondaryActionPressedFrame = Time.frameCount;
+    }
+
+    private void OnSecondaryActionCanceled(InputAction.CallbackContext p_context)
+    {
+        _isSecondaryAction = false;
+    }
     // Quarter Camera 시험 입력마다 활성 상태를 전환한다.
     private void OnQuarter(InputAction.CallbackContext p_context)
     {

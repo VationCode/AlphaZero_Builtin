@@ -33,17 +33,11 @@ public class Installer : MonoBehaviour
     // Player에 외부 참조를 전달하고 상태 표시 UI 이벤트를 연결한다.
     private void Awake()
     {
-        _playerCore.Bind(
-            _input,
-            _cameraCore,
-            _mouseSystem,
-            _itemDatabase);
+        _playerCore.Bind(_input, _cameraCore, _mouseSystem, _itemDatabase, _resourceLoader);
 
-        _playerCore.LocomotionContext.OnStateChanged +=
-            _uiManager.StateUI.ChangeLocoState;
+        _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;
 
-        _playerCore.CombatContext.OnStateChanged +=
-            _uiManager.StateUI.ChangeCombatState;
+        _playerCore.CombatContext.OnStateChanged += _uiManager.StateUI.ChangeCombatState;
     }
 
     // 카메라 → 데이터 → 인벤토리·장비 View 순서로 비동기 초기화한다.
@@ -53,31 +47,83 @@ public class Installer : MonoBehaviour
         if (_cameraCore.Bind(_input))
         {
             _mouseSystem.Bind(_cameraCore.RenderCamera);
-            _cameraCore.RequestView(
-                ECameraViewType.ThirdPerson,
-                0f);
+            _cameraCore.RequestView(ECameraViewType.ThirdPerson, 0f);
             _mouseSystem.SetViewCursor(false);
         }
 
         // 아이템 데이터가 준비된 뒤 이를 사용하는 UI를 연결한다.
         await _itemDatabase.InitializeAsync();
 
-        _inventoryView.Bind(
-            _playerCore.InventoryContext,
-            _resourceLoader,
-            _playerCore.InventoryFlow,
-            _playerCore.EquipmentFlow);
+        _inventoryView.Bind(_playerCore.InventoryContext, _resourceLoader);
 
-        _equipmentView.Bind(
-            _playerCore.EquipmentContext,
-            _resourceLoader,
-            _playerCore.EquipmentFlow);
+        _equipmentView.Bind(_playerCore.EquipmentContext, _resourceLoader);
 
-        // 최초 화면 상태까지 한 번 적용한다.
+        // View 요청과 Flow를 연결한 뒤 최초 화면 상태를 적용한다.
+        ConnectViewRequests();
         ConnectInventoryState();
     }
 
-    // InventoryFlow 상태 변경을 UI와 마우스 커서에 연결한다.
+    // View가 발행한 사용자 요청을 담당 Flow에 직접 연결한다.
+    private void ConnectViewRequests()
+    {
+        InventoryFlow inventoryFlow = _playerCore.InventoryFlow;
+
+        EquipmentFlow equipmentFlow = _playerCore.EquipmentFlow;
+
+        // 재연결 시에도 같은 요청이 중복 실행되지 않도록 먼저 해제한다.
+        _inventoryView.OnPageRequested -= inventoryFlow.RequestOpenPage;
+        _inventoryView.OnPageRequested += inventoryFlow.RequestOpenPage;
+
+        _inventoryView.OnCloseRequested -= inventoryFlow.RequestCloseInventory;
+        _inventoryView.OnCloseRequested += inventoryFlow.RequestCloseInventory;
+
+        _inventoryView.OnAddSlotRequested -= inventoryFlow.RequestAddSlot;
+        _inventoryView.OnAddSlotRequested += inventoryFlow.RequestAddSlot;
+
+        _inventoryView.OnTransferRequested -= inventoryFlow.RequestTransferItem;
+        _inventoryView.OnTransferRequested += inventoryFlow.RequestTransferItem;
+
+        _inventoryView.OnEquipRequested -= equipmentFlow.RequestEquip;
+        _inventoryView.OnEquipRequested += equipmentFlow.RequestEquip;
+
+        _inventoryView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
+        _inventoryView.OnUnequipRequested += equipmentFlow.RequestUnequip;
+
+        _equipmentView.OnEquipRequested -= equipmentFlow.RequestEquip;
+        _equipmentView.OnEquipRequested += equipmentFlow.RequestEquip;
+
+        _equipmentView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
+        _equipmentView.OnUnequipRequested += equipmentFlow.RequestUnequip;
+    }
+
+    // 객체 해제 전에 View 요청과 Flow의 연결을 모두 해제한다.
+    private void DisconnectViewRequests()
+    {
+        if (_playerCore == null)
+            return;
+
+        InventoryFlow inventoryFlow = _playerCore.InventoryFlow;
+
+        EquipmentFlow equipmentFlow = _playerCore.EquipmentFlow;
+
+        if (_inventoryView != null)
+        {
+            _inventoryView.OnPageRequested -= inventoryFlow.RequestOpenPage;
+            _inventoryView.OnCloseRequested -= inventoryFlow.RequestCloseInventory;
+            _inventoryView.OnAddSlotRequested -= inventoryFlow.RequestAddSlot;
+            _inventoryView.OnTransferRequested -= inventoryFlow.RequestTransferItem;
+            _inventoryView.OnEquipRequested -= equipmentFlow.RequestEquip;
+            _inventoryView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
+        }
+
+        if (_equipmentView != null)
+        {
+            _equipmentView.OnEquipRequested -= equipmentFlow.RequestEquip;
+            _equipmentView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
+        }
+    }
+
+    // InventoryFlow 상태 변경을 UI, 커서, Combat 입력 차단에 연결한다.
     private void ConnectInventoryState()
     {
         InventoryFlow flow = _playerCore.InventoryFlow;
@@ -86,19 +132,16 @@ public class Installer : MonoBehaviour
         flow.OnViewStateChanged -= HandleInventoryStateChanged;
         flow.OnViewStateChanged += HandleInventoryStateChanged;
 
-        HandleInventoryStateChanged(
-            flow.IsOpen,
-            flow.CurrentWindow);
+        HandleInventoryStateChanged(flow.IsOpen, flow.CurrentWindow);
     }
 
-    // 인벤토리 화면 활성 상태와 UI 커서 모드를 함께 갱신한다.
-    private void HandleInventoryStateChanged(
-        bool p_isInventoryOpen,
-        EItemType p_pageType)
+    // 인벤토리 화면 활성 상태와 Player 입력 제약을 함께 갱신한다.
+    private void HandleInventoryStateChanged(bool p_isInventoryOpen, EItemType p_pageType)
     {
-        _inventoryView.ApplyViewState(
-            p_isInventoryOpen,
-            p_pageType);
+        // 인벤토리가 열려 있으면 Combat 입력을 차단한다.
+        _playerCore.SetCombatBlocked(p_isInventoryOpen);
+
+        _inventoryView.ApplyViewState(p_isInventoryOpen, p_pageType);
 
         _mouseSystem.SetUICursor(p_isInventoryOpen);
     }
@@ -106,10 +149,11 @@ public class Installer : MonoBehaviour
     // 객체 해제 시 등록한 이벤트와 참조를 정리한다.
     private void OnDestroy()
     {
+        DisconnectViewRequests();
+
         if (_playerCore?.InventoryFlow != null)
         {
-            _playerCore.InventoryFlow.OnViewStateChanged -=
-                HandleInventoryStateChanged;
+            _playerCore.InventoryFlow.OnViewStateChanged -= HandleInventoryStateChanged;
         }
     }
 }

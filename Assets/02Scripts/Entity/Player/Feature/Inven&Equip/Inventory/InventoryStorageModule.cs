@@ -11,6 +11,40 @@ namespace Alpha.Player.Inventory
             _context = p_context;
         }
 
+        // 같은 아이템의 남은 Stack과 빈 슬롯 순서로 보관 대상을 찾는다.
+        public bool TryGetTargetSlot(ItemDTO p_item, out InventorySlot p_targetSlot)
+        {
+            p_targetSlot = null;
+
+            if (p_item == null ||
+                !_context.TryGetSlotList(p_item.ItemType, out var slotList))
+            {
+                return false;
+            }
+
+            foreach (InventorySlot slot in slotList)
+            {
+                if (!slot.IsEmpty &&
+                    slot.IsSameItem(p_item) &&
+                    slot.GetAddableCount(p_item) >= 1)
+                {
+                    p_targetSlot = slot;
+                    return true;
+                }
+            }
+
+            foreach (InventorySlot slot in slotList)
+            {
+                if (slot.IsEmpty && slot.GetAddableCount(p_item) >= 1)
+                {
+                    p_targetSlot = slot;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // AddItem 대상을 가능한 범위만큼 추가한다.
         public int AddItem(ItemDTO p_item, int p_count)
         {

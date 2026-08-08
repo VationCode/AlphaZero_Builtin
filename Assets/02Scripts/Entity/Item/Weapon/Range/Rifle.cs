@@ -1,17 +1,7 @@
-using UnityEngine;
-
-// Rifle 전용 동작을 확장하기 위한 현재 플레이스홀더다.
-public class Rifle : MonoBehaviour
+namespace Alpha.Item.Weapon.Range
 {
-    // 현재 초기화 로직은 없다.
-    void Start()
+    // RangeWeapon의 공통 발사와 조준 행동을 사용하는 Rifle 구현이다.
+    public class Rifle : RangeWeapon
     {
-        
-    }
-
-    // 현재 프레임 갱신 로직은 없다.
-    void Update()
-    {
-        
     }
 }
