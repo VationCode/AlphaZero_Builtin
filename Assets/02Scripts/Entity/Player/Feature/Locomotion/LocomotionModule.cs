@@ -14,6 +14,7 @@ namespace Alpha.Player.Locomotion
         private LocomotionRotationModule _rotationModule;
         private LocomotionContext _context;
         private readonly RootMotionModule _rootMotionModule = new();
+        private bool _isInputLocked;
 
 
         [Header("Jump")]
@@ -47,6 +48,7 @@ namespace Alpha.Player.Locomotion
         public float LandDuration => _landDuration;
         public float DashDuration => _dashDuration;
         public bool UsesRootMotion => _rootMotionModule.IsActive;
+        public bool BlocksInput => UsesRootMotion || _isInputLocked;
 
 
         public bool IsGrounded { get; private set; }
@@ -112,7 +114,7 @@ namespace Alpha.Player.Locomotion
             return _rootMotionModule.Begin(p_mode);
         }
 
-        // 현재 Root Motion 행동을 종료하고 입력 이동을 다시 허용한다.
+        // 현재 Root Motion 행동을 종료한다.
         public void EndRootMotion()
         {
             _rootMotionModule.End();
@@ -123,6 +125,20 @@ namespace Alpha.Player.Locomotion
         {
             _rootMotionModule.Apply(p_deltaPosition, VerticalVelocity);
         }
+
+        // Root Motion을 사용하지 않는 행동이 이동 입력을 잠근다.
+        public void BeginInputLock()
+        {
+            _isInputLocked = true;
+        }
+
+        // 현재 행동이 소유한 이동 입력 잠금을 해제한다.
+        public void EndInputLock()
+        {
+            _isInputLocked = false;
+        }
+
+
 
         #endregion ======================================== /Movement
 

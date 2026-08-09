@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ARPG_Samurai_Sprint_IPC - Walk2
+  m_Name: Melee_Walk
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0

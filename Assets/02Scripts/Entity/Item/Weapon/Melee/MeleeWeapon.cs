@@ -14,7 +14,7 @@ namespace Alpha.Item.Weapon.Melee
 
         [Header("Combo")]
         [SerializeField]
-        private EWeaponInputMode _primaryInputMode = EWeaponInputMode.Semi;
+        private EWeaponInputMode _primaryInputMode = EWeaponInputMode.Auto;
 
         [FormerlySerializedAs("_comboTransitionTime")]
         [SerializeField, Range(0.1f, 0.95f)]

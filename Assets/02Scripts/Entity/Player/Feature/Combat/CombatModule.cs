@@ -1,19 +1,23 @@
 using UnityEngine;
 using Alpha.Item.Weapon;
+using Alpha.Item.Weapon.Range;
 
 namespace Alpha.Player.Combat
 {
-    /// <summary>
-    /// Player Combat 기능을 하나의 진입점으로 조합한다.
-    /// 외부에서는 세부 Combat Module을 직접 사용하지 않는다.
-    /// </summary>
     [RequireComponent(typeof(WeaponSwapModule))]
-    public class CombatModule : MonoBehaviour
+    [RequireComponent(typeof(RangeAimModule))]
+    public class CombatModule : MonoBehaviour, IRangeAttackSource
     {
+        private PlayerCore _core;
         private WeaponSwapModule _weaponSwapModule;
+        private RangeAimModule _rangeAimModule;
+        private RangeWeapon _activeRangeSecondaryWeapon;
+
+        public Transform Attacker => _core?.PlayerTr;
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
+        public RangeWeapon CurrentRangeWeapon => CurrentWeapon as RangeWeapon;
         public bool HasWeapon => CurrentWeapon != null;
 
         public EWeaponActionType ActiveActionType =>
@@ -22,9 +26,17 @@ namespace Alpha.Player.Combat
         public bool HasActiveAction =>
             CurrentWeapon != null && CurrentWeapon.HasActiveAction;
 
+        public RangeWeapon ActiveRangeSecondaryWeapon =>
+            _activeRangeSecondaryWeapon;
+
+        public bool HasActiveRangeSecondary =>
+            _activeRangeSecondaryWeapon != null &&
+            _activeRangeSecondaryWeapon.IsSecondaryActive;
+
         private void Awake()
         {
             _weaponSwapModule = GetComponent<WeaponSwapModule>();
+            _rangeAimModule = GetComponent<RangeAimModule>();
         }
 
         // Player 전투 기능과 런타임 무기 생성 의존성을 연결한다.
@@ -32,12 +44,16 @@ namespace Alpha.Player.Combat
         {
             if (p_core == null ||
                 _weaponSwapModule == null ||
-                !_weaponSwapModule.Bind(p_core.ResourceLoader))
+                _rangeAimModule == null ||
+                !_weaponSwapModule.Bind(p_core.ResourceLoader) ||
+                !_rangeAimModule.Bind(p_core))
             {
                 Debug.LogError($"{nameof(CombatModule)}의 참조가 설정되지 않았습니다.", this);
+
                 return false;
             }
 
+            _core = p_core;
             return true;
         }
 
@@ -46,8 +62,23 @@ namespace Alpha.Player.Combat
         public bool ApplyWeaponChange(WeaponDTO p_weapon)
         {
             // 기존 무기가 교체되기 전에 진행 중인 행동을 정리한다.
+            CancelRangeSecondary();
             CancelWeaponAction();
-            return _weaponSwapModule.Apply(p_weapon);
+
+            if (!_weaponSwapModule.Apply(p_weapon))
+                return false;
+
+            RangeWeapon rangeWeapon = CurrentRangeWeapon;
+
+            if (rangeWeapon == null)
+                return true;
+
+            if (rangeWeapon.BindAttackSource(this))
+                return true;
+
+            // 잘못 구성된 Range 무기는 장착 상태로 남기지 않는다.
+            _weaponSwapModule.Apply(null);
+            return false;
         }
 
         #endregion ============================== /Weapon Swap
@@ -76,6 +107,57 @@ namespace Alpha.Player.Combat
         {
             CurrentWeapon?.CancelAction();
         }
+
+        public bool TryGetAttackDirection(
+            Vector3 p_origin,
+            float p_maxDistance,
+            out Vector3 p_direction)
+        {
+            if (_rangeAimModule == null)
+            {
+                p_direction = Vector3.zero;
+                return false;
+            }
+
+            return _rangeAimModule.TryResolveDirection(
+                p_origin,
+                p_maxDistance,
+                out p_direction);
+        }
         #endregion ============================== /CombatAction
+
+        #region ============================== Range Secondary
+        public bool BeginRangeSecondary()
+        {
+            RangeWeapon rangeWeapon = CurrentRangeWeapon;
+
+            if (rangeWeapon == null ||
+                _activeRangeSecondaryWeapon != null ||
+                !rangeWeapon.BeginSecondary())
+            {
+                return false;
+            }
+
+            _activeRangeSecondaryWeapon = rangeWeapon;
+            return true;
+        }
+
+        public void TickRangeSecondary(float p_deltaTime)
+        {
+            _activeRangeSecondaryWeapon?.TickSecondary(p_deltaTime);
+        }
+
+        public void EndRangeSecondary()
+        {
+            _activeRangeSecondaryWeapon?.EndSecondary();
+            _activeRangeSecondaryWeapon = null;
+        }
+
+        public void CancelRangeSecondary()
+        {
+            _activeRangeSecondaryWeapon?.CancelSecondary();
+            _activeRangeSecondaryWeapon = null;
+        }
+        #endregion ============================== /Range Secondary
     }
 }

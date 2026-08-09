@@ -22,3 +22,4 @@ MonoBehaviour:
   _zoomStep: 0.5
   _fieldOfView: 40
   _rigFollowSpeed: 10
+  _lookSensitivityMultiplier: 0.045

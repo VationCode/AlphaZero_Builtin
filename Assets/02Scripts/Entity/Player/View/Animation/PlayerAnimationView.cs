@@ -27,6 +27,9 @@ namespace Alpha.Player.Animation
         [SerializeField]
         private AnimationClip[] _meleeComboSlots;
 
+        [SerializeField]
+        private AnimationClip _meleeGuardSlot;
+
         [Header("Melee Layer Blend")]
         [SerializeField, Min(0f)]
         private float _meleeLayerEnterDuration = 0.05f;
@@ -89,6 +92,9 @@ namespace Alpha.Player.Animation
             Animator.StringToHash("Weapon FullBody Layer.Combo3")
         };
 
+        private static readonly int MeleeGuardState =
+            Animator.StringToHash("Weapon FullBody Layer.Guard");
+
         private int _isSprint = Animator.StringToHash("IsSprint");
         private int _isIncombat = Animator.StringToHash("IsInCombat");
         private int _isGround = Animator.StringToHash("IsGround");
@@ -97,6 +103,13 @@ namespace Alpha.Player.Animation
         private readonly int _swap = Animator.StringToHash("Swap");
         private const string WeaponUpperBodyLayerName = "Weapon UpperBody Layer";
         private int _weaponUpperBodyLayerIndex = -1;
+        private bool _isRangeAiming;
+
+        private static readonly int WeaponUpperBodyNoneState =
+            Animator.StringToHash("Weapon UpperBody Layer.None");
+
+        private static readonly int RangeAimingState =
+            Animator.StringToHash("Weapon UpperBody Layer.Aiming");
 
         private Transform _playerTr;
 
@@ -139,6 +152,12 @@ namespace Alpha.Player.Animation
         private void Update()
         {
             UpdateMeleeLayerBlend();
+        }
+
+        // Animator 평가 중 다른 전환이 Aiming을 덮은 경우 원하는 상체 상태를 복구한다.
+        private void LateUpdate()
+        {
+            SynchronizeRangeAimingState();
         }
 
         // Animator 평가가 끝난 프레임 이동량을 실제 이동 Module에 전달한다.
@@ -277,15 +296,18 @@ namespace Alpha.Player.Animation
                     _meleeOverrideController.overridesCount);
         }
 
-        // 현재 Melee Prefab의 콤보 클립만 Player 전용 Controller에 적용한다.
+        // 현재 Melee Prefab의 콤보와 가드 클립을 Player 전용 Controller에 적용한다.
         public bool ApplyMeleeWeapon(
-            IReadOnlyList<AnimationClip> p_comboClips)
+            IReadOnlyList<AnimationClip> p_comboClips,
+            AnimationClip p_guardClip)
         {
             if (_anim == null ||
                 _runtimeMeleeController == null ||
                 _meleeOverrides == null ||
                 _meleeComboSlots == null ||
-                p_comboClips == null)
+                _meleeGuardSlot == null ||
+                p_comboClips == null ||
+                p_guardClip == null)
             {
                 return false;
             }
@@ -317,7 +339,18 @@ namespace Alpha.Player.Animation
                 }
             }
 
-            // 여러 콤보 슬롯을 한 번에 변경해 Clip Binding 갱신을 한 번만 수행한다.
+            if (!ReplaceOverride(
+                    _meleeOverrides,
+                    _meleeGuardSlot,
+                    p_guardClip))
+            {
+                Debug.LogError(
+                    $"Melee Guard 원본 슬롯을 찾을 수 없습니다: {_meleeGuardSlot.name}",
+                    this);
+                return false;
+            }
+
+            // 모든 행동 슬롯을 한 번에 변경해 Clip Binding 갱신을 한 번만 수행한다.
             _runtimeMeleeController.ApplyOverrides(_meleeOverrides);
             _anim.runtimeAnimatorController = _runtimeMeleeController;
 
@@ -352,6 +385,9 @@ namespace Alpha.Player.Animation
         {
             _weaponUpperBodyLayerIndex =
                 _anim.GetLayerIndex(WeaponUpperBodyLayerName);
+
+            // Controller 교체는 Animator State를 초기화하므로 View 캐시도 함께 초기화한다.
+            _isRangeAiming = false;
 
             _meleeFullBodyLayerIndex =
                 _anim.GetLayerIndex(MeleeFullBodyLayerName);
@@ -423,6 +459,82 @@ namespace Alpha.Player.Animation
             _anim.SetTrigger(_swap);
         }
 
+        // Range 조준 여부에 따라 상체 Aiming과 빈 상태를 전환한다.
+        public void SetRangeAiming(bool p_isAiming)
+        {
+            if (_anim == null ||
+                _weaponUpperBodyLayerIndex < 0)
+            {
+                return;
+            }
+
+            int targetState = p_isAiming
+                ? RangeAimingState
+                : WeaponUpperBodyNoneState;
+
+            if (!_anim.HasState(_weaponUpperBodyLayerIndex, targetState))
+            {
+                Debug.LogError(
+                    $"Weapon UpperBody 상태를 찾을 수 없습니다: " +
+                    $"{(p_isAiming ? "Aiming" : "None")}",
+                    this);
+                return;
+            }
+
+            if (_isRangeAiming == p_isAiming &&
+                IsWeaponUpperBodyStateActive(targetState))
+            {
+                return;
+            }
+
+            // 같은 요청도 현재 Controller의 상태를 기준으로 다시 동기화한다.
+            _isRangeAiming = p_isAiming;
+            _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+            _anim.CrossFadeInFixedTime(
+                targetState,
+                0.1f,
+                _weaponUpperBodyLayerIndex,
+                0f);
+        }
+
+        // 우클릭 유지 중에는 실제 Layer가 Aiming을 벗어나도 다음 프레임에 복구한다.
+        private void SynchronizeRangeAimingState()
+        {
+            if (!_isRangeAiming ||
+                _anim == null ||
+                _weaponUpperBodyLayerIndex < 0 ||
+                !_anim.HasState(_weaponUpperBodyLayerIndex, RangeAimingState) ||
+                IsWeaponUpperBodyStateActive(RangeAimingState))
+            {
+                return;
+            }
+
+            _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+            _anim.CrossFadeInFixedTime(
+                RangeAimingState,
+                0.05f,
+                _weaponUpperBodyLayerIndex,
+                0f);
+        }
+
+        // 현재 상태 또는 전환 목적지가 요청한 상체 상태인지 확인한다.
+        private bool IsWeaponUpperBodyStateActive(int p_stateHash)
+        {
+            AnimatorStateInfo currentState =
+                _anim.GetCurrentAnimatorStateInfo(_weaponUpperBodyLayerIndex);
+
+            if (currentState.fullPathHash == p_stateHash)
+                return true;
+
+            if (!_anim.IsInTransition(_weaponUpperBodyLayerIndex))
+                return false;
+
+            AnimatorStateInfo nextState =
+                _anim.GetNextAnimatorStateInfo(_weaponUpperBodyLayerIndex);
+
+            return nextState.fullPathHash == p_stateHash;
+        }
+
         // 지정한 콤보 순서의 전신 공격 애니메이션을 재생한다.
         public void PlayMeleeCombo(int p_comboIndex)
         {
@@ -435,6 +547,19 @@ namespace Alpha.Player.Animation
             BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);
 
             _anim.CrossFadeInFixedTime(MeleeComboStates[p_comboIndex], 0.05f, _meleeFullBodyLayerIndex);
+        }
+
+        // 우클릭을 유지하는 동안 반복할 근접 가드 애니메이션을 재생한다.
+        public void PlayMeleeGuard()
+        {
+            if (_anim == null || _meleeFullBodyLayerIndex < 0)
+                return;
+
+            BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);
+            _anim.CrossFadeInFixedTime(
+                MeleeGuardState,
+                0.05f,
+                _meleeFullBodyLayerIndex);
         }
 
         // 근접 공격 표현을 끝내고 이동 애니메이션을 다시 노출한다.

@@ -1,5 +1,6 @@
 using Alpha.Item.Weapon;
 using Alpha.Item.Weapon.Melee;
+using Alpha.Item.Weapon.Range;
 using Alpha.Player.Equipment;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,6 +20,9 @@ namespace Alpha.Player.Combat
     {
         private PlayerCore _core;
         private readonly Dictionary<ECombatStateType, CombatStateBase> _stateDict = new();
+
+        private ECameraViewType _secondaryReturnView;
+        private bool _hasSecondaryReturnView;
 
         public CombatStateBase CurrentState { get; private set; }
 
@@ -56,7 +60,7 @@ namespace Alpha.Player.Combat
                 return;
 
             TickFlow();
-            //UpdateAimState();
+            UpdateRangeSecondary();
         }
 
         // State 타입 중복 없이 Flow Dictionary에 등록한다.
@@ -84,6 +88,7 @@ namespace Alpha.Player.Combat
         // 현재 State를 종료하고 활성 상태를 비운다.
         internal void ExitFlow()
         {
+            CancelRangeSecondary();
             CurrentState?.ExitState();
             CurrentState = null;
         }
@@ -96,6 +101,10 @@ namespace Alpha.Player.Combat
 
             if (ReferenceEquals(CurrentState, nextState))
                 return false;
+
+            // 무기 교체가 현재 Range Secondary보다 먼저 기존 표현을 정리한다.
+            if (p_nextState == ECombatStateType.WeaponSwap)
+                CancelRangeSecondary();
 
             // 같은 State로의 중복 전환은 막고 기존 State를 먼저 종료한다.
             CurrentState?.ExitState();
@@ -209,9 +218,15 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
-            // 지상 Root Motion을 사용하는 근접 공격은 Ground Move에서만 시작한다.
-            if (p_actionType == EWeaponActionType.Primary &&
-                _core.CombatModule.CurrentWeapon is MeleeWeapon &&
+            // Range Secondary는 Primary와 동시에 유지되므로 별도 흐름이 처리한다.
+            if (p_actionType == EWeaponActionType.Secondary &&
+                _core.CombatModule.CurrentRangeWeapon != null)
+            {
+                return false;
+            }
+
+            // 근접 전신 행동은 지상 Move 상태에서만 시작한다.
+            if (_core.CombatModule.CurrentWeapon is MeleeWeapon &&
                 (_core.LocomotionContext.CurrentMode != ELocomotionMode.Ground ||
                  _core.LocomotionContext.CurrentState != ELocoStateType.Move))
             {
@@ -223,5 +238,136 @@ namespace Alpha.Player.Combat
         }
 
         #endregion ============================== /Weapon Action
+
+        #region ============================== Range Secondary
+        // 우클릭의 시작·유지·해제를 배타적인 WeaponAction과 별도로 처리한다.
+        private void UpdateRangeSecondary()
+        {
+            CombatModule module = _core.CombatModule;
+            RangeWeapon currentRangeWeapon = module.CurrentRangeWeapon;
+
+            bool canUseSecondary =
+                _core.Input != null &&
+                !_core.BlockCombat &&
+                CurrentState?.Type != ECombatStateType.WeaponSwap &&
+                currentRangeWeapon != null;
+
+            if (module.HasActiveRangeSecondary)
+            {
+                if (!canUseSecondary ||
+                    currentRangeWeapon != module.ActiveRangeSecondaryWeapon)
+                {
+                    CancelRangeSecondary();
+                    return;
+                }
+
+                if (!_core.Input.IsSecondaryAction)
+                {
+                    EndRangeSecondary();
+                    return;
+                }
+
+                module.TickRangeSecondary(Time.deltaTime);
+                return;
+            }
+
+            if (!canUseSecondary ||
+                !_core.Input.IsSecondaryAction ||
+                !module.BeginRangeSecondary())
+            {
+                return;
+            }
+
+            BeginRangeSecondaryPresentation(currentRangeWeapon);
+        }
+
+        private void BeginRangeSecondaryPresentation(RangeWeapon p_rangeWeapon)
+        {
+            SetRangeAiming(true);
+
+            if (_core.CameraCore == null ||
+                !TryResolveSecondaryView(p_rangeWeapon.SecondaryView, out ECameraViewType targetView))
+            {
+                return;
+            }
+
+            // 전환 이 완료되면 targetView로 그렇지 않으면 이전뷰 가지고 있는 상태
+            ECameraViewType effectiveView = _core.CameraCore.Context.EffectiveViewType;
+
+            // 우클릭 해제 시 저장한 이전뷰로 전환
+            if (effectiveView != targetView)
+            {
+                _secondaryReturnView = effectiveView;
+                _hasSecondaryReturnView = true;
+            }
+
+            // 전환 중이어도 최신 목표를 전달한다.
+            _core.CameraCore.RequestView(targetView);
+        }
+
+        // 정상 해제는 Charging 결과를 실행한 뒤 Player 표현을 복구한다.
+        private void EndRangeSecondary()
+        {
+            _core.CombatModule.EndRangeSecondary();
+            EndRangeSecondaryPresentation();
+        }
+
+        // 전투 차단과 무기 교체에서는 Charging 결과 없이 정리한다.
+        private void CancelRangeSecondary()
+        {
+            if (_core == null || _core.CombatModule == null)
+                return;
+
+            _core.CombatModule.CancelRangeSecondary();
+            EndRangeSecondaryPresentation();
+        }
+
+        private void EndRangeSecondaryPresentation()
+        {
+            SetRangeAiming(false);
+
+            if (_hasSecondaryReturnView && _core.CameraCore != null)
+            {
+                _core.CameraCore.RequestView(_secondaryReturnView);
+            }
+
+            _hasSecondaryReturnView = false;
+        }
+
+        // CombatContext를 단일 조준 상태로 사용하고 View는 표현만 갱신한다.
+        // Item의 View 설정을 실제 Camera Entity의 ViewType으로 변환한다.
+        private static bool TryResolveSecondaryView(
+            ERangeSecondaryView p_secondaryView,
+            out ECameraViewType p_cameraView)
+        {
+            switch (p_secondaryView)
+            {
+                case ERangeSecondaryView.Aim:
+                    p_cameraView = ECameraViewType.Aim;
+                    return true;
+
+                case ERangeSecondaryView.Scope:
+                    p_cameraView = ECameraViewType.Scope;
+                    return true;
+
+                default:
+                    p_cameraView = default;
+                    return false;
+            }
+        }
+
+        private void SetRangeAiming(bool p_isAiming)
+        {
+            CombatContext context = _core.CombatContext;
+
+            if (context.IsAiming != p_isAiming)
+                context.SetAiming(p_isAiming);
+
+            if (!p_isAiming)
+                context.ClearAimDirection();
+
+            _core.AnimationView?.SetRangeAiming(p_isAiming);
+        }
+        #endregion ============================== /Range Secondary
     }
 }

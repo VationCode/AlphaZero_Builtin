@@ -22,9 +22,9 @@ namespace Alpha.Player.Locomotion
         // 현재 상태의 입력과 전환 조건을 매 프레임 처리한다.
         protected override void Tick()
         {
-            if (_Core.LocomotionModule.UsesRootMotion)
+            if (_Core.LocomotionModule.BlocksInput)
             {
-                // 공격 중에는 입력 이동을 멈추고 Base Layer가 Idle을 준비하게 한다.
+                // 행동 중에는 입력 이동을 멈추고 Base Layer가 Idle을 준비하게 한다.
                 _Core.AnimationView.PlayGroundLocomotion(
                     Vector2.zero,
                     false,

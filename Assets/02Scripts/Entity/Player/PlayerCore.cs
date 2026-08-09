@@ -47,6 +47,7 @@ namespace Alpha.Player
 
         #region ========== View
         public PlayerAnimationView AnimationView { get; private set; }
+        public PlayerScopeView ScopeView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
 
         #endregion
@@ -92,6 +93,7 @@ namespace Alpha.Player
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
+            ScopeView = GetComponent<PlayerScopeView>();
 
             PlayerTr = this.transform;
         }
@@ -128,6 +130,7 @@ namespace Alpha.Player
             ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
 
             AnimationView.Bind(PlayerTr);
+            ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
             AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
 
@@ -147,6 +150,8 @@ namespace Alpha.Player
 
             if (AnimationView != null && LocomotionModule != null)
                 AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
+
+            ScopeView?.Unbind();
         }
     }
 }

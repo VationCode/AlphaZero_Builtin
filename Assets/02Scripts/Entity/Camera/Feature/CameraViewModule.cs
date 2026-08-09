@@ -36,13 +36,14 @@ namespace Alpha.AlphaCamera
         [Header("Profile")]
         [SerializeField] private CameraViewSO[] _viewProfiles;
 
+        [Header("Transition")]
+        [SerializeField, Min(0f)] private float _defaultTransitionDuration = 0.2f;
+        [SerializeField] private CameraViewTransitionSetting[] _transitionSettings;
+
         [Header("Rotation")]
-        [SerializeField] private float _sensitivity = 0.06f;
+        [SerializeField] private float _baseSensitivity = 0.06f;
         [SerializeField] private float _minPitch = -60f;
         [SerializeField] private float _maxPitch = 60f;
-
-        public float QuarterTransitionDuration => _quarterTransitionDuration;
-        [SerializeField, Min(0f)] private float _quarterTransitionDuration = 1f;
 
 
         // View 검색용
@@ -62,7 +63,6 @@ namespace Alpha.AlphaCamera
         private CameraTransitionPose _transitionStart;
         private Quaternion _targetPivotRotation;
 
-        public bool IsTransitioning { get; private set; }
         public bool IsInitialized { get; private set; }
 
         // Rig 참조를 확인하고 ViewType별 Profile 검색 캐시를 구성한다.
@@ -123,7 +123,7 @@ namespace Alpha.AlphaCamera
         }
 
         // 현재 실제 Transform을 시작값으로 저장하고 목표 Profile을 준비한다.
-        public bool TryBeginViewTransition(ECameraViewType p_viewType, float p_transitionDuration)
+        public bool TryBeginViewTransition(ECameraViewType p_viewType)
         {
             if (!IsInitialized || !_viewProfileDict.TryGetValue(p_viewType, out CameraViewSO profile))
             {
@@ -145,11 +145,41 @@ namespace Alpha.AlphaCamera
             _targetPivotRotation = 
                 preserveDirection? _transitionStart.PivotRotation : Quaternion.Euler(profile.PivotEulerAngles);
 
+            // 재전환 전에 기존 목표를 기준으로 타입별 시간을 결정한다.
+            _transitionDuration = ResolveTransitionDuration(p_viewType);
             _targetView = profile;
-            _transitionDuration = p_transitionDuration;
             _transitionElapsedTime = 0f;
 
             return true;
+        }
+
+        // 현재 View와 목표 View 조합에 맞는 전환 시간을 선택한다.
+        private float ResolveTransitionDuration(ECameraViewType p_targetViewType)
+        {
+            CameraViewSO fromView = _targetView != null
+                ? _targetView
+                : _currentView;
+
+            if (fromView == null)
+                return 0f;
+
+            ECameraViewType fromViewType = fromView.ViewType;
+
+            // 명시적인 From → To 설정을 우선한다.
+            foreach (CameraViewTransitionSetting setting in _transitionSettings)
+            {
+                if (setting.IsDirectMatch(fromViewType, p_targetViewType))
+                    return setting.Duration;
+            }
+
+            // 양방향 설정이면 To → From도 허용한다.
+            foreach (CameraViewTransitionSetting setting in _transitionSettings)
+            {
+                if (setting.IsReverseMatch(fromViewType, p_targetViewType))
+                    return setting.Duration;
+            }
+
+            return _defaultTransitionDuration;
         }
 
         // 경과 시간에 따라 View를 보간하고 완료 여부를 반환한다.
@@ -234,8 +264,13 @@ namespace Alpha.AlphaCamera
         // Look 입력을 누적 Yaw·Pitch로 변환하고 Pitch 범위를 제한한다.
         public void UpdateRotation(Vector2 p_lookInput, CameraContext p_context)
         {
-            float yaw = p_context.Yaw + p_lookInput.x * _sensitivity;
-            float pitch = p_context.Pitch - (p_lookInput.y * _sensitivity);
+            if (_currentView == null)
+                return;
+
+            float sensitivity = _baseSensitivity * _currentView.LookSensitivityMultiplier;
+
+            float yaw = p_context.Yaw + p_lookInput.x * sensitivity;
+            float pitch = p_context.Pitch - (p_lookInput.y * sensitivity);
 
             pitch = Mathf.Clamp(pitch, _minPitch, _maxPitch);
 

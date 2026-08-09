@@ -52,7 +52,7 @@ namespace Alpha.Player.Locomotion
             _core.LocomotionModule.UpdateEnvironment(gravityScale);
 
             // Mode 전환
-            if (!_core.LocomotionModule.UsesRootMotion &&
+            if (!_core.LocomotionModule.BlocksInput &&
                 _currentStateFlow.CanChangeMode(
                     out ELocomotionMode nextMode,
                     out ELocoStateType entryState))

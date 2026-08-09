@@ -11,7 +11,6 @@ namespace Alpha.AlphaCamera
 
         private CameraViewModule _viewModule;
 
-        private bool _isTransitionRequested;
         public CameraContext Context => _context;
         // CameraCore 요청 이벤트와 입력·Context·Module을 연결한다.
         public void Bind(CameraCore p_core, CameraViewModule p_viewModule, AlphaInputSystem p_input)
@@ -26,16 +25,16 @@ namespace Alpha.AlphaCamera
         }
 
         // 외부 View 요청을 검증과 전환 준비 단계로 전달한다.
-        private void HandleViewRequested(ECameraViewType p_viewType, float p_transitionDuration)
+        private void HandleViewRequested(ECameraViewType p_viewType)
         {
-            TryPrepareViewTransition(p_viewType, p_transitionDuration);
+            TryPrepareViewTransition(p_viewType);
         }
 
         // 전환·회전·줌 처리 후 Rig가 Target을 따라가도록 갱신한다.
         private void LateUpdate()
         {
             // 전환 중에는 회전·줌 입력을 잠그고 보간만 진행한다.
-            if (_isTransitionRequested)
+            if (_context.IsTransitioning)
             {
                 UpdateViewTransition();
             }
@@ -54,40 +53,38 @@ namespace Alpha.AlphaCamera
         }
 
         // 전환 가능 여부 검증 및 설정
-        private bool TryPrepareViewTransition(ECameraViewType p_targetViewType, float p_requestedDuration)
+        private bool TryPrepareViewTransition(ECameraViewType p_targetViewType)
         {
-            // 실제 전환 시간 결정
-            float transitionDuration = ResolveTransitionDuration(p_targetViewType, p_requestedDuration);
-
-            if (!CanChangeView(p_targetViewType, transitionDuration))
+            if (!CanChangeView(p_targetViewType))
             {
-                Debug.LogWarning($"Cannot change view to {p_targetViewType} with duration {transitionDuration}");
+                Debug.LogWarning($"Cannot change view to {p_targetViewType}");
                 return false;
             }
+
+            // 재전환 중에는 기존 목표 View를 새로운 출발 타입으로 사용한다.
+            ECameraViewType fromViewType = _context.EffectiveViewType;
 
             // Module에 시작값과 목표값 설정
-            if (!_viewModule.TryBeginViewTransition(p_targetViewType, transitionDuration))
+            if (!_viewModule.TryBeginViewTransition(p_targetViewType))
             {
                 return false;
             }
 
-            // LateUpdate 실행 상태 활성화
-            _isTransitionRequested = true;
+            _context.BeginTransition(fromViewType, p_targetViewType);
+            _core.NotifyViewTransitionStarted(fromViewType, p_targetViewType);
 
             return true;
         }
 
-        // 시간·중복 요청·Profile 존재 여부와 현재 View를 검사한다.
-        private bool CanChangeView(ECameraViewType p_targetViewType, float p_transitionDuration)
+        // 중복 요청·Profile 존재 여부와 현재 View를 검사한다.
+        private bool CanChangeView(ECameraViewType p_targetViewType)
         {
-            if (p_transitionDuration < 0f)
-                return false;
-
-            if (_isTransitionRequested)
-                return false; ;
-
             if (!_viewModule.HasViewProfile(p_targetViewType))
                 return false;
+
+            // 같은 목표만 중복 차단하고 반대 방향 요청은 허용한다.
+            if (_context.IsTransitioning)
+                return _context.TargetViewType != p_targetViewType;
 
             // 최초 View 요청은 CurrentView가 없으므로 허용한다.
             if (_viewModule.CurrentView == null)
@@ -107,8 +104,8 @@ namespace Alpha.AlphaCamera
             CameraViewSO currentView = _viewModule.CurrentView;
             ECameraViewType previousViewType = _context.CurrentViewType;
 
-            // 전환 완료 후 현재 Context를 갱신한다.
-            _context.SetViewType(currentView.ViewType);
+            // 완료 View와 전환 상태를 함께 확정한다.
+            _context.CompleteTransition(currentView.ViewType);
 
             // Quarter View는 회전이 고정되어 있으므로, 이전 View가 Quarter이거나 현재 View가 Quarter이면 회전값을 유지한다.
             bool usesFixedRotation = previousViewType == ECameraViewType.Quarter || 
@@ -119,14 +116,13 @@ namespace Alpha.AlphaCamera
             }
 
             _context.SetZoomDistance(currentView.ZoomDistance);
-
-            _isTransitionRequested = false;
+            _core.NotifyViewTransitionCompleted(currentView.ViewType);
         }
 
         // 전환 중이 아닐 때 Look 입력을 카메라 회전에 반영한다.
         private void UpdateRotation()
         {
-            if (_isTransitionRequested || _viewModule.CurrentView == null)
+            if (_context.IsTransitioning || _viewModule.CurrentView == null)
             {
                 return;
             }
@@ -136,29 +132,12 @@ namespace Alpha.AlphaCamera
         // 전환 중이 아닐 때 휠 입력을 카메라 거리에 반영한다.
         private void UpdateZoom()
         {
-            if (_isTransitionRequested || _viewModule.CurrentView == null)
+            if (_context.IsTransitioning || _viewModule.CurrentView == null)
             {
                 return;
             }
 
             _viewModule.UpdateZoom(_input.MouseScroll.y, _context);
-        }
-
-        // 요청 시간과 현재 View를 기준으로 실제 전환 시간을 결정
-        private float ResolveTransitionDuration(ECameraViewType p_targetViewType, float p_requestedDuration)
-        {
-            bool isFromQuarter = _viewModule.CurrentView != null &&
-                                 _viewModule.CurrentView.ViewType == ECameraViewType.Quarter;
-
-            bool isToQuarter = p_targetViewType == ECameraViewType.Quarter;
-
-            // Quarter가 출발점 또는 목표라면 고정된 시간을 사용한다.
-            if (isFromQuarter || isToQuarter)
-            {
-                return _viewModule.QuarterTransitionDuration;
-            }
-
-            return p_requestedDuration;
         }
 
         // 객체 해제 시 등록한 이벤트와 참조를 정리한다.

@@ -16,9 +16,10 @@ MonoBehaviour:
   _pivotLocalPosition: {x: 0, y: 1.8, z: 0}
   _shoulderLocalPosition: {x: 0, y: 0, z: 0}
   _pivotEulerAngles: {x: 0, y: 0, z: 0}
-  _zoomDistance: 5
+  _zoomDistance: 3.5
   _minZoomDistance: 1
   _maxZoomDistance: 5
   _zoomStep: 0.5
   _fieldOfView: 60
   _rigFollowSpeed: 10
+  _lookSensitivityMultiplier: 0.06

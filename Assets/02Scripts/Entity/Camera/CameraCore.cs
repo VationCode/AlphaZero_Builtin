@@ -16,7 +16,9 @@ namespace Alpha.AlphaCamera
 
 
 
-        public event Action<ECameraViewType, float> OnViewRequested;
+        public event Action<ECameraViewType> OnViewRequested;
+        public event Action<ECameraViewType, ECameraViewType> OnViewTransitionStarted;
+        public event Action<ECameraViewType> OnViewTransitionCompleted;
 
         // 같은 GameObject의 Camera View 구성 요소를 캐시한다.
         private void Awake()
@@ -43,9 +45,22 @@ namespace Alpha.AlphaCamera
         }
 
         // RequestView 요청을 받아 담당 흐름으로 전달한다.
-        public void RequestView(ECameraViewType p_viewType, float p_transitionDuration)
+        public void RequestView(ECameraViewType p_viewType)
         {
-            OnViewRequested?.Invoke(p_viewType, p_transitionDuration);
+            OnViewRequested?.Invoke(p_viewType);
+        }
+
+        // CameraViewFlow만 전환 생명주기 이벤트를 확정할 수 있다.
+        internal void NotifyViewTransitionStarted(
+            ECameraViewType p_fromViewType,
+            ECameraViewType p_targetViewType)
+        {
+            OnViewTransitionStarted?.Invoke(p_fromViewType, p_targetViewType);
+        }
+
+        internal void NotifyViewTransitionCompleted(ECameraViewType p_viewType)
+        {
+            OnViewTransitionCompleted?.Invoke(p_viewType);
         }
 
 
@@ -55,21 +70,21 @@ namespace Alpha.AlphaCamera
         [ContextMenu("Camera Test/ThirdPerson")]
         private void TestThirdPerson()
         {
-            RequestView(ECameraViewType.ThirdPerson, 0.6f);
+            RequestView(ECameraViewType.ThirdPerson);
         }
 
         // Editor Context Menu에서 조준 View 전환을 시험한다.
         [ContextMenu("Camera Test/Aim")]
         private void TestAim()
         {
-            RequestView(ECameraViewType.Aim, 0.6f);
+            RequestView(ECameraViewType.Aim);
         }
 
         // Editor Context Menu에서 쿼터 View 전환을 시험한다.
         [ContextMenu("Camera Test/Quarter")]
         private void TestQuarter()
         {
-            RequestView(ECameraViewType.Quarter, 1f);
+            RequestView(ECameraViewType.Quarter);
         }
 #endif
     }

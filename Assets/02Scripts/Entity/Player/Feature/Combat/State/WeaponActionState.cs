@@ -9,6 +9,7 @@ namespace Alpha.Player.Combat
     public class WeaponActionState : CombatStateBase
     {
         private bool _isMeleePrimaryAction;
+        private bool _isMeleeSecondaryAction;
         private int _playedComboIndex = -1;
 
         // 전달받은 값으로 초기 상태를 구성한다.
@@ -41,6 +42,10 @@ namespace Alpha.Player.Combat
                 actionType == EWeaponActionType.Primary &&
                 _Core.CombatModule.CurrentWeapon is MeleeWeapon;
 
+            _isMeleeSecondaryAction =
+                actionType == EWeaponActionType.Secondary &&
+                _Core.CombatModule.CurrentWeapon is MeleeWeapon;
+
             if (_isMeleePrimaryAction)
             {
                 if (!_Core.LocomotionModule.BeginRootMotion(ERootMotionMode.Ground))
@@ -49,6 +54,12 @@ namespace Alpha.Player.Combat
                     TryChangeState(ECombatStateType.Idle);
                     return;
                 }
+            }
+
+            if (_isMeleeSecondaryAction)
+            {
+                _Core.LocomotionModule.BeginInputLock();
+                _Core.AnimationView?.PlayMeleeGuard();
             }
 
             _playedComboIndex = -1;
@@ -98,12 +109,18 @@ namespace Alpha.Player.Combat
             _Core.CombatModule.CancelWeaponAction();
 
             if (_isMeleePrimaryAction)
-            {
                 _Core.LocomotionModule.EndRootMotion();
+
+            if (_isMeleeSecondaryAction)
+                _Core.LocomotionModule.EndInputLock();
+
+            if (_isMeleePrimaryAction || _isMeleeSecondaryAction)
+            {
                 _Core.AnimationView?.StopMeleeAction();
             }
 
             _isMeleePrimaryAction = false;
+            _isMeleeSecondaryAction = false;
             _playedComboIndex = -1;
         }
 

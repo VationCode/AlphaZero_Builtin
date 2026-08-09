@@ -82,7 +82,7 @@ MonoBehaviour:
   - {fileID: 7400000, guid: d506756a298994349880f63feae6e586, type: 2}
   - {fileID: 7400000, guid: a4728a00a37ed5b4c886b64acedd91ba, type: 2}
   _secondaryClip: {fileID: 7400000, guid: 9e7516049c548bc41995576b478c6760, type: 2}
-  _primaryInputMode: 0
+  _primaryInputMode: 1
   _comboInputWindowStart: 0.8
   _comboGraceDuration: 0.5
 --- !u!1001 &2072573014597669160

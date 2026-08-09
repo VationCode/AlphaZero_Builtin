@@ -25,8 +25,12 @@ namespace Alpha.AlphaCamera
         [SerializeField, Range(1f, 179f)] private float _fieldOfView = 60f;
         [SerializeField, Min(0f)] private float _rigFollowSpeed = 10f;
 
-        public ECameraViewType ViewType => _viewType;
+        [Header("Input")]
+        [SerializeField, Min(0f)]
+        private float _lookSensitivityMultiplier = 1f;
 
+        public ECameraViewType ViewType => _viewType;
+       
         public Vector3 PivotLocalPosition => _pivotLocalPosition;
         public Vector3 PivotEulerAngles => _pivotEulerAngles;
         public Vector3 ShoulderLocalPosition => _shoulderLocalPosition;
@@ -38,6 +42,7 @@ namespace Alpha.AlphaCamera
         public float FieldOfView => _fieldOfView;
         public float RigFollowSpeed => _rigFollowSpeed;
 
+        public float LookSensitivityMultiplier => _lookSensitivityMultiplier;
         // Inspector 값이 유효한 범위를 유지하도록 보정한다.
         private void OnValidate()
         {

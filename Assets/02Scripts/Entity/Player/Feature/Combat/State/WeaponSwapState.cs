@@ -74,7 +74,9 @@ namespace Alpha.Player.Combat
             if (currentWeapon is MeleeWeapon meleeWeapon)
             {
                 _Core.AnimationView?
-                    .ApplyMeleeWeapon(meleeWeapon.ComboClips);
+                    .ApplyMeleeWeapon(
+                        meleeWeapon.ComboClips,
+                        meleeWeapon.SecondaryClip);
             }
         }
     }

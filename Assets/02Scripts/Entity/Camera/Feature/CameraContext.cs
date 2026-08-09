@@ -5,7 +5,8 @@ public enum ECameraViewType
 {
     ThirdPerson,
     Aim,
-    Quarter
+    Quarter,
+    Scope
 }
 
 namespace Alpha.AlphaCamera
@@ -26,12 +27,9 @@ namespace Alpha.AlphaCamera
 
         public Quaternion PivotRotation => Quaternion.Euler(Pitch, Yaw, 0f);
 
-        // SetViewType 상태 값을 갱신한다.
-        internal void SetViewType(ECameraViewType p_viewType)
-        {
-            CurrentViewType = p_viewType;
-        }
+        public bool IsTransitioning { get; private set; }
 
+        public ECameraViewType EffectiveViewType => IsTransitioning ? TargetViewType : CurrentViewType;
         // SetRotation 상태 값을 갱신한다.
         internal void SetRotation(float p_pitch, float p_yaw)
         {
@@ -43,6 +41,21 @@ namespace Alpha.AlphaCamera
         internal void SetZoomDistance(float p_zoomDistance)
         {
             ZoomDistance = p_zoomDistance;
+        }
+
+        // 전환 목표 상태를 기록한다.
+        internal void BeginTransition(ECameraViewType p_from, ECameraViewType p_target)
+        {
+            TransitionFromViewType = p_from;
+            TargetViewType = p_target;
+            IsTransitioning = true;
+        }
+
+        internal void CompleteTransition(ECameraViewType p_viewType)
+        {
+            CurrentViewType = p_viewType;
+            TargetViewType = p_viewType;
+            IsTransitioning = false;
         }
     }
 }
