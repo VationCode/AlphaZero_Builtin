@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 // EWeaponType 관련 선택 값을 정의한다.
 public enum EWeaponType
 {
@@ -13,11 +12,7 @@ public enum EWeaponType
 [Serializable]
 public abstract class WeaponDTO : ItemDTO
 {
-    [Header("WeaponData")]
     public abstract EWeaponType WeaponType { get; }
-
-    public float BaseDamage;
-
 }
 // MeleeWeaponDTO 데이터 표현을 보관한다.
 [Serializable]
@@ -32,9 +27,6 @@ public sealed class MeleeWeaponDTO : WeaponDTO
 public sealed class RangeWeaponDTO : WeaponDTO
 {
     public override EWeaponType WeaponType => EWeaponType.Range;
-
-    public float Rate;
-    public float MaxDistance;
 }
 
 // SpecialWeaponDTO 데이터 표현을 보관한다.

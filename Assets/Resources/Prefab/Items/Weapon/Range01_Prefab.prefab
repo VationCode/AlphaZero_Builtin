@@ -73,6 +73,7 @@ GameObject:
   - component: {fileID: 8153927413575185384}
   - component: {fileID: 6693522905435540571}
   - component: {fileID: -517230948712345678}
+  - component: {fileID: 3817526409832714056}
   m_Layer: 0
   m_Name: Range01_Prefab
   m_TagString: Untagged
@@ -88,7 +89,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8176921521358785140}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.70710677, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -98,7 +99,7 @@ Transform:
   - {fileID: 231466525834666578}
   - {fileID: 1663828361965633344}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6693522905435540571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,10 +112,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bd33a505030e224e8858291c2a3f165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _muzzle: {fileID: 8153927413575185384}
+  _muzzle: {fileID: 1663828361965633344}
   _attackModule: {fileID: -517230948712345678}
+  _leftHandIKTarget: {fileID: 231466525834666578}
+  _baseDamage: 80
+  _fireInterval: 1.5
+  _postAttackFacingDuration: 0.5
+  _maxDistance: 200
   _primaryInputMode: 1
-  _secondaryType: 1
+  _secondaryType: 0
   _secondaryView: 2
   _maxChargeDuration: 1
 --- !u!114 &-517230948712345678
@@ -130,7 +136,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _projectilePrefab: {fileID: 7261030758123456789, guid: 4cacc51e38ffc32478789a7dfdde8f31, type: 3}
-  _projectileSpeed: 60
+  _projectileSpeed: 200
+  _gravityScale: 3
+  _projectileRadius: 0.025
+--- !u!114 &3817526409832714056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8176921521358785140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: 6693522905435540571}
+  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _bulletTracerPrefab: {fileID: 0}
+  _muzzleLifetime: 0.5
+  _cameraShakeSetting:
+    _duration: 0.22
+    _positionAmplitude: {x: 0.035, y: 0.025, z: 0.015}
+    _rotationAmplitude: {x: 2.2, y: 0.55, z: 0.35}
+    _frequency: 18
 --- !u!1 &9111078466827308026
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,13 +184,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9111078466827308026}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071069, y: -0.00000023841855, z: 0.00000016391276, w: 0.70710677}
-  m_LocalPosition: {x: -0.057, y: -0.052, z: 0.273}
+  m_LocalRotation: {x: -0.30954587, y: -0.5557454, z: -0.56409013, w: 0.52643204}
+  m_LocalPosition: {x: 0.085, y: -0.059, z: 0.15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8153927413575185384}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -72.343, y: -51.055, z: -55.461}
 --- !u!1001 &5808607847557249201
 PrefabInstance:
   m_ObjectHideFlags: 0

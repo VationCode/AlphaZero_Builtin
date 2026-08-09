@@ -15,7 +15,8 @@ namespace Alpha.Item.Weapon.Range
             QueryTriggerInteraction.Ignore;
 
         protected override bool OnExecute(
-            in RangeAttackRequest p_request)
+            in RangeAttackRequest p_request,
+            out RangeAttackResult p_result)
         {
             Ray attackRay = new(
                 p_request.Origin,
@@ -27,6 +28,14 @@ namespace Alpha.Item.Weapon.Range
                 p_request.MaxDistance,
                 _hitMask,
                 _triggerInteraction);
+
+            Vector3 endPoint = hasHit
+                ? hit.point
+                : p_request.Origin +
+                  p_request.Direction * p_request.MaxDistance;
+
+            p_result = RangeAttackResult.Immediate(
+                endPoint);
 
             float drawDistance = hasHit
                 ? hit.distance

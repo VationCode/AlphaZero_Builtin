@@ -2,12 +2,17 @@ using UnityEngine;
 
 namespace Alpha.Player.Combat
 {
-    // Camera 조준 Ray를 총구 기준의 실제 발사 방향으로 변환한다.
+    // Camera 조준 Ray로 공격 방식이 사용할 월드 목표점을 결정한다.
     public class RangeAimModule : MonoBehaviour
     {
         [Header("Aim Collision")]
         [SerializeField]
         private LayerMask _aimMask;
+
+        [Header("Scope Projectile")]
+        [Tooltip("Camera Near Plane에서 Projectile을 앞쪽으로 이동시킬 거리입니다.")]
+        [SerializeField, Min(0f)]
+        private float _scopeSpawnOffset = 0.05f;
 
         private PlayerCore _core;
 
@@ -20,27 +25,59 @@ namespace Alpha.Player.Combat
             return true;
         }
 
-        public bool TryResolveDirection(
-            Vector3 p_origin,
+        public bool TryResolveAttackPose(
+            Vector3 p_muzzleOrigin,
             float p_maxDistance,
-            out Vector3 p_direction)
+            float p_defaultAimDistance,
+            out Vector3 p_attackOrigin,
+            out Vector3 p_targetPoint)
         {
-            p_direction = Vector3.zero;
+            p_attackOrigin = Vector3.zero;
+            p_targetPoint = Vector3.zero;
 
             if (_core?.CameraCore?.RenderCamera == null ||
                 p_maxDistance <= 0f ||
+                p_defaultAimDistance <= 0f ||
                 !TryCreateViewRay(out Ray viewRay))
             {
                 return false;
             }
 
-            // Camera와 총구의 간격만큼 조준 Ray의 검사 거리를 보정한다.
+            bool isScope =
+                _core.CameraCore.Context.EffectiveViewType ==
+                ECameraViewType.Scope;
+
+            p_attackOrigin = isScope
+                ? viewRay.GetPoint(_scopeSpawnOffset)
+                : p_muzzleOrigin;
+
+            // Scope 중앙 발사점까지 총구가 막혔다면 엄폐물 관통을 방지한다.
+            if (isScope &&
+                Physics.Linecast(
+                    p_muzzleOrigin,
+                    p_attackOrigin,
+                    _aimMask,
+                    QueryTriggerInteraction.Ignore))
+            {
+                return false;
+            }
+
+            // Camera와 실제 발사점의 간격만큼 조준 Ray의 검사 거리를 보정한다.
+            float originOffset =
+                Vector3.Distance(
+                    viewRay.origin,
+                    p_attackOrigin);
+
             float viewRayDistance =
                 p_maxDistance +
-                Vector3.Distance(viewRay.origin, p_origin);
+                originOffset;
 
-            Vector3 targetPoint =
-                viewRay.GetPoint(viewRayDistance);
+            float defaultTargetDistance = Mathf.Min(
+                p_defaultAimDistance + originOffset,
+                viewRayDistance);
+
+            p_targetPoint =
+                viewRay.GetPoint(defaultTargetDistance);
 
             if (Physics.Raycast(
                     viewRay,
@@ -49,17 +86,11 @@ namespace Alpha.Player.Combat
                     _aimMask,
                     QueryTriggerInteraction.Ignore))
             {
-                targetPoint = hit.point;
+                p_targetPoint = hit.point;
             }
 
-            Vector3 attackDirection =
-                targetPoint - p_origin;
-
-            if (attackDirection.sqrMagnitude <= 0.0001f)
-                return false;
-
-            p_direction = attackDirection.normalized;
-            return true;
+            return (p_targetPoint - p_attackOrigin)
+                .sqrMagnitude > 0.0001f;
         }
 
         private bool TryCreateViewRay(out Ray p_viewRay)

@@ -23,6 +23,8 @@ namespace Alpha.Player.Combat
 
         private ECameraViewType _secondaryReturnView;
         private bool _hasSecondaryReturnView;
+        private float _rangeFacingHoldRemaining;
+        private Vector3 _rangeFacingHoldDirection;
 
         public CombatStateBase CurrentState { get; private set; }
 
@@ -61,6 +63,7 @@ namespace Alpha.Player.Combat
 
             TickFlow();
             UpdateRangeSecondary();
+            UpdateRangeFacingHold(Time.deltaTime);
         }
 
         // State 타입 중복 없이 Flow Dictionary에 등록한다.
@@ -206,6 +209,107 @@ namespace Alpha.Player.Combat
 
         #region ============================== Weapon Action
 
+        // Locomotion이 Idle 또는 Move일 때만 실제 Range 공격을 허용한다.
+        internal bool CanUseRangeAttack()
+        {
+            if (_core == null ||
+                _core.LocomotionContext == null ||
+                _core.Input?.IsJump == true ||
+                _core.Input?.IsDash == true)
+            {
+                return false;
+            }
+
+            ELocoStateType? locomotionState =
+                _core.LocomotionContext.CurrentState;
+
+            return locomotionState == ELocoStateType.Idle ||
+                   locomotionState == ELocoStateType.Move;
+        }
+
+        // 실제 사격이 끝난 뒤 마지막 발사 방향을 지정된 시간만큼 유지한다.
+        internal void BeginRangeFacingHold(float p_duration)
+        {
+            CombatContext context = _core?.CombatContext;
+
+            if (context == null ||
+                !context.HasAimDirection ||
+                p_duration <= 0f)
+            {
+                EndRangeFacingHold();
+                return;
+            }
+
+            _rangeFacingHoldRemaining = p_duration;
+            _rangeFacingHoldDirection =
+                context.AimDirection.normalized;
+            context.SetRangeFacingHeld(true);
+        }
+
+        // 발사되지 않은 입력 행동이 끝나면 기존 사격 후 유지 방향을 복원한다.
+        internal bool TryRestoreRangeFacingHold()
+        {
+            CombatContext context = _core?.CombatContext;
+
+            if (context == null ||
+                !context.IsRangeFacingHeld ||
+                _rangeFacingHoldDirection.sqrMagnitude <= 0.0001f)
+            {
+                return false;
+            }
+
+            context.SetAimDirection(
+                _rangeFacingHoldDirection);
+            _core.AnimationView?.SetRangeAimDirection(
+                _rangeFacingHoldDirection);
+
+            return true;
+        }
+
+        private void UpdateRangeFacingHold(float p_deltaTime)
+        {
+            CombatContext context = _core?.CombatContext;
+
+            if (context == null || !context.IsRangeFacingHeld)
+                return;
+
+            if (context.IsRangeAttacking ||
+                _core.BlockCombat ||
+                _core.CombatModule.CurrentRangeWeapon == null ||
+                CurrentState?.Type == ECombatStateType.WeaponSwap ||
+                !CanUseRangeAttack())
+            {
+                EndRangeFacingHold();
+                return;
+            }
+
+            _rangeFacingHoldRemaining -= Mathf.Max(0f, p_deltaTime);
+
+            if (_rangeFacingHoldRemaining <= 0f)
+                EndRangeFacingHold();
+        }
+
+        private void EndRangeFacingHold()
+        {
+            _rangeFacingHoldRemaining = 0f;
+            _rangeFacingHoldDirection = Vector3.zero;
+
+            CombatContext context = _core?.CombatContext;
+
+            if (context == null)
+                return;
+
+            context.SetRangeFacingHeld(false);
+
+            if (context.IsAiming ||
+                context.IsRangePrimaryActive ||
+                context.IsRangeAttacking)
+                return;
+
+            context.ClearAimDirection();
+            _core.AnimationView?.ClearRangeAimDirection();
+        }
+
         // Idle에서 들어온 무기 행동 요청을 검증하고 State가 소비할 값으로 저장한다.
         public bool RequestWeaponAction(EWeaponActionType p_actionType)
         {
@@ -214,6 +318,13 @@ namespace Alpha.Player.Combat
                 CurrentState?.Type != ECombatStateType.Idle ||
                 !_core.CombatModule.HasWeapon ||
                 p_actionType == EWeaponActionType.None)
+            {
+                return false;
+            }
+
+            if (p_actionType == EWeaponActionType.Primary &&
+                _core.CombatModule.CurrentRangeWeapon != null &&
+                !CanUseRangeAttack())
             {
                 return false;
             }
@@ -250,7 +361,9 @@ namespace Alpha.Player.Combat
                 _core.Input != null &&
                 !_core.BlockCombat &&
                 CurrentState?.Type != ECombatStateType.WeaponSwap &&
-                currentRangeWeapon != null;
+                currentRangeWeapon != null &&
+                (currentRangeWeapon.SecondaryType != ERangeSecondaryType.Charging ||
+                 CanUseRangeAttack());
 
             if (module.HasActiveRangeSecondary)
             {
@@ -363,8 +476,14 @@ namespace Alpha.Player.Combat
             if (context.IsAiming != p_isAiming)
                 context.SetAiming(p_isAiming);
 
-            if (!p_isAiming)
+            if (!p_isAiming &&
+                !context.IsRangePrimaryActive &&
+                !context.IsRangeAttacking &&
+                !context.IsRangeFacingHeld)
+            {
                 context.ClearAimDirection();
+                _core.AnimationView?.ClearRangeAimDirection();
+            }
 
             _core.AnimationView?.SetRangeAiming(p_isAiming);
         }

@@ -17,9 +17,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "기본 검",
-
-            "BaseDamage": 60
+            "Description": "기본 검"
         },
         {
             "Id": 101,
@@ -38,9 +36,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "중급 검",
-
-            "BaseDamage": 60
+            "Description": "중급 검"
         },
         {
             "Id": 102,
@@ -59,9 +55,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "고급 검",
-
-            "BaseDamage": 60
+            "Description": "고급 검"
         }
     ],
     "RangeList": [
@@ -82,13 +76,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "기본 소총",
-
-            "BaseDamage": 15,
-
-            "Rate": 0.2,
-
-            "MaxDistance": 100
+            "Description": "기본 소총"
         },
         {
             "Id": 201,
@@ -107,13 +95,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "중급 소총",
-
-            "BaseDamage": 15,
-
-            "Rate": 3,
-
-            "MaxDistance": 200
+            "Description": "중급 소총"
         },
 
         {
@@ -133,13 +115,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "고급 소총",
-
-            "BaseDamage": 15,
-
-            "Rate": 0.2,
-
-            "MaxDistance": 100
+            "Description": "고급 소총"
         }
     ],
     "SpecialList": [
@@ -160,9 +136,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "특수 무기00",
-
-            "BaseDamage": 200
+            "Description": "특수 무기00"
         },
         {
             "Id": 301,
@@ -181,9 +155,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "특수 무기01",
-
-            "BaseDamage": 200
+            "Description": "특수 무기01"
         },
         {
             "Id": 302,
@@ -202,9 +174,7 @@
 
             "MaxStackCount": 1,
 
-            "Description": "특수 무기02",
-
-            "BaseDamage": 200
+            "Description": "특수 무기02"
         }
     ]
 }

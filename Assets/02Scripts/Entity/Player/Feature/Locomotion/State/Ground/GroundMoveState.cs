@@ -57,9 +57,9 @@ namespace Alpha.Player.Locomotion
             bool isSprint = _Input.IsSprint;
             Vector2 moveInput = _Input.MoveInput;
 
-            // 조준 중이면 이동 방향과 별도로 캐릭터가 바라볼 방향을 구한다.
+            // 조준 또는 Range 공격 중이면 이동과 별도의 바라볼 방향을 구한다.
             bool isAimFacing =
-                TryResolveAimFacingDirection(cameraTransform, out Vector3 facingDirection);
+                TryResolveAimFacingDirection(out Vector3 facingDirection);
 
             _Core.LocomotionModule.MoveGround(
                 moveInput,
@@ -79,34 +79,7 @@ namespace Alpha.Player.Locomotion
         // 상태 종료 시 임시 값과 동작을 정리한다.
         protected override void Exit()
         {
-        }
-
-        // 카메라 모드에 따라 마우스 월드 방향 또는 카메라 정면을 조준 방향으로 사용한다.
-        private Vector3 ResolveAimDirection(Transform p_cameraTransform)
-        {
-            bool usesQuarterAim = _Core.CameraCore.Context.CurrentViewType == ECameraViewType.Quarter;
-
-            // Quarter 시점에서는 마우스 Ray와 Player 높이 평면의 교차 방향을 사용한다.
-            if (usesQuarterAim && _Core.MouseSystem != null)
-            {
-                Vector3 mousePosition = _Input.MouseInputPos;
-
-                if (_Core.MouseSystem.TryGetWorldDirection(
-                    new Vector2(mousePosition.x, mousePosition.y),
-                    _Core.PlayerTr.position,
-                    out Vector3 mouseDirection))
-                {
-                    return mouseDirection;
-                }
-            }
-
-            // TPS에서는 카메라 정면을 조준 방향으로 사용한다.
-            Vector3 cameraDirection =
-                Vector3.ProjectOnPlane(p_cameraTransform.forward, Vector3.up);
-
-            return cameraDirection.sqrMagnitude > 0.0001f
-                ? cameraDirection.normalized
-                : Vector3.zero;
+            ClearRangeAimPresentation();
         }
 
         // 실제 월드 이동 방향을 Player 기준 전후좌우 값으로 변환한다.
@@ -131,30 +104,66 @@ namespace Alpha.Player.Locomotion
             return Vector2.ClampMagnitude(localMoveInput * inputMagnitude, 1f);
         }
 
-        // 전투 조준이 활성화됐을 때만 별도의 바라보기 방향을 제공한다.
+        // 조준 또는 Range 공격 중에는 실제 공격 조준점을 바라보게 한다.
         private bool TryResolveAimFacingDirection(
-            Transform p_cameraTransform,
             out Vector3 p_facingDirection)
         {
             p_facingDirection = Vector3.zero;
 
             CombatContext context = _Core.CombatContext;
 
-            // 전투 차단 또는 비조준 상태에서는 이전 조준 방향을 제거한다.
-            if (_Core.BlockCombat || !context.IsAiming)
+            // 전투 차단 또는 Aim Facing이 필요하지 않으면 이전 방향을 제거한다.
+            if (_Core.BlockCombat ||
+                !context.UsesAimFacing)
             {
-                context.ClearAimDirection();
+                ClearRangeAimPresentation();
                 return false;
             }
 
-            Vector3 aimDirection = ResolveAimDirection(p_cameraTransform);
-            context.SetAimDirection(aimDirection);
+            bool reuseLastFireDirection =
+                context.IsRangeFacingHeld &&
+                !context.IsAiming &&
+                !context.IsRangePrimaryActive &&
+                !context.IsRangeAttacking;
+
+            Vector3 aimDirection =
+                context.AimDirection;
+
+            // 사격 후 유지 중에는 카메라를 다시 추적하지 않고 마지막 발사 방향을 사용한다.
+            if (!reuseLastFireDirection &&
+                !_Core.CombatModule.TryGetRangeAimDirection(
+                    out aimDirection))
+            {
+                ClearRangeAimPresentation();
+                return false;
+            }
+
+            if (!reuseLastFireDirection)
+            {
+                context.SetAimDirection(aimDirection);
+                _Core.AnimationView?.SetRangeAimDirection(
+                    aimDirection);
+            }
 
             if (!context.HasAimDirection)
                 return false;
 
-            p_facingDirection = context.AimDirection;
+            p_facingDirection = Vector3.ProjectOnPlane(
+                context.AimDirection,
+                Vector3.up);
+
+            if (p_facingDirection.sqrMagnitude <= 0.0001f)
+                return false;
+
+            p_facingDirection.Normalize();
             return true;
+        }
+
+        // 조준 조건이 끝나면 Domain과 View의 임시 방향을 함께 초기화한다.
+        private void ClearRangeAimPresentation()
+        {
+            _Core.CombatContext.ClearAimDirection();
+            _Core.AnimationView?.ClearRangeAimDirection();
         }
     }
 }

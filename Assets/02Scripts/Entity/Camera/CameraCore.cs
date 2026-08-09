@@ -10,6 +10,7 @@ namespace Alpha.AlphaCamera
         public CameraViewFlow ViewFlow { get; private set; }
 
         public CameraViewModule ViewModule { get; private set; }
+        public CameraShakeModule ShakeModule { get; private set; }
 
         public CameraContext Context { get; } = new();
         public Camera RenderCamera => ViewModule.RenderCamera;
@@ -25,16 +26,20 @@ namespace Alpha.AlphaCamera
         {
             ViewFlow = GetComponent<CameraViewFlow>();
             ViewModule = GetComponent<CameraViewModule>();
+            ShakeModule = GetComponent<CameraShakeModule>();
         }
 
 
         // Camera View를 초기화하고 입력과 View Flow의 의존성을 연결한다.
         public bool Bind(AlphaInputSystem p_input)
         {
-            if (ViewFlow == null || ViewModule == null)
+            if (ViewFlow == null ||
+                ViewModule == null ||
+                ShakeModule == null)
                 return false;
 
-            if (!ViewModule.Initialize())
+            if (!ViewModule.Initialize() ||
+                !ShakeModule.Initialize())
                 return false;
 
             ViewFlow.Bind(this, ViewModule, p_input);
@@ -48,6 +53,13 @@ namespace Alpha.AlphaCamera
         public void RequestView(ECameraViewType p_viewType)
         {
             OnViewRequested?.Invoke(p_viewType);
+        }
+
+        // 외부 View가 전달한 표현 설정으로 Camera Shake를 요청한다.
+        public void RequestShake(
+            in CameraShakeSetting p_setting)
+        {
+            ShakeModule?.Play(p_setting);
         }
 
         // CameraViewFlow만 전환 생명주기 이벤트를 확정할 수 있다.

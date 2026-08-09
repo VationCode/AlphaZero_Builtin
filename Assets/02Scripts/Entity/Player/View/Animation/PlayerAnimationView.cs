@@ -105,6 +105,49 @@ namespace Alpha.Player.Animation
         private int _weaponUpperBodyLayerIndex = -1;
         private bool _isRangeAiming;
 
+        [Header("Range Aim Pitch")]
+        [SerializeField, Min(0f)]
+        private float _maxAimUpAngle = 45f;
+
+        [SerializeField, Min(0f)]
+        private float _maxAimDownAngle = 35f;
+
+        [SerializeField, Min(0f)]
+        private float _aimPitchSmoothTime = 0.02f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _spinePitchWeight = 0.2f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _chestPitchWeight = 0.8f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _upperChestPitchWeight = 0.4f;
+
+        [Header("Range Hand IK")]
+        [SerializeField, Range(0f, 1f)]
+        private float _leftHandPositionWeight = 1f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _leftHandRotationWeight = 1f;
+
+        [SerializeField, Min(0f)]
+        private float _handIKBlendSpeed = 10f;
+
+        private Transform _spineBone;
+        private Transform _chestBone;
+        private Transform _upperChestBone;
+
+        private Vector3 _rangeAimDirection;
+        private float _currentAimPitch;
+        private float _aimPitchVelocity;
+
+        private Transform _leftHandIKTarget;
+        private Vector3 _leftHandIKPosition;
+        private Quaternion _leftHandIKRotation = Quaternion.identity;
+        private float _currentHandIKWeight;
+        private bool _isRangeHandIKSuppressed;
+
         private static readonly int WeaponUpperBodyNoneState =
             Animator.StringToHash("Weapon UpperBody Layer.None");
 
@@ -123,6 +166,8 @@ namespace Alpha.Player.Animation
 
             // Melee FullBody 추가 Layer의 이동도 deltaPosition 계산에 포함한다.
             _anim.layersAffectMassCenter = true;
+
+            CacheRangeAimBones();
 
             _initialController = _anim.runtimeAnimatorController;
 
@@ -152,12 +197,14 @@ namespace Alpha.Player.Animation
         private void Update()
         {
             UpdateMeleeLayerBlend();
+            UpdateRangeHandIKBlend();
         }
 
         // Animator 평가 중 다른 전환이 Aiming을 덮은 경우 원하는 상체 상태를 복구한다.
         private void LateUpdate()
         {
             SynchronizeRangeAimingState();
+            UpdateRangeAimPitch();
         }
 
         // Animator 평가가 끝난 프레임 이동량을 실제 이동 Module에 전달한다.
@@ -167,6 +214,45 @@ namespace Alpha.Player.Animation
                 return;
 
             OnRootMotion?.Invoke(_anim.deltaPosition);
+        }
+
+        // Weapon UpperBody Layer 적용 후 왼손을 무기의 지지점에 고정한다.
+        private void OnAnimatorIK(int p_layerIndex)
+        {
+            if (_anim == null ||
+                p_layerIndex != _weaponUpperBodyLayerIndex)
+            {
+                return;
+            }
+
+            CacheRangeHandIKPose();
+
+            float positionWeight =
+                _currentHandIKWeight *
+                _leftHandPositionWeight;
+
+            float rotationWeight =
+                _currentHandIKWeight *
+                _leftHandRotationWeight;
+
+            _anim.SetIKPositionWeight(
+                AvatarIKGoal.LeftHand,
+                positionWeight);
+
+            _anim.SetIKRotationWeight(
+                AvatarIKGoal.LeftHand,
+                rotationWeight);
+
+            if (_currentHandIKWeight <= 0f)
+                return;
+
+            _anim.SetIKPosition(
+                AvatarIKGoal.LeftHand,
+                _leftHandIKPosition);
+
+            _anim.SetIKRotation(
+                AvatarIKGoal.LeftHand,
+                _leftHandIKRotation);
         }
 
         // Player 전용으로 생성한 런타임 Controller를 함께 정리한다.
@@ -180,6 +266,17 @@ namespace Alpha.Player.Animation
         public void Bind(Transform p_playerTr)
         {
             _playerTr = p_playerTr;
+        }
+
+        // Humanoid 상체 뼈를 절차적 Range Pitch 표현 대상으로 보관한다.
+        private void CacheRangeAimBones()
+        {
+            if (_anim == null || !_anim.isHuman)
+                return;
+
+            _spineBone = _anim.GetBoneTransform(HumanBodyBones.Spine);
+            _chestBone = _anim.GetBoneTransform(HumanBodyBones.Chest);
+            _upperChestBone = _anim.GetBoneTransform(HumanBodyBones.UpperChest);
         }
 
 
@@ -445,6 +542,54 @@ namespace Alpha.Player.Animation
         }
 
         #region ============================== Combat
+        // 실제 Range 발사 방향을 상체 Pitch 표현용으로 보관한다.
+        public void SetRangeAimDirection(
+            Vector3 p_worldDirection)
+        {
+            _rangeAimDirection =
+                p_worldDirection.sqrMagnitude > 0.0001f
+                    ? p_worldDirection.normalized
+                    : Vector3.zero;
+        }
+
+        // 조준이 끝나면 상체가 중앙 자세로 부드럽게 복구되도록 목표를 제거한다.
+        public void ClearRangeAimDirection()
+        {
+            _rangeAimDirection = Vector3.zero;
+        }
+
+        // 현재 RangeWeapon의 왼손 지지점을 IK Target으로 교체한다.
+        public void SetRangeHandIKTarget(
+            Transform p_target)
+        {
+            _leftHandIKTarget = p_target;
+            CacheRangeHandIKPose();
+        }
+
+        // 무기 해제 또는 다른 무기 계열 전환 시 IK Weight를 중앙 자세로 복구한다.
+        public void ClearRangeHandIKTarget()
+        {
+            CacheRangeHandIKPose();
+            _leftHandIKTarget = null;
+        }
+
+        // Swap처럼 애니메이션이 손을 직접 제어하는 동안 IK 적용만 잠시 차단한다.
+        public void SetRangeHandIKSuppressed(
+            bool p_isSuppressed,
+            bool p_isImmediate = false)
+        {
+            _isRangeHandIKSuppressed = p_isSuppressed;
+
+            if (!p_isImmediate)
+                return;
+
+            _currentHandIKWeight =
+                _leftHandIKTarget != null &&
+                !_isRangeHandIKSuppressed
+                    ? 1f
+                    : 0f;
+        }
+
         // 상체 Layer를 활성화하고 무기 교체 Trigger를 다시 발생시킨다.
         public void PlayWeaponSwap()
         {
@@ -515,6 +660,102 @@ namespace Alpha.Player.Animation
                 0.05f,
                 _weaponUpperBodyLayerIndex,
                 0f);
+        }
+
+        // Animator 평가 후 실제 조준 방향의 Pitch를 상체 뼈에 분산 적용한다.
+        private void UpdateRangeAimPitch()
+        {
+            if (_playerTr == null)
+                return;
+
+            float targetPitch = ResolveRangeAimPitch();
+
+            _currentAimPitch = Mathf.SmoothDampAngle(
+                _currentAimPitch,
+                targetPitch,
+                ref _aimPitchVelocity,
+                _aimPitchSmoothTime);
+
+            if (Mathf.Abs(_currentAimPitch) <= 0.001f)
+                return;
+
+            ApplyBonePitch(
+                _spineBone,
+                _spinePitchWeight);
+
+            ApplyBonePitch(
+                _chestBone,
+                _chestPitchWeight);
+
+            ApplyBonePitch(
+                _upperChestBone,
+                _upperChestPitchWeight);
+        }
+
+        private float ResolveRangeAimPitch()
+        {
+            if (_rangeAimDirection.sqrMagnitude <= 0.0001f)
+                return 0f;
+
+            Vector3 localDirection =
+                _playerTr.InverseTransformDirection(
+                    _rangeAimDirection);
+
+            float horizontalLength = new Vector2(
+                localDirection.x,
+                localDirection.z).magnitude;
+
+            float pitch = Mathf.Atan2(
+                localDirection.y,
+                horizontalLength) * Mathf.Rad2Deg;
+
+            return Mathf.Clamp(
+                pitch,
+                -_maxAimDownAngle,
+                _maxAimUpAngle);
+        }
+
+        private void ApplyBonePitch(
+            Transform p_bone,
+            float p_weight)
+        {
+            if (p_bone == null || p_weight <= 0f)
+                return;
+
+            p_bone.rotation = Quaternion.AngleAxis(
+                -_currentAimPitch * p_weight,
+                _playerTr.right) * p_bone.rotation;
+        }
+
+        // 무기 교체 시 왼손이 갑자기 이동하지 않도록 IK Weight를 보간한다.
+        private void UpdateRangeHandIKBlend()
+        {
+            float targetWeight =
+                _leftHandIKTarget != null &&
+                !_isRangeHandIKSuppressed
+                    ? 1f
+                    : 0f;
+
+            _currentHandIKWeight = _handIKBlendSpeed > 0f
+                ? Mathf.MoveTowards(
+                    _currentHandIKWeight,
+                    targetWeight,
+                    _handIKBlendSpeed * Time.deltaTime)
+                : targetWeight;
+
+            CacheRangeHandIKPose();
+        }
+
+        private void CacheRangeHandIKPose()
+        {
+            if (_leftHandIKTarget == null)
+                return;
+
+            _leftHandIKPosition =
+                _leftHandIKTarget.position;
+
+            _leftHandIKRotation =
+                _leftHandIKTarget.rotation;
         }
 
         // 현재 상태 또는 전환 목적지가 요청한 상체 상태인지 확인한다.

@@ -108,6 +108,20 @@ namespace Alpha.Player.Locomotion
             _moveModule.Move(moveVelocity);
         }
 
+        // 전투 행동 시작 시 Player를 지정된 지상 방향으로 회전시킨다.
+        public void FaceGroundDirection(
+            Vector3 p_direction,
+            Transform p_cameraTransform,
+            bool p_isInstant)
+        {
+            _rotationModule.ApplyRotation(
+                p_direction,
+                p_cameraTransform,
+                false,
+                true,
+                p_isInstant);
+        }
+
         // 행동이 사용할 Root Motion 적용 방식을 시작한다.
         public bool BeginRootMotion(ERootMotionMode p_mode)
         {

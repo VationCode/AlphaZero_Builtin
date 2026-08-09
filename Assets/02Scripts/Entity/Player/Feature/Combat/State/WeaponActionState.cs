@@ -1,5 +1,6 @@
 using Alpha.Item.Weapon;
 using Alpha.Item.Weapon.Melee;
+using Alpha.Item.Weapon.Range;
 using Alpha.Player.Locomotion;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace Alpha.Player.Combat
     {
         private bool _isMeleePrimaryAction;
         private bool _isMeleeSecondaryAction;
+        private bool _isRangePrimaryAction;
+        private RangeWeapon _activeRangeWeapon;
         private int _playedComboIndex = -1;
 
         // 전달받은 값으로 초기 상태를 구성한다.
@@ -31,12 +34,64 @@ namespace Alpha.Player.Combat
 
             _Context.ClearPendingWeaponAction();
 
+            bool isRangePrimaryRequest =
+                actionType == EWeaponActionType.Primary &&
+                _Core.CombatModule.CurrentWeapon is RangeWeapon;
+
+            RangeWeapon requestedRangeWeapon =
+                isRangePrimaryRequest
+                    ? _Core.CombatModule.CurrentRangeWeapon
+                    : null;
+
+            // 첫 발사 프레임부터 마지막 발사 방향을 Domain과 View가 공유한다.
+            if (isRangePrimaryRequest &&
+                _Core.CombatModule.TryGetRangeAimDirection(
+                    out Vector3 aimDirection))
+            {
+                _Context.SetAimDirection(aimDirection);
+                _Core.AnimationView?.SetRangeAimDirection(
+                    aimDirection);
+            }
+
+            // 첫 발이 실행되기 전에 Range 무기를 카메라 조준 방향으로 회전시킨다.
+            if (isRangePrimaryRequest &&
+                _Core.CombatModule.TryGetRangeFacingDirection(
+                    out Vector3 facingDirection))
+            {
+                _Core.LocomotionModule.FaceGroundDirection(
+                    facingDirection,
+                    _Core.CameraCore?.RenderCamera?.transform,
+                    true);
+            }
+
             // 저장된 행동을 현재 무기에서 시작하지 못하면 Idle로 복귀한다.
             if (!_Core.CombatModule.TryBeginWeaponAction(actionType))
             {
+                if (isRangePrimaryRequest &&
+                    !_Context.IsAiming &&
+                    !_Flow.TryRestoreRangeFacingHold())
+                {
+                    _Context.ClearAimDirection();
+                    _Core.AnimationView?.ClearRangeAimDirection();
+                }
+
                 TryChangeState(ECombatStateType.Idle);
                 return;
             }
+
+            _isRangePrimaryAction =
+                isRangePrimaryRequest;
+
+            _activeRangeWeapon =
+                requestedRangeWeapon;
+
+            _Context.SetRangePrimaryActive(
+                _isRangePrimaryAction);
+
+            _Context.SetRangeAttacking(
+                _isRangePrimaryAction &&
+                _activeRangeWeapon != null &&
+                _activeRangeWeapon.DidFireDuringPrimaryAction);
 
             _isMeleePrimaryAction =
                 actionType == EWeaponActionType.Primary &&
@@ -77,6 +132,15 @@ namespace Alpha.Player.Combat
                 return;
             }
 
+            // Range 공격 중 점프하거나 공중 상태가 되면 추가 발사 전에 행동을 취소한다.
+            if (_isRangePrimaryAction &&
+                !_Flow.CanUseRangeAttack())
+            {
+                module.CancelWeaponAction();
+                TryChangeState(ECombatStateType.Idle);
+                return;
+            }
+
             bool isInputHeld = module.ActiveActionType switch
             {
                 EWeaponActionType.Primary => _Input.IsPrimaryAction,
@@ -96,6 +160,20 @@ namespace Alpha.Player.Combat
                 isInputHeld,
                 isInputPressed,
                 Time.deltaTime);
+
+            // 쿨다운 대기가 끝나 실제 첫 발이 나간 시점부터 공격 중으로 전환한다.
+            if (_isRangePrimaryAction &&
+                !_Context.IsRangeAttacking &&
+                _activeRangeWeapon != null &&
+                _activeRangeWeapon.DidFireDuringPrimaryAction)
+            {
+                _Context.SetRangeAttacking(true);
+                _Context.SetAimDirection(
+                    _activeRangeWeapon.LastFireDirection);
+                _Core.AnimationView?.SetRangeAimDirection(
+                    _activeRangeWeapon.LastFireDirection);
+            }
+
             PlayCurrentMeleeCombo();
 
             // Melee Primary처럼 무기 내부에서 완료한 행동은 Idle로 복귀한다.
@@ -114,6 +192,35 @@ namespace Alpha.Player.Combat
             if (_isMeleeSecondaryAction)
                 _Core.LocomotionModule.EndInputLock();
 
+            if (_isRangePrimaryAction)
+            {
+                bool didFire =
+                    _activeRangeWeapon != null &&
+                    _activeRangeWeapon.DidFireDuringPrimaryAction;
+
+                _Context.SetRangePrimaryActive(false);
+                _Context.SetRangeAttacking(false);
+
+                if (!_Context.IsAiming)
+                {
+                    if (didFire)
+                    {
+                        _Context.SetAimDirection(
+                            _activeRangeWeapon.LastFireDirection);
+                        _Core.AnimationView?.SetRangeAimDirection(
+                            _activeRangeWeapon.LastFireDirection);
+
+                        _Flow.BeginRangeFacingHold(
+                            _activeRangeWeapon.PostAttackFacingDuration);
+                    }
+                    else if (!_Flow.TryRestoreRangeFacingHold())
+                    {
+                        _Context.ClearAimDirection();
+                        _Core.AnimationView?.ClearRangeAimDirection();
+                    }
+                }
+            }
+
             if (_isMeleePrimaryAction || _isMeleeSecondaryAction)
             {
                 _Core.AnimationView?.StopMeleeAction();
@@ -121,6 +228,8 @@ namespace Alpha.Player.Combat
 
             _isMeleePrimaryAction = false;
             _isMeleeSecondaryAction = false;
+            _isRangePrimaryAction = false;
+            _activeRangeWeapon = null;
             _playedComboIndex = -1;
         }
 

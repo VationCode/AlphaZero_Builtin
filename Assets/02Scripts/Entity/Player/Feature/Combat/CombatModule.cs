@@ -108,21 +108,61 @@ namespace Alpha.Player.Combat
             CurrentWeapon?.CancelAction();
         }
 
-        public bool TryGetAttackDirection(
-            Vector3 p_origin,
+        public bool TryGetAttackPose(
+            Vector3 p_muzzleOrigin,
             float p_maxDistance,
-            out Vector3 p_direction)
+            float p_defaultAimDistance,
+            out Vector3 p_attackOrigin,
+            out Vector3 p_targetPoint)
         {
             if (_rangeAimModule == null)
             {
-                p_direction = Vector3.zero;
+                p_attackOrigin = Vector3.zero;
+                p_targetPoint = Vector3.zero;
                 return false;
             }
 
-            return _rangeAimModule.TryResolveDirection(
-                p_origin,
+            return _rangeAimModule.TryResolveAttackPose(
+                p_muzzleOrigin,
                 p_maxDistance,
-                out p_direction);
+                p_defaultAimDistance,
+                out p_attackOrigin,
+                out p_targetPoint);
+        }
+
+        // 현재 RangeWeapon의 총구 기준 전체 조준 방향을 반환한다.
+        public bool TryGetRangeAimDirection(
+            out Vector3 p_direction)
+        {
+            p_direction = Vector3.zero;
+
+            return CurrentRangeWeapon != null &&
+                   CurrentRangeWeapon.TryGetAimDirection(
+                       out p_direction);
+        }
+
+        // 현재 Range 조준점을 Player의 지상 회전 방향으로 변환한다.
+        public bool TryGetRangeFacingDirection(
+            out Vector3 p_direction)
+        {
+            p_direction = Vector3.zero;
+
+            if (_core == null ||
+                !TryGetRangeAimDirection(
+                    out Vector3 attackDirection))
+            {
+                return false;
+            }
+
+            p_direction = Vector3.ProjectOnPlane(
+                attackDirection,
+                Vector3.up);
+
+            if (p_direction.sqrMagnitude <= 0.0001f)
+                return false;
+
+            p_direction.Normalize();
+            return true;
         }
         #endregion ============================== /CombatAction
 

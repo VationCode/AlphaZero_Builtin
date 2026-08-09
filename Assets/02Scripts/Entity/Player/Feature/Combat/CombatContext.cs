@@ -23,12 +23,35 @@ namespace Alpha.Player.Combat
             PendingWeaponActionType != EWeaponActionType.None;
 
         public bool IsBusy => CurrentState != ECombatStateType.Idle;
+        public bool IsRangePrimaryActive { get; private set; }
+        public bool IsRangeAttacking { get; private set; }
+        public bool IsRangeFacingHeld { get; private set; }
         public bool IsAiming { get; private set; }
-
+        // 탄환 방향과 상체 Pitch가 공유하는 실제 Range 전체 조준 방향이다.
         public Vector3 AimDirection { get; private set; }
+        public bool UsesAimFacing =>
+            IsAiming ||
+            IsRangePrimaryActive ||
+            IsRangeAttacking ||
+            IsRangeFacingHeld;
         public bool HasAimDirection => AimDirection.sqrMagnitude > 0.0001f;
 
         public event Action<ECombatStateType> OnStateChanged;
+
+        internal void SetRangePrimaryActive(bool p_isRangePrimaryActive)
+        {
+            IsRangePrimaryActive = p_isRangePrimaryActive;
+        }
+
+        internal void SetRangeAttacking(bool p_isRangeAttacking)
+        {
+            IsRangeAttacking = p_isRangeAttacking;
+        }
+
+        internal void SetRangeFacingHeld(bool p_isRangeFacingHeld)
+        {
+            IsRangeFacingHeld = p_isRangeFacingHeld;
+        }
 
         // SetAiming 상태 값을 갱신한다.
         internal void SetAiming(bool p_isAiming)
@@ -49,6 +72,7 @@ namespace Alpha.Player.Combat
         {
             AimDirection = Vector3.zero;
         }
+
 
         // SetCurrentState 상태 값을 갱신한다.
         internal void SetCurrentState(ECombatStateType p_state)

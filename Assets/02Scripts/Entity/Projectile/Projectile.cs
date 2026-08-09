@@ -16,10 +16,11 @@ namespace Alpha.Projectile
             QueryTriggerInteraction.Ignore;
 
         private Transform _attacker;
-        private Vector3 _direction;
+        private Vector3 _velocity;
+        private Vector3 _gravity;
 
         private float _damage;
-        private float _speed;
+        private float _collisionRadius;
         private float _remainingDistance;
 
         private bool _isActive;
@@ -27,22 +28,28 @@ namespace Alpha.Projectile
         // 발사 순간의 공격 정보를 투사체 런타임 상태로 복사한다.
         public bool Initialize(
             in RangeAttackRequest p_request,
-            float p_speed)
+            Vector3 p_initialVelocity,
+            Vector3 p_gravity,
+            float p_collisionRadius)
         {
-            if (!p_request.IsValid || p_speed <= 0f)
+            if (!p_request.IsValid ||
+                p_initialVelocity.sqrMagnitude <= 0.0001f ||
+                p_collisionRadius < 0f)
             {
                 return false;
             }
 
             _attacker = p_request.Attacker;
-            _direction = p_request.Direction;
+            _velocity = p_initialVelocity;
+            _gravity = p_gravity;
             _damage = p_request.Damage;
-            _speed = p_speed;
+            _collisionRadius = p_collisionRadius;
             _remainingDistance = p_request.MaxDistance;
 
             transform.SetPositionAndRotation(
                 p_request.Origin,
-                Quaternion.LookRotation(_direction));
+                Quaternion.LookRotation(
+                    _velocity.normalized));
 
             _isActive = true;
             return true;
@@ -53,38 +60,94 @@ namespace Alpha.Projectile
             if (!_isActive)
                 return;
 
+            float deltaTime = Time.deltaTime;
+
+            Vector3 displacement =
+                _velocity * deltaTime +
+                0.5f * _gravity *
+                deltaTime * deltaTime;
+
+            float requestedDistance =
+                displacement.magnitude;
+
             float moveDistance = Mathf.Min(
-                _speed * Time.deltaTime,
+                requestedDistance,
                 _remainingDistance);
 
-            if (moveDistance <= 0f)
+            if (moveDistance <= 0f ||
+                requestedDistance <= 0.0001f)
             {
                 Release();
                 return;
             }
 
-            Ray moveRay = new(transform.position, _direction);
+            Vector3 moveDirection =
+                displacement / requestedDistance;
 
-            if (Physics.Raycast(
+            Ray moveRay = new(
+                transform.position,
+                moveDirection);
+
+            if (TryCastMovement(
                     moveRay,
-                    out RaycastHit hit,
                     moveDistance,
-                    _hitMask,
-                    _triggerInteraction))
+                    out RaycastHit hit))
             {
-                HandleHit(hit);
+                HandleHit(
+                    hit,
+                    moveDirection);
                 return;
             }
 
-            transform.position += _direction * moveDistance;
+            transform.position +=
+                moveDirection * moveDistance;
 
             _remainingDistance -= moveDistance;
 
             if (_remainingDistance <= 0f)
+            {
                 Release();
+                return;
+            }
+
+            _velocity +=
+                _gravity * deltaTime;
+
+            if (_velocity.sqrMagnitude > 0.0001f)
+            {
+                transform.rotation =
+                    Quaternion.LookRotation(
+                        _velocity.normalized);
+            }
         }
 
-        private void HandleHit(RaycastHit p_hit)
+        private bool TryCastMovement(
+            Ray p_moveRay,
+            float p_moveDistance,
+            out RaycastHit p_hit)
+        {
+            if (_collisionRadius > 0f)
+            {
+                return Physics.SphereCast(
+                    p_moveRay,
+                    _collisionRadius,
+                    out p_hit,
+                    p_moveDistance,
+                    _hitMask,
+                    _triggerInteraction);
+            }
+
+            return Physics.Raycast(
+                p_moveRay,
+                out p_hit,
+                p_moveDistance,
+                _hitMask,
+                _triggerInteraction);
+        }
+
+        private void HandleHit(
+            RaycastHit p_hit,
+            Vector3 p_direction)
         {
             transform.position = p_hit.point;
 
@@ -93,7 +156,7 @@ namespace Alpha.Projectile
                 _damage,
                 p_hit.point,
                 p_hit.normal,
-                _direction);
+                p_direction);
 
             DamageSystem.TryApply(p_hit.collider, damageInfo);
 

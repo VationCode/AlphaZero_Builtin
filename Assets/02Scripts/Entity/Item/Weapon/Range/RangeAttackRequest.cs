@@ -6,7 +6,9 @@ namespace Alpha.Item.Weapon.Range
     public readonly struct RangeAttackRequest
     {
         public Transform Attacker { get; }
+        public Vector3 MuzzleOrigin { get; }
         public Vector3 Origin { get; }
+        public Vector3 TargetPoint { get; }
         public Vector3 Direction { get; }
         public float Damage { get; }
         public float MaxDistance { get; }
@@ -19,13 +21,17 @@ namespace Alpha.Item.Weapon.Range
 
         public RangeAttackRequest(
             Transform p_attacker,
+            Vector3 p_muzzleOrigin,
             Vector3 p_origin,
+            Vector3 p_targetPoint,
             Vector3 p_direction,
             float p_damage,
             float p_maxDistance)
         {
             Attacker = p_attacker;
+            MuzzleOrigin = p_muzzleOrigin;
             Origin = p_origin;
+            TargetPoint = p_targetPoint;
 
             Direction = p_direction.sqrMagnitude > 0.0001f
                 ? p_direction.normalized
