@@ -49,6 +49,19 @@ namespace Alpha.Player.Animation
         private float _meleeLayerBlendSpeed;
 
         public event Action<Vector3> OnRootMotion;
+        public event Action OnFootstep;
+
+        [Header("Footstep")]
+        [SerializeField, Range(0f, 1f)]
+        private float _firstFootstepPhase = 0.2f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _secondFootstepPhase = 0.7f;
+
+        private bool _hasGroundMoveInput;
+        private bool _isFootstepCycleActive;
+        private int _footstepStateHash;
+        private float _previousFootstepPhase;
 
         private static readonly int MovementState =
             Animator.StringToHash("Base Layer.MovementTree");
@@ -146,7 +159,12 @@ namespace Alpha.Player.Animation
         private Vector3 _leftHandIKPosition;
         private Quaternion _leftHandIKRotation = Quaternion.identity;
         private float _currentHandIKWeight;
-        private bool _isRangeHandIKSuppressed;
+        private bool _isRangeHandIKSwapSuppressed;
+        private bool _isRangeHandIKLocomotionSuppressed;
+
+        private bool IsRangeHandIKSuppressed =>
+            _isRangeHandIKSwapSuppressed ||
+            _isRangeHandIKLocomotionSuppressed;
 
         private static readonly int WeaponUpperBodyNoneState =
             Animator.StringToHash("Weapon UpperBody Layer.None");
@@ -205,6 +223,7 @@ namespace Alpha.Player.Animation
         {
             SynchronizeRangeAimingState();
             UpdateRangeAimPitch();
+            UpdateFootstepCycle();
         }
 
         // Animator 평가가 끝난 프레임 이동량을 실제 이동 Module에 전달한다.
@@ -305,6 +324,7 @@ namespace Alpha.Player.Animation
         public void PlayGroundLocomotion(Vector2 p_moveInput, bool p_isSprint, bool p_isCombat = false)
         {
             Vector2 input = Vector2.ClampMagnitude(p_moveInput, 1f);
+            _hasGroundMoveInput = input.sqrMagnitude > 0.01f;
 
             int targetState;
 
@@ -327,6 +347,77 @@ namespace Alpha.Player.Animation
             }
 
             CrossFadeBase(targetState);
+        }
+
+        // 현재 이동 BlendTree의 한 주기에서 양발 접촉 시점을 알린다.
+        private void UpdateFootstepCycle()
+        {
+            if (!_hasGroundMoveInput)
+            {
+                ResetFootstepCycle();
+                return;
+            }
+
+            AnimatorStateInfo stateInfo =
+                _anim.GetCurrentAnimatorStateInfo(BaseLayer);
+
+            int stateHash = stateInfo.fullPathHash;
+
+            if (stateHash != MovementState &&
+                stateHash != CombatMovementState &&
+                stateHash != SprintState)
+            {
+                ResetFootstepCycle();
+                return;
+            }
+
+            float currentPhase = Mathf.Repeat(
+                stateInfo.normalizedTime,
+                1f);
+
+            if (!_isFootstepCycleActive ||
+                _footstepStateHash != stateHash)
+            {
+                _isFootstepCycleActive = true;
+                _footstepStateHash = stateHash;
+                _previousFootstepPhase = currentPhase;
+                return;
+            }
+
+            if (HasCrossedFootstepPhase(
+                    _previousFootstepPhase,
+                    currentPhase,
+                    _firstFootstepPhase))
+            {
+                OnFootstep?.Invoke();
+            }
+
+            if (HasCrossedFootstepPhase(
+                    _previousFootstepPhase,
+                    currentPhase,
+                    _secondFootstepPhase))
+            {
+                OnFootstep?.Invoke();
+            }
+
+            _previousFootstepPhase = currentPhase;
+        }
+
+        private static bool HasCrossedFootstepPhase(
+            float p_previous,
+            float p_current,
+            float p_target)
+        {
+            return p_current >= p_previous
+                ? p_target > p_previous && p_target <= p_current
+                : p_target > p_previous || p_target <= p_current;
+        }
+
+        private void ResetFootstepCycle()
+        {
+            _isFootstepCycleActive = false;
+            _footstepStateHash = 0;
+            _previousFootstepPhase = 0f;
         }
 
         // 점프 애니메이션으로 전환한다.
@@ -578,16 +669,33 @@ namespace Alpha.Player.Animation
             bool p_isSuppressed,
             bool p_isImmediate = false)
         {
-            _isRangeHandIKSuppressed = p_isSuppressed;
+            _isRangeHandIKSwapSuppressed = p_isSuppressed;
 
             if (!p_isImmediate)
                 return;
 
             _currentHandIKWeight =
                 _leftHandIKTarget != null &&
-                !_isRangeHandIKSuppressed
+                !IsRangeHandIKSuppressed
                     ? 1f
                     : 0f;
+        }
+
+        // 무기별 애니메이션이 없는 이동 상태에서는 왼손을 Range Attach에서 해제한다.
+        public void HandleLocomotionStateChanged(
+            ELocomotionMode p_mode,
+            ELocoStateType p_state)
+        {
+            bool isUnsupportedGroundState =
+                p_state == ELocoStateType.Jump ||
+                p_state == ELocoStateType.Fall ||
+                p_state == ELocoStateType.Land ||
+                p_state == ELocoStateType.Dash ||
+                p_state == ELocoStateType.Die;
+
+            _isRangeHandIKLocomotionSuppressed =
+                p_mode != ELocomotionMode.Ground ||
+                isUnsupportedGroundState;
         }
 
         // 상체 Layer를 활성화하고 무기 교체 Trigger를 다시 발생시킨다.
@@ -732,7 +840,7 @@ namespace Alpha.Player.Animation
         {
             float targetWeight =
                 _leftHandIKTarget != null &&
-                !_isRangeHandIKSuppressed
+                !IsRangeHandIKSuppressed
                     ? 1f
                     : 0f;
 

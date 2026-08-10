@@ -11,6 +11,9 @@ namespace Alpha.Item.Weapon.View
         private RangeWeapon _weapon;
 
         [SerializeField]
+        private RangeWeaponAudioView _audioView;
+
+        [SerializeField]
         private ParticleSystem _muzzleFlashPrefab;
 
         [SerializeField]
@@ -28,6 +31,7 @@ namespace Alpha.Item.Weapon.View
         private void Awake()
         {
             _weapon ??= GetComponent<RangeWeapon>();
+            _audioView ??= GetComponent<RangeWeaponAudioView>();
         }
 
         private void OnEnable()
@@ -54,6 +58,8 @@ namespace Alpha.Item.Weapon.View
             RangeAttackResult p_result)
         {
             PlayMuzzle(p_request);
+            _audioView?.PlayFire();
+
             _cameraCore?.RequestShake(
                 _cameraShakeSetting);
 

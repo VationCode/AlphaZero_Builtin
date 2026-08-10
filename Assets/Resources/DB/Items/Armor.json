@@ -19,9 +19,7 @@
 
             "Description": "기본 헬멧",
 
-            "ArmorType": 0,
-
-            "BaseDefense": 15
+            "ArmorType": 0
         },
         {
             "Id": 1001,
@@ -42,9 +40,7 @@
 
             "Description": "중급 헬멧",
 
-            "ArmorType": 0,
-
-            "BaseDefense": 30
+            "ArmorType": 0
         },
         {
             "Id": 1002,
@@ -65,9 +61,7 @@
 
             "Description": "고급 헬멧",
 
-            "ArmorType": 0,
-
-            "BaseDefense": 60
+            "ArmorType": 0
         },
         {
             "Id": 1100,
@@ -88,9 +82,7 @@
 
             "Description": "기본 갑옷",
 
-            "ArmorType": 1,
-
-            "BaseDefense": 15
+            "ArmorType": 1
         },
         {
             "Id": 1101,
@@ -111,9 +103,7 @@
 
             "Description": "중급 갑옷",
 
-            "ArmorType": 1,
-
-            "BaseDefense": 30
+            "ArmorType": 1
         },
         {
             "Id": 1102,
@@ -134,9 +124,7 @@
 
             "Description": "고급 갑옷",
 
-            "ArmorType": 1,
-
-            "BaseDefense": 60
+            "ArmorType": 1
         },
         {
             "Id": 1200,
@@ -157,9 +145,7 @@
 
             "Description": "기본 장갑",
 
-            "ArmorType": 2,
-
-            "BaseDefense": 15
+            "ArmorType": 2
         },
         {
             "Id": 1201,
@@ -180,9 +166,7 @@
 
             "Description": "중급 장갑",
 
-            "ArmorType": 2,
-
-            "BaseDefense": 30
+            "ArmorType": 2
         },
         {
             "Id": 1202,
@@ -203,9 +187,7 @@
 
             "Description": "고급 장갑",
 
-            "ArmorType": 2,
-
-            "BaseDefense": 60
+            "ArmorType": 2
         },
         {
             "Id": 1300,
@@ -226,9 +208,7 @@
 
             "Description": "기본 신발",
 
-            "ArmorType": 3,
-
-            "BaseDefense": 15
+            "ArmorType": 3
         },
         {
             "Id": 1301,
@@ -249,9 +229,7 @@
 
             "Description": "중급 신발",
 
-            "ArmorType": 3,
-
-            "BaseDefense": 30
+            "ArmorType": 3
         },
         {
             "Id": 1302,
@@ -272,9 +250,7 @@
 
             "Description": "고급 신발",
 
-            "ArmorType": 3,
-
-            "BaseDefense": 60
+            "ArmorType": 3
         }
     ]
 }

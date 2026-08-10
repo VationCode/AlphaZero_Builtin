@@ -17,7 +17,6 @@ public class ArmorDTO : ItemDTO
 {
     [Header("ArmorData")]
     public EArmorType ArmorType;
-    public int BaseDefense;
 }
 // JSON의 방어구 배열 구조를 역직렬화한다.
 public class ArmorWrapper

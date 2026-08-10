@@ -74,6 +74,7 @@ GameObject:
   - component: {fileID: 6693522905435540571}
   - component: {fileID: -517230948712345678}
   - component: {fileID: 3817526409832714056}
+  - component: {fileID: 7901648954064959378}
   m_Layer: 0
   m_Name: Range01_Prefab
   m_TagString: Untagged
@@ -152,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weapon: {fileID: 6693522905435540571}
+  _audioView: {fileID: 7901648954064959378}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
   _bulletTracerPrefab: {fileID: 0}
   _muzzleLifetime: 0.5
@@ -160,6 +162,21 @@ MonoBehaviour:
     _positionAmplitude: {x: 0.035, y: 0.025, z: 0.015}
     _rotationAmplitude: {x: 2.2, y: 0.55, z: 0.35}
     _frequency: 18
+--- !u!114 &7901648954064959378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8176921521358785140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _audioSource: {fileID: 0}
+  _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
+  _fireVolume: 1
 --- !u!1 &9111078466827308026
 GameObject:
   m_ObjectHideFlags: 0

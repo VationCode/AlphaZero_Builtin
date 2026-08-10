@@ -1,3 +1,5 @@
+using System;
+using Alpha.Item.Armor;
 using Alpha.Player.Inventory;
 using UnityEngine;
 
@@ -9,22 +11,49 @@ namespace Alpha.Player.Equipment
         private EquipmentContext _context;
         private InventoryModule _inventoryModule;
         private SlotTransferModule _transferModule;
+        private ResourceLoadSystem _resourceLoader;
+
+        public int TotalArmorDefense { get; private set; }
+        public event Action<int> OnArmorDefenseChanged;
 
         // 외부 의존성을 연결하고 사용할 수 있는 상태로 준비한다.
-        public bool Bind(EquipmentContext p_context, InventoryModule p_inventoryModule, SlotTransferModule p_transferModule)
+        public bool Bind(
+            EquipmentContext p_context,
+            InventoryModule p_inventoryModule,
+            SlotTransferModule p_transferModule,
+            ResourceLoadSystem p_resourceLoader)
         {
             if (p_context == null ||
                 p_inventoryModule == null ||
-                p_transferModule == null)
+                p_transferModule == null ||
+                p_resourceLoader == null)
             {
                 return false;
             }
 
+            Unbind();
+
             _context = p_context;
             _inventoryModule = p_inventoryModule;
             _transferModule = p_transferModule;
+            _resourceLoader = p_resourceLoader;
+
+            _context.OnSlotChanged += HandleSlotChanged;
+            RecalculateArmorDefense();
 
             return true;
+        }
+
+        public void Unbind()
+        {
+            if (_context != null)
+                _context.OnSlotChanged -= HandleSlotChanged;
+
+            _context = null;
+            _inventoryModule = null;
+            _transferModule = null;
+            _resourceLoader = null;
+            TotalArmorDefense = 0;
         }
 
         // DTO의 세부 장비 타입에 대응하는 Context 슬롯을 Flow에 제공한다.
@@ -73,6 +102,48 @@ namespace Alpha.Player.Equipment
         {
             return _transferModule != null &&
                    _transferModule.Transfer(p_source, p_target);
+        }
+
+        private void HandleSlotChanged(EquipmentSlot p_slot)
+        {
+            if (p_slot is ArmorEquipmentSlot)
+                RecalculateArmorDefense();
+        }
+
+        // 장착된 Armor Prefab의 Inspector 수치를 합산한다.
+        private void RecalculateArmorDefense()
+        {
+            int totalDefense = 0;
+
+            if (_context != null && _resourceLoader != null)
+            {
+                foreach (EquipmentSlot slot in _context.Slots)
+                {
+                    if (slot is not ArmorEquipmentSlot armorSlot ||
+                        armorSlot.Armor == null)
+                    {
+                        continue;
+                    }
+
+                    GameObject prefab = _resourceLoader.GetItemPrefab(
+                        EItemType.Armor,
+                        armorSlot.Armor.PrefabKey);
+
+                    ArmorItem armorItem =
+                        prefab?.GetComponent<ArmorItem>();
+
+                    if (armorItem == null)
+                        continue;
+
+                    totalDefense += armorItem.BaseDefense;
+                }
+            }
+
+            if (TotalArmorDefense == totalDefense)
+                return;
+
+            TotalArmorDefense = totalDefense;
+            OnArmorDefenseChanged?.Invoke(TotalArmorDefense);
         }
     }
 }

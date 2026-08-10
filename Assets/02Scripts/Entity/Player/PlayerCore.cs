@@ -6,6 +6,7 @@ using Alpha.Player.Inventory;
 using Alpha.Player.Equipment;
 using Alpha.Player.Combat;
 using Alpha.Item.Weapon;
+using Alpha.Player.Audio;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -47,6 +48,8 @@ namespace Alpha.Player
 
         #region ========== View
         public PlayerAnimationView AnimationView { get; private set; }
+        public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
+        public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
 
@@ -93,6 +96,8 @@ namespace Alpha.Player
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
+            LocomotionAudioView = GetComponent<PlayerLocomotionAudioView>();
+            ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
 
             PlayerTr = this.transform;
@@ -114,8 +119,13 @@ namespace Alpha.Player
             InventoryFlow.Bind(InventoryContext, InventoryModule, Input);
 
             // 장비 상태와 인벤토리 간 이동 Flow를 연결한다.
-            EquipmentModule.Bind(EquipmentContext, InventoryModule, slotTransferModule);
+            EquipmentModule.Bind(
+                EquipmentContext,
+                InventoryModule,
+                slotTransferModule,
+                ResourceLoader);
             EquipmentFlow.Bind(EquipmentModule, InventoryContext);
+            ArmorView?.Bind(EquipmentContext, ResourceLoader);
 
             // 장비 변경 완료 이벤트를 실제 무기 생성 기능과 연결한다.
             if (CombatModule.Bind(this))
@@ -130,9 +140,28 @@ namespace Alpha.Player
             ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
 
             AnimationView.Bind(PlayerTr);
+            LocomotionContext.OnStateChanged -=
+                AnimationView.HandleLocomotionStateChanged;
+            LocomotionContext.OnStateChanged +=
+                AnimationView.HandleLocomotionStateChanged;
+
+            if (LocomotionContext.CurrentState.HasValue)
+            {
+                AnimationView.HandleLocomotionStateChanged(
+                    LocomotionContext.CurrentMode,
+                    LocomotionContext.CurrentState.Value);
+            }
+
+            LocomotionAudioView?.Bind(LocomotionContext);
             ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
             AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
+
+            if (LocomotionAudioView != null)
+            {
+                AnimationView.OnFootstep -= LocomotionAudioView.PlayFootstep;
+                AnimationView.OnFootstep += LocomotionAudioView.PlayFootstep;
+            }
 
         }
 
@@ -150,6 +179,19 @@ namespace Alpha.Player
 
             if (AnimationView != null && LocomotionModule != null)
                 AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
+
+            if (AnimationView != null)
+            {
+                LocomotionContext.OnStateChanged -=
+                    AnimationView.HandleLocomotionStateChanged;
+            }
+
+            if (AnimationView != null && LocomotionAudioView != null)
+                AnimationView.OnFootstep -= LocomotionAudioView.PlayFootstep;
+
+            LocomotionAudioView?.Unbind();
+            ArmorView?.Unbind();
+            EquipmentModule?.Unbind();
 
             ScopeView?.Unbind();
         }
