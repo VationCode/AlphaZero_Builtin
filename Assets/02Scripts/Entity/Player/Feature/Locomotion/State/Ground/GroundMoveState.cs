@@ -6,6 +6,9 @@ namespace Alpha.Player.Locomotion
     // GroundMoveState 상태의 진입, 갱신, 종료 동작을 담당한다.
     public class GroundMoveState : StateBase
     {
+        private const float FallGraceDuration = 0.03f;
+        private float _ungroundedElapsed;
+
         // 전달받은 값으로 초기 상태를 구성한다.
         public GroundMoveState(PlayerCore p_core, StateFlowBase p_stateFlow)
             : base(p_core, p_stateFlow)
@@ -17,6 +20,7 @@ namespace Alpha.Player.Locomotion
         // 상태 진입 시 필요한 값을 초기화하고 동작을 시작한다.
         protected override void Enter()
         {
+            _ungroundedElapsed = 0f;
         }
 
         // 현재 상태의 입력과 전환 조건을 매 프레임 처리한다.
@@ -45,12 +49,21 @@ namespace Alpha.Player.Locomotion
                 return;
             }
 
-            // 지면을 벗어났다면 낙하 속도를 준비하고 Fall 상태로 이동한다.
+            // 내리막의 순간적인 접지 손실은 유예하고, 지속될 때만 Fall로 이동한다.
             if (!_Core.LocomotionModule.IsGrounded)
             {
-                _Core.LocomotionModule.StartFall();
-                _StateFlow.ChangeState(ELocoStateType.Fall);
-                return;
+                _ungroundedElapsed += Time.deltaTime;
+
+                if (_ungroundedElapsed >= FallGraceDuration)
+                {
+                    _Core.LocomotionModule.StartFall();
+                    _StateFlow.ChangeState(ELocoStateType.Fall);
+                    return;
+                }
+            }
+            else
+            {
+                _ungroundedElapsed = 0f;
             }
 
             Transform cameraTransform = _Core.CameraCore?.RenderCamera.transform;
@@ -79,6 +92,7 @@ namespace Alpha.Player.Locomotion
         // 상태 종료 시 임시 값과 동작을 정리한다.
         protected override void Exit()
         {
+            _ungroundedElapsed = 0f;
             ClearRangeAimPresentation();
         }
 

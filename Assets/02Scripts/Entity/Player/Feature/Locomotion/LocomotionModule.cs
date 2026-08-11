@@ -40,8 +40,12 @@ namespace Alpha.Player.Locomotion
 
         private float _airMoveSpeed;
 
-        // Jump, Fall에 사용하는 수직 속도다.
+        // Jump, Fall에 사용하는 실제 중력 수직 속도다.
         public float VerticalVelocity { get; private set; }
+        // 접지 중인 지상 이동에만 별도의 하향 밀착력을 적용한다.
+        private float GroundVerticalVelocity =>
+            IsGrounded ? -_groundedForce : VerticalVelocity;
+
         // 실제 최종 이동 속도는 MoveModule이 보관한다.
         public Vector3 Velocity => _moveModule != null ? _moveModule.Velocity : Vector3.zero;
 
@@ -96,7 +100,11 @@ namespace Alpha.Player.Locomotion
             float moveSpeed = _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint, p_isCombat);
 
             // 속도
-            Vector3 moveVelocity = _moveModule.GetMoveVelocity(moveDirection, moveSpeed, VerticalVelocity, ELocomotionMode.Ground);
+            Vector3 moveVelocity = _moveModule.GetMoveVelocity(
+                moveDirection,
+                moveSpeed,
+                GroundVerticalVelocity,
+                ELocomotionMode.Ground);
 
             // 별도의 바라볼 방향이 없으면 이동 방향을 사용한다.
             Vector3 rotationDirection = p_facingDirection.sqrMagnitude > 0.0001f? p_facingDirection : moveDirection;
@@ -151,7 +159,9 @@ namespace Alpha.Player.Locomotion
         // Animator 이동량을 활성화된 Root Motion Module에 전달한다.
         public void ApplyRootMotion(Vector3 p_deltaPosition)
         {
-            _rootMotionModule.Apply(p_deltaPosition, VerticalVelocity);
+            _rootMotionModule.Apply(
+                p_deltaPosition,
+                GroundVerticalVelocity);
         }
 
         // Root Motion을 사용하지 않는 행동이 이동 입력을 잠근다.
@@ -244,7 +254,7 @@ namespace Alpha.Player.Locomotion
 
             Vector3 velocity = p_direction.normalized * dashSpeed;
 
-            velocity.y = VerticalVelocity;
+            velocity.y = GroundVerticalVelocity;
 
             _moveModule.Move(velocity);
         }
@@ -278,12 +288,12 @@ namespace Alpha.Player.Locomotion
             _context.IsGrounded = IsGrounded;
         }
 
-        // 접지 중에는 하향 고정력을 유지하고 공중에서는 중력을 누적한다.
+        // 접지 중에는 실제 중력 속도를 비우고, 공중에서만 중력을 누적한다.
         private void UpdateGravity(float p_gravityScale)
         {
             if (IsGrounded && VerticalVelocity <= 0f)
             {
-                VerticalVelocity = -_groundedForce;
+                VerticalVelocity = 0f;
                 return;
             }
 
