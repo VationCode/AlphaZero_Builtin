@@ -14,6 +14,9 @@ namespace Alpha.Player.Combat
         private bool _isRangePrimaryAction;
         private RangeWeapon _activeRangeWeapon;
         private int _playedComboIndex = -1;
+        private int _facingComboIndex = -1;
+        private bool _hasMeleeFacingDirection;
+        private Vector3 _meleeFacingDirection;
 
         // 전달받은 값으로 초기 상태를 구성한다.
         public WeaponActionState(PlayerCore p_core, CombatFlow p_flow) : base(p_core){}
@@ -118,6 +121,7 @@ namespace Alpha.Player.Combat
             }
 
             _playedComboIndex = -1;
+            ResetMeleeFacing();
             PlayCurrentMeleeCombo();
         }
 
@@ -140,6 +144,8 @@ namespace Alpha.Player.Combat
                 TryChangeState(ECombatStateType.Idle);
                 return;
             }
+
+            UpdateMeleeFacing();
 
             bool isInputHeld = module.ActiveActionType switch
             {
@@ -231,6 +237,58 @@ namespace Alpha.Player.Combat
             _isRangePrimaryAction = false;
             _activeRangeWeapon = null;
             _playedComboIndex = -1;
+            ResetMeleeFacing();
+        }
+
+        // 콤보 하나에서 첫 유효 입력 방향만 저장하고 해당 방향으로 계속 회전한다.
+        private void UpdateMeleeFacing()
+        {
+            if (!_isMeleePrimaryAction ||
+                !(_Core.CombatModule.CurrentWeapon is MeleeWeapon meleeWeapon))
+            {
+                return;
+            }
+
+            int comboIndex = meleeWeapon.CurrentComboIndex;
+
+            if (comboIndex < 0)
+                return;
+
+            if (_facingComboIndex != comboIndex)
+            {
+                _facingComboIndex = comboIndex;
+                _hasMeleeFacingDirection = false;
+                _meleeFacingDirection = Vector3.zero;
+            }
+
+            Transform cameraTransform =
+                _Core.CameraCore?.RenderCamera?.transform;
+
+            if (!_hasMeleeFacingDirection)
+            {
+                if (!_Core.LocomotionModule.TryGetGroundInputDirection(
+                        _Input.MoveInput,
+                        cameraTransform,
+                        out _meleeFacingDirection))
+                {
+                    return;
+                }
+
+                _hasMeleeFacingDirection = true;
+            }
+
+            // 입력은 다시 읽지 않고 저장된 방향을 향한 보간만 유지한다.
+            _Core.LocomotionModule.FaceGroundDirection(
+                _meleeFacingDirection,
+                cameraTransform,
+                false);
+        }
+
+        private void ResetMeleeFacing()
+        {
+            _facingComboIndex = -1;
+            _hasMeleeFacingDirection = false;
+            _meleeFacingDirection = Vector3.zero;
         }
 
         // MeleeWeapon이 실제 다음 콤보로 전환했을 때 해당 전신 애니메이션을 재생한다.

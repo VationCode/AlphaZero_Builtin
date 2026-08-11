@@ -140,7 +140,7 @@ namespace Alpha.Player
             }
 
             // 픽업과 애니메이션은 앞에서 준비된 Player 기능을 사용한다.
-            ItemPickupFlow.Bind(InventoryModule, ItemDatabase);
+            ItemPickupFlow.Bind(InventoryModule, ItemDatabase, Input);
 
             AnimationView.Bind(PlayerTr);
             LocomotionContext.OnStateChanged -=

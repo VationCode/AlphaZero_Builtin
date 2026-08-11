@@ -79,6 +79,9 @@ namespace Alpha.Item.Weapon.Melee
         public IReadOnlyList<AnimationClip> ComboClips => _comboClips;
         public AnimationClip SecondaryClip => _secondaryClip;
 
+        // 실제 콤보 공격이 시작된 시점을 View에 전달한다.
+        public event Action<int> OnComboStarted;
+
         // 실제 Damage 적용에 성공한 공격만 View에 알린다.
         public event Action<int> OnHitConfirmed;
 
@@ -170,6 +173,7 @@ namespace Alpha.Item.Weapon.Melee
             _isNextComboQueued = false;
             ClearComboMemory();
 
+            OnComboStarted?.Invoke(CurrentComboIndex);
             OnAttack();
             return true;
         }

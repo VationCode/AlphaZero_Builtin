@@ -28,7 +28,8 @@ namespace Alpha.Player.Locomotion
         // CanChangeMode 실행 가능 조건을 검사한다.
         internal override bool CanChangeMode(out ELocomotionMode p_nextMode, out ELocoStateType p_entryState)
         {
-            if (_Core.Input.IsFlight && _Rule.CanGround(_Core.LocomotionContext))
+            if (_Core.Input.IsFlight &&
+                _Rule.CanGround(_Core.LocomotionContext))
             {
                 p_nextMode = ELocomotionMode.Ground;
                 p_entryState = ELocoStateType.Move;

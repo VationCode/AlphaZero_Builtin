@@ -49,7 +49,14 @@ namespace Alpha.Test.Combat
                 this);
 
             if (_currentHealth <= 0f)
+            {
+                MeshRenderer meshRender = GetComponent<MeshRenderer>();
+                Color color = Color.red;
+                meshRender.material.color = color;
+                
                 Debug.Log($"[{name}] Test Target Dead", this);
+
+            }
 
             return true;
         }

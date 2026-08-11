@@ -1,6 +1,7 @@
 using Alpha.AlphaCamera;
 using Alpha.Mouse;
 using Alpha.Player;
+using Alpha.Player.Combat;
 using Alpha.Player.Equipment;
 using Alpha.Player.Inventory;
 using Alpha.UI;
@@ -43,10 +44,13 @@ public class Installer : MonoBehaviour
     // 카메라 → 데이터 → 인벤토리·장비 View 순서로 비동기 초기화한다.
     private async void Start()
     {
+        _uiManager.InteractionUI?.Bind(_playerCore.ItemPickupFlow);
+
         // 카메라가 준비된 경우 마우스와 기본 시점을 함께 설정한다.
         if (_cameraCore.Bind(_input))
         {
             _uiManager.CrossHairUI?.Bind(_cameraCore);
+            ConnectCrossHairState();
             _mouseSystem.Bind(_cameraCore.RenderCamera);
             _cameraCore.RequestView(ECameraViewType.ThirdPerson);
             _mouseSystem.SetViewCursor(false);
@@ -97,6 +101,22 @@ public class Installer : MonoBehaviour
         _equipmentView.OnUnequipRequested += equipmentFlow.RequestUnequip;
     }
 
+    // 실제 활성 무기 변경을 CrossHair 표시 조건과 연결한다.
+    private void ConnectCrossHairState()
+    {
+        CrossHairUI crossHairUI = _uiManager?.CrossHairUI;
+        CombatModule combatModule = _playerCore?.CombatModule;
+
+        if (crossHairUI == null || combatModule == null)
+            return;
+
+        combatModule.OnWeaponChanged -= crossHairUI.HandleWeaponChanged;
+        combatModule.OnWeaponChanged += crossHairUI.HandleWeaponChanged;
+
+        crossHairUI.HandleWeaponChanged(
+            combatModule.CurrentWeapon?.Data);
+    }
+
     // 객체 해제 전에 View 요청과 Flow의 연결을 모두 해제한다.
     private void DisconnectViewRequests()
     {
@@ -121,6 +141,13 @@ public class Installer : MonoBehaviour
         {
             _equipmentView.OnEquipRequested -= equipmentFlow.RequestEquip;
             _equipmentView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
+        }
+
+        if (_uiManager?.CrossHairUI != null &&
+            _playerCore.CombatModule != null)
+        {
+            _playerCore.CombatModule.OnWeaponChanged -=
+                _uiManager.CrossHairUI.HandleWeaponChanged;
         }
     }
 
@@ -150,6 +177,7 @@ public class Installer : MonoBehaviour
     // 객체 해제 시 등록한 이벤트와 참조를 정리한다.
     private void OnDestroy()
     {
+        _uiManager?.InteractionUI?.Unbind();
         DisconnectViewRequests();
 
         if (_playerCore?.InventoryFlow != null)

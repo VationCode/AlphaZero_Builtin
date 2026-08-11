@@ -7,5 +7,6 @@ namespace Alpha.UI
     {
         public CrossHairUI CrossHairUI;
         public StateUI StateUI;
+        public InteractionView InteractionUI;
     }
 }

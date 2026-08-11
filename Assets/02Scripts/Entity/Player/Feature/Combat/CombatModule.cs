@@ -2,6 +2,7 @@ using UnityEngine;
 using Alpha.Item.Weapon;
 using Alpha.Item.Weapon.Melee;
 using Alpha.Item.Weapon.Range;
+using System;
 
 namespace Alpha.Player.Combat
 {
@@ -15,6 +16,9 @@ namespace Alpha.Player.Combat
         private RangeWeapon _activeRangeSecondaryWeapon;
 
         public Transform Attacker => _core?.PlayerTr;
+
+        // 실제 전투에 적용된 활성 무기의 변경을 외부 표현 계층에 알린다.
+        public event Action<WeaponDTO> OnWeaponChanged;
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
@@ -71,26 +75,27 @@ namespace Alpha.Player.Combat
 
             MeleeWeapon meleeWeapon = CurrentWeapon as MeleeWeapon;
 
-            if (meleeWeapon != null)
+            if (meleeWeapon != null &&
+                !meleeWeapon.BindAttackSource(Attacker))
             {
-                if (meleeWeapon.BindAttackSource(Attacker))
-                    return true;
-
                 _weaponSwapModule.Apply(null);
+                OnWeaponChanged?.Invoke(null);
                 return false;
             }
 
             RangeWeapon rangeWeapon = CurrentRangeWeapon;
 
-            if (rangeWeapon == null)
-                return true;
+            if (rangeWeapon != null &&
+                !rangeWeapon.BindAttackSource(this))
+            {
+                // 잘못 구성된 Range 무기는 장착 상태로 남기지 않는다.
+                _weaponSwapModule.Apply(null);
+                OnWeaponChanged?.Invoke(null);
+                return false;
+            }
 
-            if (rangeWeapon.BindAttackSource(this))
-                return true;
-
-            // 잘못 구성된 Range 무기는 장착 상태로 남기지 않는다.
-            _weaponSwapModule.Apply(null);
-            return false;
+            OnWeaponChanged?.Invoke(CurrentWeapon?.Data);
+            return true;
         }
 
         #endregion ============================== /Weapon Swap

@@ -122,6 +122,20 @@ namespace Alpha.Player.Locomotion
                 p_isInstant);
         }
 
+        // 이동 입력을 카메라 기준의 지상 월드 방향으로 변환한다.
+        public bool TryGetGroundInputDirection(
+            Vector2 p_moveInput,
+            Transform p_cameraTransform,
+            out Vector3 p_direction)
+        {
+            p_direction = _moveModule.GetMoveDirection(
+                p_moveInput,
+                p_cameraTransform,
+                ELocomotionMode.Ground);
+
+            return p_direction.sqrMagnitude >= 0.0001f;
+        }
+
         // 행동이 사용할 Root Motion 적용 방식을 시작한다.
         public bool BeginRootMotion(ERootMotionMode p_mode)
         {

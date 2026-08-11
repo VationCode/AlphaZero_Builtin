@@ -79,9 +79,6 @@ namespace Alpha.Player.Inventory
             }
 
             ApplySlotView(p_slot, slotView);
-
-            // 슬롯 추가 후에도 목록의 첫 번째 슬롯 위치를 유지한다.
-            RequestFirstSlotSnap();
             return slotView;
         }
 

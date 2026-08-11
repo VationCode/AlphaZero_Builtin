@@ -25,6 +25,9 @@ public class AlphaInputSystem : MonoBehaviour
     private bool _isFlight => _flightFrame == Time.frameCount;
     private int _flightFrame;
 
+    public bool IsInteraction => _interactionFrame == Time.frameCount;
+    private int _interactionFrame = -1;
+
     // Combat
     public int SwapNum { get; private set; }
     public bool IsSwapInput => _swapFrame == Time.frameCount;
@@ -80,7 +83,10 @@ public class AlphaInputSystem : MonoBehaviour
 
         _action.Player.Jump.performed += i => _jumpFrame = Time.frameCount;
         _action.Player.Dash.performed += i => _dashFrame = Time.frameCount;
+
         _action.Player.Flight.performed += i => _flightFrame = Time.frameCount;
+        
+        _action.Player.Interaction.performed += i => _interactionFrame = Time.frameCount;
 
         // Combat
         _action.Player.Swap.performed += OnSwap;
