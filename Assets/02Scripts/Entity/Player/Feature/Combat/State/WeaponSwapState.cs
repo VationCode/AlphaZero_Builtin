@@ -107,6 +107,11 @@ namespace Alpha.Player.Combat
                     .ApplyMeleeWeapon(
                         meleeWeapon.ComboClips,
                         meleeWeapon.SecondaryClip);
+
+                // Player가 장착한 Melee View만 Local Camera Shake를 요청할 수 있다.
+                meleeWeapon
+                    .GetComponent<MeleeWeaponEffectView>()?
+                    .BindCamera(_Core.CameraCore);
             }
         }
     }

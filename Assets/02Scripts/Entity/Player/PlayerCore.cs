@@ -7,6 +7,7 @@ using Alpha.Player.Equipment;
 using Alpha.Player.Combat;
 using Alpha.Item.Weapon;
 using Alpha.Player.Audio;
+using Alpha.Player.Effect;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -49,6 +50,7 @@ namespace Alpha.Player
         #region ========== View
         public PlayerAnimationView AnimationView { get; private set; }
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
+        public PlayerActionEffectView ActionEffectView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
@@ -97,6 +99,7 @@ namespace Alpha.Player
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
             LocomotionAudioView = GetComponent<PlayerLocomotionAudioView>();
+            ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
 
@@ -153,6 +156,7 @@ namespace Alpha.Player
             }
 
             LocomotionAudioView?.Bind(LocomotionContext);
+            ActionEffectView?.Bind(LocomotionContext);
             ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
             AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
@@ -190,6 +194,7 @@ namespace Alpha.Player
                 AnimationView.OnFootstep -= LocomotionAudioView.PlayFootstep;
 
             LocomotionAudioView?.Unbind();
+            ActionEffectView?.Unbind();
             ArmorView?.Unbind();
             EquipmentModule?.Unbind();
 

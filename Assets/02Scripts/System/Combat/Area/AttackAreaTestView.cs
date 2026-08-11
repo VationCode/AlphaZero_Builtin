@@ -50,6 +50,13 @@ namespace Alpha.Test.Combat
 
         private void Awake()
         {
+            // 테스트 View는 편집 모드 전용이며 실제 Play 판정에는 참여하지 않는다.
+            if (Application.isPlaying)
+            {
+                enabled = false;
+                return;
+            }
+
             EnsureBuffers();
         }
 
@@ -70,6 +77,9 @@ namespace Alpha.Test.Combat
         [ContextMenu("Test Attack Area")]
         public void TestArea()
         {
+            if (Application.isPlaying)
+                return;
+
             ExecuteQuery(true);
         }
 
@@ -149,7 +159,7 @@ namespace Alpha.Test.Combat
 
         private void OnDrawGizmosSelected()
         {
-            if (_settings == null)
+            if (Application.isPlaying || _settings == null)
                 return;
 
             Transform origin = Origin;

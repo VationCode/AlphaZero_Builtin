@@ -1,5 +1,6 @@
 using UnityEngine;
 using Alpha.Item.Weapon;
+using Alpha.Item.Weapon.Melee;
 using Alpha.Item.Weapon.Range;
 
 namespace Alpha.Player.Combat
@@ -67,6 +68,17 @@ namespace Alpha.Player.Combat
 
             if (!_weaponSwapModule.Apply(p_weapon))
                 return false;
+
+            MeleeWeapon meleeWeapon = CurrentWeapon as MeleeWeapon;
+
+            if (meleeWeapon != null)
+            {
+                if (meleeWeapon.BindAttackSource(Attacker))
+                    return true;
+
+                _weaponSwapModule.Apply(null);
+                return false;
+            }
 
             RangeWeapon rangeWeapon = CurrentRangeWeapon;
 
