@@ -10,14 +10,20 @@ namespace Alpha.AlphaCamera
         private CameraContext _context;
 
         private CameraViewModule _viewModule;
+        private CameraObstructionModule _obstructionModule;
 
         public CameraContext Context => _context;
         // CameraCore 요청 이벤트와 입력·Context·Module을 연결한다.
-        public void Bind(CameraCore p_core, CameraViewModule p_viewModule, AlphaInputSystem p_input)
+        public void Bind(
+            CameraCore p_core,
+            CameraViewModule p_viewModule,
+            CameraObstructionModule p_obstructionModule,
+            AlphaInputSystem p_input)
         {
             _core = p_core;
             _input = p_input;
             _viewModule = p_viewModule;
+            _obstructionModule = p_obstructionModule;
 
             _context = p_core.Context;
 
@@ -50,6 +56,9 @@ namespace Alpha.AlphaCamera
 
             // 전환 여부와 관계없이 항상 Target을 추적한다.
             _viewModule.UpdateRigFollow();
+
+            // 최종 Rig 위치와 회전을 기준으로 장애물 안전 거리를 적용한다.
+            UpdateObstruction();
         }
 
         // 전환 가능 여부 검증 및 설정
@@ -69,6 +78,8 @@ namespace Alpha.AlphaCamera
             {
                 return false;
             }
+
+            _obstructionModule.ResetDistance();
 
             _context.BeginTransition(fromViewType, p_targetViewType);
             _core.NotifyViewTransitionStarted(fromViewType, p_targetViewType);
@@ -138,6 +149,21 @@ namespace Alpha.AlphaCamera
             }
 
             _viewModule.UpdateZoom(_input.MouseScroll.y, _context);
+        }
+
+        // Shoulder에서 희망 Camera 위치까지 검사하고 실제 Zoom 거리를 보정한다.
+        private void UpdateObstruction()
+        {
+            if (_viewModule.CurrentView == null)
+                return;
+
+            if (_obstructionModule.TryResolveDistance(
+                    _viewModule.DesiredZoomDistance,
+                    Time.deltaTime,
+                    out float resolvedDistance))
+            {
+                _viewModule.ApplyResolvedZoomDistance(resolvedDistance);
+            }
         }
 
         // 객체 해제 시 등록한 이벤트와 참조를 정리한다.

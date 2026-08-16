@@ -98,7 +98,7 @@ namespace Alpha.Player
 
             // View
             AnimationView = GetComponent<PlayerAnimationView>();
-            LocomotionAudioView = GetComponent<PlayerLocomotionAudioView>();
+            LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();

@@ -49,7 +49,7 @@ namespace Alpha.Item.Weapon.Melee
     // 근접 무기의 공통 공격과 방어 입력 생명주기를 담당한다.
     public abstract class MeleeWeapon : Weapon
     {
-        [Header("Animation")]
+        [Header("Anim")]
         [SerializeField]
         private AnimationClip[] _comboClips;
         [SerializeField] private AnimationClip _secondaryClip;

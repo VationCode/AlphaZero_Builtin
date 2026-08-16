@@ -10,6 +10,7 @@ namespace Alpha.AlphaCamera
         public CameraViewFlow ViewFlow { get; private set; }
 
         public CameraViewModule ViewModule { get; private set; }
+        public CameraObstructionModule ObstructionModule { get; private set; }
         public CameraShakeModule ShakeModule { get; private set; }
 
         public CameraContext Context { get; } = new();
@@ -26,6 +27,7 @@ namespace Alpha.AlphaCamera
         {
             ViewFlow = GetComponent<CameraViewFlow>();
             ViewModule = GetComponent<CameraViewModule>();
+            ObstructionModule = GetComponent<CameraObstructionModule>();
             ShakeModule = GetComponent<CameraShakeModule>();
         }
 
@@ -35,14 +37,16 @@ namespace Alpha.AlphaCamera
         {
             if (ViewFlow == null ||
                 ViewModule == null ||
+                ObstructionModule == null ||
                 ShakeModule == null)
                 return false;
 
             if (!ViewModule.Initialize() ||
+                !ObstructionModule.Initialize(ViewModule.ObstructionOrigin) ||
                 !ShakeModule.Initialize())
                 return false;
 
-            ViewFlow.Bind(this, ViewModule, p_input);
+            ViewFlow.Bind(this, ViewModule, ObstructionModule, p_input);
 
             InputSystem = p_input;
 

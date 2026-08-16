@@ -28,6 +28,8 @@ namespace Alpha.AlphaCamera
         [SerializeField] private Transform _cameraShoulder;
         [SerializeField] private Transform _cameraZoom;
         public Camera RenderCamera => _renderCamera;
+        public Transform ObstructionOrigin => _cameraShoulder;
+        public float DesiredZoomDistance => _desiredZoomDistance;
         [SerializeField] private Camera _renderCamera;
 
         [Header("Target")]
@@ -56,6 +58,7 @@ namespace Alpha.AlphaCamera
 
 
         private float _currentRigFollowSpeed;
+        private float _desiredZoomDistance;
 
         private float _transitionElapsedTime;   // 경과 시간
         private float _transitionDuration;
@@ -91,6 +94,8 @@ namespace Alpha.AlphaCamera
 
                 _viewProfileDict.Add(profile.ViewType, profile);
             }
+
+            _desiredZoomDistance = Mathf.Max(0f, -_cameraZoom.localPosition.z);
 
             IsInitialized = true;
             return true;
@@ -135,6 +140,8 @@ namespace Alpha.AlphaCamera
             _transitionStart.PivotRotation = _cameraPivot.localRotation;
             _transitionStart.ShoulderPosition = _cameraShoulder.localPosition;
             _transitionStart.ZoomPosition = _cameraZoom.localPosition;
+            // 실제 위치가 장애물로 당겨져 있어도 희망 거리에서 View 전환을 시작한다.
+            _transitionStart.ZoomPosition.z = -_desiredZoomDistance;
             _transitionStart.FieldOfView = _renderCamera.fieldOfView;
             _transitionStart.RigFollowSpeed = _currentRigFollowSpeed;
 
@@ -222,7 +229,11 @@ namespace Alpha.AlphaCamera
 
             Vector3 targetZoom = new Vector3(0f, 0f, -p_target.ZoomDistance);
 
-            _cameraZoom.localPosition = Vector3.Lerp(_transitionStart.ZoomPosition, targetZoom, p_t);
+            Vector3 desiredZoomPosition =
+                Vector3.Lerp(_transitionStart.ZoomPosition, targetZoom, p_t);
+
+            _desiredZoomDistance = Mathf.Max(0f, -desiredZoomPosition.z);
+            _cameraZoom.localPosition = desiredZoomPosition;
 
             _renderCamera.fieldOfView = Mathf.Lerp(_transitionStart.FieldOfView, p_target.FieldOfView, p_t);
 
@@ -251,7 +262,8 @@ namespace Alpha.AlphaCamera
             _cameraShoulder.localPosition = p_profile.ShoulderLocalPosition;
 
             // 카메라는 Zoom 기준점의 뒤쪽인 로컬 -Z에 배치한다.
-            _cameraZoom.localPosition = new Vector3(0f, 0f, -p_profile.ZoomDistance);
+            _desiredZoomDistance = p_profile.ZoomDistance;
+            _cameraZoom.localPosition = new Vector3(0f, 0f, -_desiredZoomDistance);
 
             _renderCamera.fieldOfView = p_profile.FieldOfView;
 
@@ -282,6 +294,21 @@ namespace Alpha.AlphaCamera
         #endregion ============================== /Rotation Camera
 
         #region ============================== Zoom
+        // 장애물 검사 결과를 반영하되 Shoulder 기준 X/Y 구도는 유지한다.
+        public void ApplyResolvedZoomDistance(float p_resolvedDistance)
+        {
+            if (!IsInitialized)
+                return;
+
+            Vector3 localPosition = _cameraZoom.localPosition;
+            localPosition.z = -Mathf.Clamp(
+                p_resolvedDistance,
+                0f,
+                _desiredZoomDistance);
+
+            _cameraZoom.localPosition = localPosition;
+        }
+
         // 휠 방향을 Profile의 한 단계 거리로 변환해 Zoom 범위 안에 적용한다.
         public void UpdateZoom(float p_scrollY, CameraContext p_context)
         {
@@ -299,7 +326,8 @@ namespace Alpha.AlphaCamera
             p_context.SetZoomDistance(nextDistance);
 
             // Pivot으로부터 로컬 -Z 방향으로 거리를 적용한다.
-            _cameraZoom.localPosition = new Vector3(0f, 0f, -nextDistance);
+            _desiredZoomDistance = nextDistance;
+            _cameraZoom.localPosition = new Vector3(0f, 0f, -_desiredZoomDistance);
         }
         #endregion ============================== /Zoom
     }
