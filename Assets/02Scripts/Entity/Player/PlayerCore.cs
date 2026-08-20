@@ -5,9 +5,11 @@ using Alpha.Player.Locomotion;
 using Alpha.Player.Inventory;
 using Alpha.Player.Equipment;
 using Alpha.Player.Combat;
-using Alpha.Item.Weapon;
 using Alpha.Player.Audio;
 using Alpha.Player.Effect;
+using Alpha.Player.Health;
+using Alpha.Living;
+using Alpha.Rig.Player;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -38,6 +40,8 @@ namespace Alpha.Player
 
         // Combat State들이 공유하는 상태는 Player 생명주기 동안 유지한다.
         public CombatContext CombatContext { get; } = new();
+
+        public HealthContext HealthContext { get; } = new();
         #endregion
 
         #region ========== Module
@@ -45,10 +49,13 @@ namespace Alpha.Player
         public InventoryModule InventoryModule { get; private set; }
         public EquipmentModule EquipmentModule { get; private set; }
         public CombatModule CombatModule { get; private set; }
+        public HealthModule HealthModule { get; private set; }
+        public CheckTrigger CheckTrigger { get; private set; }
         #endregion
 
         #region ========== View
         public PlayerAnimationView AnimationView { get; private set; }
+        public RigView RigView { get; private set; }
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
@@ -95,9 +102,12 @@ namespace Alpha.Player
             InventoryModule = GetComponentInChildren<InventoryModule>(true);
             EquipmentModule = GetComponentInChildren<EquipmentModule>(true);
             CombatModule = GetComponentInChildren<CombatModule>(true);
+            HealthModule = GetComponentInChildren<HealthModule>(true);
+            CheckTrigger = GetComponent<CheckTrigger>();
 
             // View
-            AnimationView = GetComponent<PlayerAnimationView>();
+            AnimationView = GetComponentInChildren<PlayerAnimationView>(true);
+            RigView = GetComponentInChildren<RigView>(true);
             LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
@@ -122,11 +132,7 @@ namespace Alpha.Player
             InventoryFlow.Bind(InventoryContext, InventoryModule, Input);
 
             // 장비 상태와 인벤토리 간 이동 Flow를 연결한다.
-            EquipmentModule.Bind(
-                EquipmentContext,
-                InventoryModule,
-                slotTransferModule,
-                ResourceLoader);
+            EquipmentModule.Bind(EquipmentContext, InventoryModule, slotTransferModule, ResourceLoader);
             EquipmentFlow.Bind(EquipmentModule, InventoryContext);
             ArmorView?.Bind(EquipmentContext, ResourceLoader);
 
@@ -142,17 +148,24 @@ namespace Alpha.Player
             // 픽업과 애니메이션은 앞에서 준비된 Player 기능을 사용한다.
             ItemPickupFlow.Bind(InventoryModule, ItemDatabase, Input);
 
-            AnimationView.Bind(PlayerTr);
-            LocomotionContext.OnStateChanged -=
-                AnimationView.HandleLocomotionStateChanged;
-            LocomotionContext.OnStateChanged +=
-                AnimationView.HandleLocomotionStateChanged;
+            HealthModule?.Bind(HealthContext);
+            CheckTrigger.Bind(HealthModule);
 
-            if (LocomotionContext.CurrentState.HasValue)
+            RigView?.Bind(PlayerTr);
+
+            if (RigView != null)
             {
-                AnimationView.HandleLocomotionStateChanged(
-                    LocomotionContext.CurrentMode,
-                    LocomotionContext.CurrentState.Value);
+                LocomotionContext.OnStateChanged -=
+                    RigView.HandleLocomotionStateChanged;
+                LocomotionContext.OnStateChanged +=
+                    RigView.HandleLocomotionStateChanged;
+
+                if (LocomotionContext.CurrentState.HasValue)
+                {
+                    RigView.HandleLocomotionStateChanged(
+                        LocomotionContext.CurrentMode,
+                        LocomotionContext.CurrentState.Value);
+                }
             }
 
             LocomotionAudioView?.Bind(LocomotionContext);
@@ -184,10 +197,10 @@ namespace Alpha.Player
             if (AnimationView != null && LocomotionModule != null)
                 AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
 
-            if (AnimationView != null)
+            if (RigView != null)
             {
                 LocomotionContext.OnStateChanged -=
-                    AnimationView.HandleLocomotionStateChanged;
+                    RigView.HandleLocomotionStateChanged;
             }
 
             if (AnimationView != null && LocomotionAudioView != null)

@@ -1,4 +1,5 @@
 using Alpha.Combat;
+using Alpha.Detection;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,13 +24,13 @@ namespace Alpha.Item.Weapon.Melee
         private float _knockbackDuration = 0.2f;
 
         [SerializeField]
-        private AttackAreaSettings _area = new();
+        private DetectionAreaSettings _area = new();
 
         public float HitNormalizedTime => _hitNormalizedTime;
         public float DamageMultiplier => _damageMultiplier;
         public float KnockbackDistance => _knockbackDistance;
         public float KnockbackDuration => _knockbackDuration;
-        public AttackAreaSettings Area => _area;
+        public DetectionAreaSettings Area => _area;
 
         public bool IsValid =>
             _area != null &&
@@ -96,7 +97,8 @@ namespace Alpha.Item.Weapon.Melee
 
         private Transform _attacker;
         private Collider[] _overlapBuffer;
-        private AttackAreaHit[] _hitBuffer;
+        private DetectionAreaHit[] _hitBuffer;
+        private readonly HashSet<IDamageable> _damagedTargets = new();
 
         private bool _isNextComboQueued;
         private int _rememberedComboIndex = -1;
@@ -323,7 +325,7 @@ namespace Alpha.Item.Weapon.Melee
             ApplyAttackDamage(attackSettings);
         }
 
-        // 기존 AttackAreaSystem의 결과를 공용 DamageSystem에 전달한다.
+        // 공용 공간 탐지 결과 중 Damage 대상을 선별해 DamageSystem에 전달한다.
         private void ApplyAttackDamage(MeleeAttackSettings p_settings)
         {
             float damage = _baseDamage * p_settings.DamageMultiplier;
@@ -334,23 +336,33 @@ namespace Alpha.Item.Weapon.Melee
             EnsureHitBuffers();
             Physics.SyncTransforms();
 
-            AttackAreaRequest request = new(
+            DetectionAreaRequest request = new(
                 _attacker.position,
                 _attacker.forward,
                 _attacker.up,
                 _attacker,
                 p_settings.Area);
 
-            int hitCount = AttackAreaSystem.Query(
+            int hitCount = DetectionAreaSystem.Query(
                 request,
                 _overlapBuffer,
                 _hitBuffer);
 
             bool hasConfirmedHit = false;
+            _damagedTargets.Clear();
 
             for (int index = 0; index < hitCount; index++)
             {
-                AttackAreaHit hit = _hitBuffer[index];
+                DetectionAreaHit hit = _hitBuffer[index];
+                IDamageable damageable =
+                    hit.Collider.GetComponentInParent<IDamageable>();
+
+                // 하나의 대상이 여러 Collider를 가져도 공격당 피해는 한 번만 적용한다.
+                if (damageable == null ||
+                    !_damagedTargets.Add(damageable))
+                {
+                    continue;
+                }
 
                 DamageInfo damageInfo = new(
                     _attacker,
@@ -413,7 +425,7 @@ namespace Alpha.Item.Weapon.Melee
             if (_hitBuffer == null ||
                 _hitBuffer.Length != capacity)
             {
-                _hitBuffer = new AttackAreaHit[capacity];
+                _hitBuffer = new DetectionAreaHit[capacity];
             }
         }
 

@@ -11,17 +11,18 @@ namespace Alpha.Enemy.CrabBoss
 
         [SerializeField] private Animator _anim;
         [SerializeField] private Transform _root;
+        [SerializeField] private CrabBossCore _core;
 
-        [Header("Attack Animation Clips")]
-        [SerializeField] private CrabBossAttackAnimationSetting[] _meleeAttackClips;
-        [SerializeField] private CrabBossAttackAnimationSetting[] _rangeAttackClips;
-        [SerializeField] private CrabBossAttackAnimationSetting[] _rushAttackClips;
-        [SerializeField] private CrabBossAttackAnimationSetting[] _areaAttackClips;
-        [SerializeField] private CrabBossAttackAnimationSetting[] _arenaAttackClips;
+        [SerializeField]
+        private CrabBossAttackAnimationSetting[] _attackAnimations;
 
-        private bool _isRootMotionEnabled;
+        public bool IsRootMotionEnabled { get; private set; }
 
-        public Animator Animator => _anim;
+        private static readonly int IdleHash =
+            Animator.StringToHash("Base Layer.Idle");
+
+        private static readonly int WalkHash =
+            Animator.StringToHash("Base Layer.Walk_F");
 
         private void Awake()
         {
@@ -30,16 +31,16 @@ namespace Alpha.Enemy.CrabBoss
 
             if (_root == null)
             {
-                CrabBossCore core = GetComponentInParent<CrabBossCore>();
-                _root = core != null ? core.transform : transform.root;
+                _core ??= GetComponentInParent<CrabBossCore>();
+                _root = _core != null ? _core.transform : transform.root;
             }
+
+            _core ??= GetComponentInParent<CrabBossCore>();
         }
 
         // 인트로 1 시작만 처리
         public bool PlayIntro()
         {
-            DisableRootMotion();
-
             if (_anim == null || !_anim.HasState(0, Intro1Hash))
             {
                 Debug.LogWarning("Crab Boss Animator의 Base Layer에 Intro1 State가 필요합니다.", this);
@@ -53,50 +54,126 @@ namespace Alpha.Enemy.CrabBoss
             return true;
         }
 
-        public CrabBossAttackAnimationSetting PlayRandomAttack(
-            ECrabAttackPattern p_pattern)
+        public void PlayIdle()
         {
-            CrabBossAttackAnimationSetting[] settings =
-                GetAttackSettings(p_pattern);
+            SetRootMotionEnabled(false);
+            _anim?.CrossFadeInFixedTime(IdleHash, 0.15f);
+        }
 
-            if (_anim == null || settings == null || settings.Length == 0)
-                return null;
+        public void PlayWalk()
+        {
+            SetRootMotionEnabled(false);
+            _anim?.CrossFadeInFixedTime(WalkHash, 0.15f);
+        }
 
-            int startIndex = Random.Range(0, settings.Length);
+        public int GetAttackAnimationCount(
+            EAttackPattern p_pattern)
+        {
+            CrabBossAttackAnimationSetting setting =
+                FindAttackAnimationSetting(p_pattern);
 
-            for (int offset = 0; offset < settings.Length; offset++)
+            return setting?.StateCount ?? 0;
+        }
+
+        public bool PlayAttack(
+            EAttackPattern p_pattern,
+            int p_animationIndex)
+        {
+            if (!TryGetAttackStateHash(
+                    p_pattern,
+                    p_animationIndex,
+                    out int stateHash,
+                    out string stateName))
             {
-                int index = (startIndex + offset) % settings.Length;
-                CrabBossAttackAnimationSetting selected = settings[index];
-
-                if (selected == null || selected.Clip == null)
-                    continue;
-
-                int stateHash = Animator.StringToHash(
-                    $"Base Layer.{selected.Clip.name}");
-
-                if (!_anim.HasState(0, stateHash))
-                    continue;
-
-                _isRootMotionEnabled = selected.UseRootMotion;
-                _anim.Play(stateHash, 0, 0f);
-                return selected;
+                return false;
             }
 
-            DisableRootMotion();
-            Debug.LogWarning($"{p_pattern}에 재생 가능한 Animator State가 없습니다.", this);
+            if (_anim == null || !_anim.HasState(0, stateHash))
+            {
+                Debug.LogWarning(
+                    $"Crab Boss Animator의 Base Layer에 {stateName} State가 필요합니다.",
+                    this);
+                return false;
+            }
+
+            // Rush 이동은 CombatStrategy가 처리하므로 공격 RootMotion은 사용하지 않는다.
+            SetRootMotionEnabled(false);
+            _anim.CrossFadeInFixedTime(stateHash, 0.1f, 0, 0f);
+
+            return true;
+        }
+
+        public bool IsAttackComplete(
+            EAttackPattern p_pattern,
+            int p_animationIndex)
+        {
+            if (_anim == null ||
+                _anim.IsInTransition(0) ||
+                !TryGetAttackStateHash(
+                    p_pattern,
+                    p_animationIndex,
+                    out int stateHash,
+                    out _))
+            {
+                return false;
+            }
+
+            AnimatorStateInfo stateInfo =
+                _anim.GetCurrentAnimatorStateInfo(0);
+
+            return stateInfo.fullPathHash == stateHash &&
+                   stateInfo.normalizedTime >= 1f;
+        }
+
+        private CrabBossAttackAnimationSetting FindAttackAnimationSetting(
+            EAttackPattern p_pattern)
+        {
+            if (_attackAnimations == null)
+                return null;
+
+            foreach (CrabBossAttackAnimationSetting setting in _attackAnimations)
+            {
+                if (setting != null && setting.Pattern == p_pattern)
+                    return setting;
+            }
 
             return null;
         }
 
-        public void DisableRootMotion()
+        private bool TryGetAttackStateHash(
+            EAttackPattern p_pattern,
+            int p_animationIndex,
+            out int p_stateHash,
+            out string p_stateName)
         {
-            _isRootMotionEnabled = false;
+            p_stateHash = 0;
+            p_stateName = null;
+
+            CrabBossAttackAnimationSetting setting =
+                FindAttackAnimationSetting(p_pattern);
+
+            if (setting == null ||
+                !setting.TryGetStateName(
+                    p_animationIndex,
+                    out p_stateName))
+            {
+                return false;
+            }
+
+            p_stateHash = Animator.StringToHash(
+                $"Base Layer.{p_stateName}");
+
+            return true;
+        }
+
+        public void SetRootMotionEnabled(bool p_enabled)
+        {
+            IsRootMotionEnabled = p_enabled;
         }
 
         private void OnAnimatorMove()
         {
-            if (!_isRootMotionEnabled || _anim == null || _root == null)
+            if (!IsRootMotionEnabled || _anim == null || _root == null)
                 return;
 
             // Animator 자식이 아닌 CrabBoss 루트에 RootMotion을 적용한다.
@@ -106,21 +183,7 @@ namespace Alpha.Enemy.CrabBoss
 
         private void OnDisable()
         {
-            DisableRootMotion();
-        }
-
-        private CrabBossAttackAnimationSetting[] GetAttackSettings(
-            ECrabAttackPattern p_pattern)
-        {
-            return p_pattern switch
-            {
-                ECrabAttackPattern.MeleeAttack => _meleeAttackClips,
-                ECrabAttackPattern.RangeAttack => _rangeAttackClips,
-                ECrabAttackPattern.RushAttack => _rushAttackClips,
-                ECrabAttackPattern.AreaAttack => _areaAttackClips,
-                ECrabAttackPattern.ArenaAttack => _arenaAttackClips,
-                _ => null
-            };
+            SetRootMotionEnabled(false);
         }
     }
 }

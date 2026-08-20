@@ -186,6 +186,7 @@ MonoBehaviour:
   _weapon: {fileID: -8608525187958284337}
   _audioView: {fileID: 7901648954064959377}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _tracerMode: 1
   _bulletTracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
   _muzzleLifetime: 0.5
   _cameraShakeSetting:

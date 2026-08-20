@@ -39,7 +39,7 @@ namespace Alpha.Player.Locomotion
                 return;
             }
 
-            Debug.Log($"[GroundState] " + $"{CurrentState?.Type.ToString() ?? "None"} → {p_nextState.Type}");
+            //Debug.Log($"[GroundState] " + $"{CurrentState?.Type.ToString() ?? "None"} → {p_nextState.Type}");
 
             // 기존 State를 먼저 종료한 뒤 새 상태를 확정한다.
             CurrentState?.ExitState();

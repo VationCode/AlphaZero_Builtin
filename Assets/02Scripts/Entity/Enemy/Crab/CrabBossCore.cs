@@ -8,26 +8,30 @@ namespace Alpha.Enemy.CrabBoss
     {
         [SerializeField] private CrabBossStateMachine _stateMachine;
         [SerializeField] private CrabBossLocomotionModule _locomotionModule;
+        [SerializeField] private CrabBossTargetRangeModule _targetRangeModule;
         [SerializeField] private CrabBossAnimationView _animView;
         [SerializeField] private CrabBossCombatModule _combatModule;
+        [SerializeField] private DamageCollision _damageCollision;
 
         public CrabBossStateMachine StateMachine => _stateMachine;
         public CrabBossLocomotionModule LocomotionModule => _locomotionModule;
+        public CrabBossTargetRangeModule TargetRangeModule => _targetRangeModule;
         public CrabBossAnimationView AnimView => _animView;
         public CrabBossCombatModule CombatModule => _combatModule;
         public CrabBossContext Context { get; private set; }
-        public CrabBossCombatFlow CombatFlow { get; private set; }
 
         private void Awake()
         {
             _stateMachine ??= GetComponent<CrabBossStateMachine>();
             _locomotionModule ??= GetComponentInChildren<CrabBossLocomotionModule>(true);
+            _targetRangeModule ??= GetComponentInChildren<CrabBossTargetRangeModule>(true);
             _animView ??= GetComponentInChildren<CrabBossAnimationView>(true);
             _combatModule ??= GetComponentInChildren<CrabBossCombatModule>(true);
+            _damageCollision ??= GetComponentInChildren<DamageCollision>(true);
 
             Context = new CrabBossContext();
-            CombatFlow = new CrabBossCombatFlow(Context, _combatModule);
             _stateMachine?.Bind(this);
+            _damageCollision?.Bind(transform);
         }
 
         // BossRoomTrigger가 호출하는 전투 조립 진입점이다.

@@ -4,10 +4,10 @@ namespace Alpha.Enemy.CrabBoss.Combat
 {
     [Serializable]
     public sealed class CrabBossAreaAttackStrategy
-        : CrabBossAttackStrategy
+        : BossAttackStrategy
     {
-        public override ECrabAttackPattern Pattern =>
-            ECrabAttackPattern.AreaAttack;
+        public override EAttackPattern Pattern =>
+            EAttackPattern.AreaAttack;
 
         public override bool Begin(
             CrabBossContext p_context,

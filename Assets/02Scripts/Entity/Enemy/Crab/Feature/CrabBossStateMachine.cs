@@ -7,7 +7,6 @@ namespace Alpha.Enemy.CrabBoss
     {
         Intro,
         Chase,
-        Move,
         Attack,
         Idle
     }
@@ -27,7 +26,6 @@ namespace Alpha.Enemy.CrabBoss
             {
                 { CrabState.Intro, new CrabBossIntroState(p_core) },
                 { CrabState.Chase, new CrabBossChaseState(p_core) },
-                { CrabState.Move, new CrabBossMoveState(p_core) },
                 { CrabState.Attack, new CrabBossAttackState(p_core) },
                 { CrabState.Idle, new CrabBossIdleState(p_core) }
             };

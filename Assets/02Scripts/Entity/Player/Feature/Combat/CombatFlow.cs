@@ -260,7 +260,7 @@ namespace Alpha.Player.Combat
 
             context.SetAimDirection(
                 _rangeFacingHoldDirection);
-            _core.AnimationView?.SetRangeAimDirection(
+            _core.RigView?.SetAimDirection(
                 _rangeFacingHoldDirection);
 
             return true;
@@ -307,7 +307,7 @@ namespace Alpha.Player.Combat
                 return;
 
             context.ClearAimDirection();
-            _core.AnimationView?.ClearRangeAimDirection();
+            _core.RigView?.ClearAimDirection();
         }
 
         // Idle에서 들어온 무기 행동 요청을 검증하고 State가 소비할 값으로 저장한다.
@@ -482,10 +482,30 @@ namespace Alpha.Player.Combat
                 !context.IsRangeFacingHeld)
             {
                 context.ClearAimDirection();
-                _core.AnimationView?.ClearRangeAimDirection();
+                _core.RigView?.ClearAimDirection();
             }
 
-            _core.AnimationView?.SetRangeAiming(p_isAiming);
+            RefreshRangeAimRigPresentation();
+        }
+
+        // Camera View와 무관하게 Range 조준 또는 공격 상태를 상체 Rig 표현으로 변환한다.
+        internal void RefreshRangeAimRigPresentation()
+        {
+            if (_core?.CombatContext == null ||
+                _core.CombatModule == null)
+            {
+                return;
+            }
+
+            CombatContext context = _core.CombatContext;
+
+            bool shouldActivate =
+                _core.CombatModule.CurrentRangeWeapon != null &&
+                (context.IsAiming ||
+                 context.IsRangePrimaryActive ||
+                 context.IsRangeAttacking);
+
+            _core.RigView?.SetAiming(shouldActivate);
         }
         #endregion ============================== /Range Secondary
     }

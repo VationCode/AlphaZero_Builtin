@@ -1,10 +1,10 @@
-using Alpha.Combat;
+using Alpha.Detection;
 using Alpha.Item.Weapon.Melee;
 using UnityEngine;
 
 namespace Alpha.Item.View.Weapon
 {
-    // 근접 무기의 콤보별 AttackAreaSettings를 Scene Gizmo로 미리 보여준다.
+    // 근접 무기의 콤보별 DetectionAreaSettings를 Scene Gizmo로 미리 보여준다.
     [DisallowMultipleComponent]
     public sealed class MeleeAttackAreaPreviewView : MonoBehaviour
     {
@@ -65,14 +65,14 @@ namespace Alpha.Item.View.Weapon
                     ? _origin
                     : transform;
 
-            AttackAreaRequest request = new(
+            DetectionAreaRequest request = new(
                 origin.position,
                 origin.forward,
                 origin.up,
                 origin,
                 settings.Area);
 
-            AttackAreaGizmoDrawer.Draw(request, _areaColor);
+            DetectionAreaGizmoDrawer.Draw(request, _areaColor);
         }
     }
 }

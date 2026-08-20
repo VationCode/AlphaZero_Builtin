@@ -136,10 +136,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6dc30df630a2b740b2b7ea3101bd939, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _projectilePrefab: {fileID: 7261030758123456789, guid: 4cacc51e38ffc32478789a7dfdde8f31, type: 3}
-  _projectileSpeed: 200
-  _gravityScale: 3
-  _projectileRadius: 0.025
+  _launchSettings:
+    _prefab: {fileID: 7261030758123456789, guid: 4cacc51e38ffc32478789a7dfdde8f31, type: 3}
+    _speed: 200
+    _hitMask:
+      serializedVersion: 2
+      m_Bits: 129
 --- !u!114 &3817526409832714056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,6 +157,7 @@ MonoBehaviour:
   _weapon: {fileID: 6693522905435540571}
   _audioView: {fileID: 7901648954064959378}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _tracerMode: 0
   _bulletTracerPrefab: {fileID: 0}
   _muzzleLifetime: 0.5
   _cameraShakeSetting:

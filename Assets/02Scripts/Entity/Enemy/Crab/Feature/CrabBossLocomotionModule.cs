@@ -6,12 +6,9 @@ namespace Alpha.Enemy.CrabBoss
     {
         [SerializeField] private Transform _owner;
 
-        [Header("Approach")]
+        [Header("Chase")]
         [SerializeField, Min(0f)]
-        private float _approachSpeed = 5f;
-
-        [SerializeField, Min(0f)]
-        private float _arrivalTolerance = 0.1f;
+        private float _chaseSpeed = 8f;
 
         [Header("Rotation")]
         [SerializeField, Min(0f)]
@@ -21,9 +18,7 @@ namespace Alpha.Enemy.CrabBoss
         private float _rotationCompleteAngle = 2f;
 
         public Transform Owner => _owner;
-
-        public float ApproachSpeed => _approachSpeed;
-
+        public float ChaseSpeed => _chaseSpeed;
 
         private void Awake()
         {
@@ -34,59 +29,62 @@ namespace Alpha.Enemy.CrabBoss
             }
         }
 
-        public bool TryCalculateDistanceTo(Transform p_target, out float p_distance)
-        {
-            p_distance = float.PositiveInfinity;
-
-            if (_owner == null || p_target == null)
-                return false;
-
-            // 높이를 제외한 전투용 수평 거리를 계산한다.
-            Vector3 direction = p_target.position - _owner.position;
-            direction.y = 0f;
-            p_distance = direction.magnitude;
-
-            return true;
-        }
-
-        public bool TryApproachTarget(
-            Transform p_target,
+        public bool TryChaseTarget(
+            Vector3 p_direction,
+            float p_distance,
             float p_stopDistance,
             float p_deltaTime,
-            out float p_distance,
-            out bool p_reached)
+            out float p_remainingDistance)
         {
-            p_distance = float.PositiveInfinity;
-            p_reached = false;
+            p_remainingDistance = p_distance;
 
-            if (_owner == null || p_target == null)
+            if (_owner == null ||
+                p_distance < 0f ||
+                p_direction.sqrMagnitude <= 0.0001f)
+            {
                 return false;
-
-            Vector3 direction = p_target.position - _owner.position;
-            direction.y = 0f;
-
-            p_distance = direction.magnitude;
+            }
 
             float stopDistance = Mathf.Max(0f, p_stopDistance);
             float remainingDistance = p_distance - stopDistance;
 
-            if (remainingDistance <= _arrivalTolerance)
-            {
-                p_reached = true;
+            if (remainingDistance <= 0f)
                 return true;
-            }
 
-            // 정지 거리를 침범하지 않도록 이동량 제한
-            float moveDistance = 
-                Mathf.Min(_approachSpeed * p_deltaTime, remainingDistance);
+            // 한 프레임 이동량을 제한하여 정지 거리를 침범하지 않는다.
+            float moveDistance = Mathf.Min(
+                _chaseSpeed * Mathf.Max(0f, p_deltaTime),
+                remainingDistance);
 
-            _owner.position +=
-                direction.normalized * moveDistance;
-
-            p_distance -= moveDistance;
-            p_reached = p_distance - stopDistance <= _arrivalTolerance;
+            _owner.position += p_direction.normalized * moveDistance;
+            p_remainingDistance = p_distance - moveDistance;
 
             return true;
+        }
+
+        public bool RotateTowards(
+            Vector3 p_direction,
+            float p_deltaTime)
+        {
+            if (_owner == null)
+                return false;
+
+            p_direction.y = 0f;
+
+            if (p_direction.sqrMagnitude <= 0.0001f)
+                return true;
+
+            Quaternion targetRotation =
+                Quaternion.LookRotation(p_direction.normalized);
+
+            _owner.rotation = Quaternion.RotateTowards(
+                _owner.rotation,
+                targetRotation,
+                _rotationSpeed * Mathf.Max(0f, p_deltaTime));
+
+            return Quaternion.Angle(
+                       _owner.rotation,
+                       targetRotation) <= _rotationCompleteAngle;
         }
 
         public bool RotateTowards(Transform p_target)
@@ -109,10 +107,7 @@ namespace Alpha.Enemy.CrabBoss
             return Quaternion.Angle(_owner.rotation, targetRotation) <= _rotationCompleteAngle;
         }
 
-        public bool MoveTowards(
-            Vector3 p_destination,
-            float p_speed,
-            float p_deltaTime)
+        public bool MoveTowards(Vector3 p_destination, float p_speed, float p_deltaTime)
         {
             if (_owner == null)
                 return false;
@@ -125,5 +120,6 @@ namespace Alpha.Enemy.CrabBoss
 
             return (_owner.position - p_destination).sqrMagnitude <= 0.0001f;
         }
+
     }
 }

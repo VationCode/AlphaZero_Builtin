@@ -52,7 +52,7 @@ namespace Alpha.Player.Combat
                     out Vector3 aimDirection))
             {
                 _Context.SetAimDirection(aimDirection);
-                _Core.AnimationView?.SetRangeAimDirection(
+                _Core.RigView?.SetAimDirection(
                     aimDirection);
             }
 
@@ -75,7 +75,7 @@ namespace Alpha.Player.Combat
                     !_Flow.TryRestoreRangeFacingHold())
                 {
                     _Context.ClearAimDirection();
-                    _Core.AnimationView?.ClearRangeAimDirection();
+                    _Core.RigView?.ClearAimDirection();
                 }
 
                 TryChangeState(ECombatStateType.Idle);
@@ -95,6 +95,9 @@ namespace Alpha.Player.Combat
                 _isRangePrimaryAction &&
                 _activeRangeWeapon != null &&
                 _activeRangeWeapon.DidFireDuringPrimaryAction);
+
+            // TPS를 포함한 모든 Camera View에서 Range 공격 중 상체 Rig를 활성화한다.
+            _Flow.RefreshRangeAimRigPresentation();
 
             _isMeleePrimaryAction =
                 actionType == EWeaponActionType.Primary &&
@@ -176,7 +179,7 @@ namespace Alpha.Player.Combat
                 _Context.SetRangeAttacking(true);
                 _Context.SetAimDirection(
                     _activeRangeWeapon.LastFireDirection);
-                _Core.AnimationView?.SetRangeAimDirection(
+                _Core.RigView?.SetAimDirection(
                     _activeRangeWeapon.LastFireDirection);
             }
 
@@ -213,7 +216,7 @@ namespace Alpha.Player.Combat
                     {
                         _Context.SetAimDirection(
                             _activeRangeWeapon.LastFireDirection);
-                        _Core.AnimationView?.SetRangeAimDirection(
+                        _Core.RigView?.SetAimDirection(
                             _activeRangeWeapon.LastFireDirection);
 
                         _Flow.BeginRangeFacingHold(
@@ -222,9 +225,11 @@ namespace Alpha.Player.Combat
                     else if (!_Flow.TryRestoreRangeFacingHold())
                     {
                         _Context.ClearAimDirection();
-                        _Core.AnimationView?.ClearRangeAimDirection();
+                        _Core.RigView?.ClearAimDirection();
                     }
                 }
+
+                _Flow.RefreshRangeAimRigPresentation();
             }
 
             if (_isMeleePrimaryAction || _isMeleeSecondaryAction)

@@ -5,7 +5,7 @@ namespace Alpha.Enemy.CrabBoss.Combat
 {
     [Serializable]
     public sealed class CrabBossRushAttackStrategy
-        : CrabBossAttackStrategy
+        : BossAttackStrategy
     {
         [SerializeField, Min(0f)]
         private float _stopDistance = 2f;
@@ -17,8 +17,8 @@ namespace Alpha.Enemy.CrabBoss.Combat
         private Vector3 _destination;
         private float _moveSpeed;
 
-        public override ECrabAttackPattern Pattern =>
-            ECrabAttackPattern.RushAttack;
+        public override EAttackPattern Pattern =>
+            EAttackPattern.RushAttack;
 
         public override bool Begin(
             CrabBossContext p_context,

@@ -9,6 +9,8 @@ namespace Alpha.Enemy.CrabBoss
         protected CrabBossContext Context => Core.Context;
         protected CrabBossLocomotionModule Locomotion =>
             Core.LocomotionModule;
+        protected CrabBossTargetRangeModule TargetRange =>
+            Core.TargetRangeModule;
         protected CrabBossAnimationView Anim => Core.AnimView;
         protected CrabBossCombatModule Combat => Core.CombatModule;
 

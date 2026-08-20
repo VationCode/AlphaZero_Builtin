@@ -155,7 +155,7 @@ namespace Alpha.Player.Locomotion
             if (!reuseLastFireDirection)
             {
                 context.SetAimDirection(aimDirection);
-                _Core.AnimationView?.SetRangeAimDirection(
+                _Core.RigView?.SetAimDirection(
                     aimDirection);
             }
 
@@ -177,7 +177,7 @@ namespace Alpha.Player.Locomotion
         private void ClearRangeAimPresentation()
         {
             _Core.CombatContext.ClearAimDirection();
-            _Core.AnimationView?.ClearRangeAimDirection();
+            _Core.RigView?.ClearAimDirection();
         }
     }
 }

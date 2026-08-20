@@ -28,8 +28,8 @@ namespace Alpha.Player.Combat
             WeaponDTO pendingWeapon = _Context.PendingWeapon;
 
             // Swap 애니메이션 동안에는 양손을 Animation Clip이 온전히 제어한다.
-            _Core.AnimationView?
-                .SetRangeHandIKSuppressed(
+            _Core.RigView?
+                .SetHandIKSuppressed(
                     true,
                     true);
 
@@ -66,8 +66,8 @@ namespace Alpha.Player.Combat
             _remainingTime = 0f;
 
             // 새 무기의 LeftHandAttach로 왼손을 부드럽게 복원한다.
-            _Core.AnimationView?
-                .SetRangeHandIKSuppressed(false);
+            _Core.RigView?
+                .SetHandIKSuppressed(false);
         }
 
         // 현재 런타임 무기에 맞는 Player 애니메이터를 구성한다.
@@ -86,8 +86,8 @@ namespace Alpha.Player.Combat
             // 오른손이 무기 기준이므로 Range의 왼손 지지점만 IK Target으로 연결한다.
             if (currentWeapon is RangeWeapon rangeWeapon)
             {
-                _Core.AnimationView?
-                    .SetRangeHandIKTarget(
+                _Core.RigView?
+                    .SetLeftHandIKTarget(
                         rangeWeapon.LeftHandIKTarget);
 
                 // Player가 장착한 Range View만 Local Camera Shake를 요청할 수 있다.
@@ -97,8 +97,8 @@ namespace Alpha.Player.Combat
             }
             else
             {
-                _Core.AnimationView?
-                    .ClearRangeHandIKTarget();
+                _Core.RigView?
+                    .ClearLeftHandIKTarget();
             }
 
             if (currentWeapon is MeleeWeapon meleeWeapon)
@@ -113,6 +113,8 @@ namespace Alpha.Player.Combat
                     .GetComponent<MeleeWeaponEffectView>()?
                     .BindCamera(_Core.CameraCore);
             }
+
+            _Core.RigView?.RefreshAnimatorLayer();
         }
     }
 }

@@ -6,9 +6,7 @@ namespace Alpha.Test.Combat
 {
     // Range Attack의 명중과 Damage 전달만 확인하는 테스트 대상이다.
     public class RangeAttackTestTarget :
-        MonoBehaviour,
-        IDamageable,
-        IKnockbackable
+        MonoBehaviour, IKnockbackable
     {
         [SerializeField, Min(1f)]
         private float _maxHealth = 100f;
