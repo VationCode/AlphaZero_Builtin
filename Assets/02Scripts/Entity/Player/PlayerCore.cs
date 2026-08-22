@@ -58,6 +58,7 @@ namespace Alpha.Player
         public RigView RigView { get; private set; }
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
+        public PlayerHitFeedbackView HitFeedbackView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
@@ -110,6 +111,7 @@ namespace Alpha.Player
             RigView = GetComponentInChildren<RigView>(true);
             LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
+            HitFeedbackView = GetComponentInChildren<PlayerHitFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
 
@@ -170,6 +172,7 @@ namespace Alpha.Player
 
             LocomotionAudioView?.Bind(LocomotionContext);
             ActionEffectView?.Bind(LocomotionContext);
+            HitFeedbackView?.Bind(CombatModule, CameraCore);
             ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
             AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
@@ -208,6 +211,7 @@ namespace Alpha.Player
 
             LocomotionAudioView?.Unbind();
             ActionEffectView?.Unbind();
+            HitFeedbackView?.Unbind();
             ArmorView?.Unbind();
             EquipmentModule?.Unbind();
 

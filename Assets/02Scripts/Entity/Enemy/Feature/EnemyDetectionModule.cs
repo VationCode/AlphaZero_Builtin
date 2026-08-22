@@ -7,7 +7,7 @@ namespace Alpha.Enemy
 {
     // 공용 DetectionAreaSystem 결과에서 가장 가까운 Living 대상을 찾는다.
     [DisallowMultipleComponent]
-    public sealed class EnemyTargetModule : MonoBehaviour
+    public sealed class EnemyDetectionModule : MonoBehaviour
     {
         private const int DetectionBufferCapacity = 16;
 

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Alpha.Projectile
 {
-    // 발사 후 이동, 충돌, 피해 전달, 사거리 종료를 관리한다.
+    // 발사 후 이동, 충돌, 피해 전달, 사거리·수명 종료를 관리한다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(SphereCollider))]
     public class Projectile : MonoBehaviour
@@ -33,6 +33,11 @@ namespace Alpha.Projectile
             EProjectileImpactType.Direct,
             0f);
 
+        [Header("Debug")]
+        [Tooltip("발사, 충돌 대상, 피해 적용 결과와 종료 사유를 Console에 출력합니다.")]
+        [SerializeField]
+        private bool _logLifecycle;
+
         private readonly Collider[] _impactBuffer =
             new Collider[ImpactBufferCapacity];
 
@@ -43,8 +48,10 @@ namespace Alpha.Projectile
         private Vector3 _gravity;
 
         private float _damage;
+        private EHitReaction _hitReaction;
         private float _activeCollisionRadius;
         private float _remainingDistance;
+        private float _remainingLifetime;
 
         private LayerMask _activeHitMask;
 
@@ -76,8 +83,10 @@ namespace Alpha.Projectile
             _velocity = p_request.Direction * p_launchSettings.Speed;
             _gravity = Physics.gravity * _gravityScale;
             _damage = p_request.Damage;
+            _hitReaction = p_request.HitReaction;
             _activeCollisionRadius = CollisionRadius;
             _remainingDistance = p_request.MaxDistance;
+            _remainingLifetime = p_launchSettings.Lifetime;
             _activeHitMask = p_launchSettings.HitMask;
 
             // Collider는 SphereCast 형상 데이터로만 사용해 자기 자신과의 중복 물리 판정을 막는다.
@@ -89,6 +98,14 @@ namespace Alpha.Projectile
                     _velocity.normalized));
 
             _isActive = true;
+
+            LogLifecycle(
+                $"Launch | Attacker={_attacker.name}, " +
+                $"Damage={_damage}, Speed={p_launchSettings.Speed}, " +
+                $"MaxDistance={_remainingDistance}, Lifetime={_remainingLifetime}, " +
+                $"GravityScale={_gravityScale}, HitMask={_activeHitMask.value}, " +
+                $"Origin={transform.position}, Direction={p_request.Direction}");
+
             return true;
         }
 
@@ -105,14 +122,20 @@ namespace Alpha.Projectile
                 return;
 
             float deltaTime = Time.deltaTime;
+            _remainingLifetime -= deltaTime;
+
+            if (_remainingLifetime <= 0f)
+            {
+                Release("Lifetime");
+                return;
+            }
 
             Vector3 displacement =
                 _velocity * deltaTime +
                 0.5f * _gravity *
                 deltaTime * deltaTime;
 
-            float requestedDistance =
-                displacement.magnitude;
+            float requestedDistance = displacement.magnitude;
 
             float moveDistance = Mathf.Min(
                 requestedDistance,
@@ -121,7 +144,7 @@ namespace Alpha.Projectile
             if (moveDistance <= 0f ||
                 requestedDistance <= 0.0001f)
             {
-                Release();
+                Release("NoMovement");
                 return;
             }
 
@@ -150,7 +173,7 @@ namespace Alpha.Projectile
 
             if (_remainingDistance <= 0f)
             {
-                Release();
+                Release("MaximumDistance");
                 return;
             }
 
@@ -218,24 +241,41 @@ namespace Alpha.Projectile
         {
             transform.position = p_hit.point;
 
+            int damagedTargetCount;
+
             if (_impactSettings.IsRadial)
             {
-                ApplyRadialDamage(
+                damagedTargetCount = ApplyRadialDamage(
                     p_hit.point,
                     p_direction);
             }
             else
             {
-                ApplyDirectDamage(
+                damagedTargetCount = ApplyDirectDamage(
                     p_hit,
-                    p_direction);
+                    p_direction)
+                    ? 1
+                    : 0;
             }
 
+            string layerName = LayerMask.LayerToName(
+                p_hit.collider.gameObject.layer);
+
+            IDamageable damageable =
+                p_hit.collider.GetComponentInParent<IDamageable>();
+
+            LogLifecycle(
+                $"Hit | Collider={p_hit.collider.name}, " +
+                $"Layer={layerName}({p_hit.collider.gameObject.layer}), " +
+                $"Damageable={damageable?.GetType().Name ?? "None"}, " +
+                $"DamageApplied={damagedTargetCount > 0}, " +
+                $"Point={p_hit.point}, RemainingDistance={_remainingDistance}");
+
             // 지형이나 피해 불가능 대상에 명중해도 투사체는 종료한다.
-            Release();
+            Release("Impact");
         }
 
-        private void ApplyDirectDamage(
+        private bool ApplyDirectDamage(
             RaycastHit p_hit,
             Vector3 p_direction)
         {
@@ -244,12 +284,17 @@ namespace Alpha.Projectile
                 _damage,
                 p_hit.point,
                 p_hit.normal,
-                p_direction);
+                p_direction,
+                p_hitReaction: _hitReaction,
+                p_deliveryType:
+                    EDamageDeliveryType.Ranged);
 
-            DamageSystem.TryApply(p_hit.collider, damageInfo);
+            return DamageSystem.TryApply(
+                p_hit.collider,
+                damageInfo);
         }
 
-        private void ApplyRadialDamage(
+        private int ApplyRadialDamage(
             Vector3 p_impactPoint,
             Vector3 p_fallbackDirection)
         {
@@ -263,6 +308,8 @@ namespace Alpha.Projectile
                 TargetTriggerInteraction);
 
             _damagedTargets.Clear();
+
+            int damagedTargetCount = 0;
 
             for (int index = 0; index < hitCount; index++)
             {
@@ -295,19 +342,50 @@ namespace Alpha.Projectile
                     _damage,
                     hitPoint,
                     -direction,
-                    direction);
+                    direction,
+                    p_hitReaction: _hitReaction,
+                    p_deliveryType:
+                        EDamageDeliveryType.Ranged);
 
-                DamageSystem.TryApply(
-                    targetCollider,
-                    damageInfo);
+                if (DamageSystem.TryApply(
+                        targetCollider,
+                        damageInfo))
+                {
+                    damagedTargetCount++;
+                }
             }
+
+            return damagedTargetCount;
         }
 
         // 이후 ObjectPool을 적용할 때 이 메서드만 반환 처리로 교체한다.
-        private void Release()
+        private void Release(string p_reason)
         {
+            LogLifecycle(
+                $"Release | Reason={p_reason}, " +
+                $"Position={transform.position}, " +
+                $"RemainingDistance={_remainingDistance}, " +
+                $"RemainingLifetime={_remainingLifetime}");
+
             _isActive = false;
             Destroy(gameObject);
+        }
+
+        private void LogLifecycle(string p_message)
+        {
+            // Prefab 편집 중에도 Sniper 발사체 진단은 항상 유지한다.
+            bool isSniperProjectile =
+                name.StartsWith("BulletProjectile");
+
+            if (!_logLifecycle &&
+                !isSniperProjectile)
+            {
+                return;
+            }
+
+            Debug.Log(
+                $"[{nameof(Projectile)}:{name}] {p_message}",
+                this);
         }
     }
 }

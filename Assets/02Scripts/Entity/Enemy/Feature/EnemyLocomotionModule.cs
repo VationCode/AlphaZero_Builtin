@@ -1,3 +1,4 @@
+using Alpha.Combat;
 using UnityEngine;
 
 namespace Alpha.Enemy
@@ -60,6 +61,9 @@ namespace Alpha.Enemy
         private bool _hasPatrolPoints;
         private bool _isPatrolEnabled = true;
         private bool _hasLoggedMissingRigidbody;
+        private bool _isKnockbackActive;
+        private Vector3 _knockbackVelocity;
+        private float _knockbackRemainingTime;
 
         public Vector3 AreaCenter => _areaCenter;
         public float AreaRadius => _areaRadius;
@@ -69,6 +73,11 @@ namespace Alpha.Enemy
         public Vector3 PointB => _pointB;
         public bool HasPatrolPoints => _hasPatrolPoints;
         public bool IsPatrolEnabled => _isPatrolEnabled;
+        public bool IsKnockbackActive => _isKnockbackActive;
+        public bool CanApplyKnockback =>
+            isActiveAndEnabled &&
+            _rigidbody != null &&
+            !_rigidbody.isKinematic;
 
         public void Bind(Transform p_owner)
         {
@@ -96,6 +105,10 @@ namespace Alpha.Enemy
 
         private void FixedUpdate()
         {
+            // 넉백 이동은 순찰·추적 이동보다 우선한다.
+            if (TickKnockback(Time.fixedDeltaTime))
+                return;
+
             if (!_isPatrolEnabled || !_hasPatrolPoints)
                 return;
 
@@ -127,6 +140,9 @@ namespace Alpha.Enemy
             float p_deltaTime,
             float p_moveSpeed)
         {
+            if (_isKnockbackActive)
+                return false;
+
             if (!TryGetRigidbody(out Rigidbody body))
                 return false;
 
@@ -166,6 +182,9 @@ namespace Alpha.Enemy
             Vector3 p_destination,
             float p_deltaTime)
         {
+            if (_isKnockbackActive)
+                return false;
+
             if (!TryGetRigidbody(out Rigidbody body))
                 return false;
 
@@ -179,6 +198,60 @@ namespace Alpha.Enemy
 
         public void Stop()
         {
+            // 일반 행동의 정지 요청이 진행 중인 넉백 속도를 지우지 않게 한다.
+            if (_isKnockbackActive)
+                return;
+
+            if (TryGetRigidbody(out Rigidbody body))
+                StopHorizontalMovement(body);
+        }
+
+        // 공격 방향과 거리/시간을 수평 Rigidbody 속도로 변환한다.
+        public bool TryApplyKnockback(
+            in KnockbackInfo p_knockbackInfo)
+        {
+            if (!p_knockbackInfo.IsValid ||
+                !TryGetRigidbody(out Rigidbody body) ||
+                body.isKinematic)
+            {
+                return false;
+            }
+
+            Vector3 direction = Vector3.ProjectOnPlane(
+                p_knockbackInfo.Direction,
+                Vector3.up);
+
+            if (direction.sqrMagnitude <= DirectionEpsilon &&
+                _owner != null)
+            {
+                direction = Vector3.ProjectOnPlane(
+                    _owner.position -
+                    p_knockbackInfo.Attacker.position,
+                    Vector3.up);
+            }
+
+            if (direction.sqrMagnitude <= DirectionEpsilon)
+                return false;
+
+            _knockbackVelocity =
+                direction.normalized *
+                (p_knockbackInfo.Distance /
+                 p_knockbackInfo.Duration);
+            _knockbackRemainingTime =
+                p_knockbackInfo.Duration;
+            _isKnockbackActive = true;
+
+            SetHorizontalVelocity(body, _knockbackVelocity);
+            return true;
+        }
+
+        // 사망처럼 강제 종료가 필요한 경우 넉백과 수평 이동을 함께 정리한다.
+        public void CancelKnockback()
+        {
+            _isKnockbackActive = false;
+            _knockbackVelocity = Vector3.zero;
+            _knockbackRemainingTime = 0f;
+
             if (TryGetRigidbody(out Rigidbody body))
                 StopHorizontalMovement(body);
         }
@@ -192,6 +265,46 @@ namespace Alpha.Enemy
 
             if (!p_enabled)
                 Stop();
+        }
+
+        private bool TickKnockback(float p_deltaTime)
+        {
+            if (!_isKnockbackActive)
+                return false;
+
+            if (_knockbackRemainingTime <= 0f)
+            {
+                CancelKnockback();
+                return false;
+            }
+
+            if (!TryGetRigidbody(out Rigidbody body) ||
+                body.isKinematic)
+            {
+                _isKnockbackActive = false;
+                _knockbackVelocity = Vector3.zero;
+                _knockbackRemainingTime = 0f;
+                return false;
+            }
+
+            float fixedDeltaTime = Mathf.Max(
+                Mathf.Epsilon,
+                p_deltaTime);
+            float activeTime = Mathf.Min(
+                _knockbackRemainingTime,
+                fixedDeltaTime);
+
+            // 마지막 물리 프레임은 남은 시간 비율만큼 속도를 줄여 설정 거리를 맞춘다.
+            SetHorizontalVelocity(
+                body,
+                _knockbackVelocity *
+                (activeTime / fixedDeltaTime));
+
+            _knockbackRemainingTime = Mathf.Max(
+                0f,
+                _knockbackRemainingTime - activeTime);
+
+            return true;
         }
 
         // 현재 위치가 Patrol Area와 추가 추적 허용 범위를 벗어났는지 반환한다.
@@ -392,6 +505,16 @@ namespace Alpha.Enemy
             Vector3 velocity = p_body.linearVelocity;
             velocity.x = 0f;
             velocity.z = 0f;
+            p_body.linearVelocity = velocity;
+        }
+
+        private static void SetHorizontalVelocity(
+            Rigidbody p_body,
+            Vector3 p_horizontalVelocity)
+        {
+            Vector3 velocity = p_body.linearVelocity;
+            velocity.x = p_horizontalVelocity.x;
+            velocity.z = p_horizontalVelocity.z;
             p_body.linearVelocity = velocity;
         }
 

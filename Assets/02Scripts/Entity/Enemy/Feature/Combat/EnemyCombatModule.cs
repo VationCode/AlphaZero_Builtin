@@ -91,22 +91,41 @@ namespace Alpha.Enemy
             int p_patternIndex,
             Transform p_target)
         {
-            EnemyAttackPatternSetting pattern =
-                GetPattern(p_patternIndex);
-
             if (IsAttacking ||
-                pattern == null ||
-                !pattern.IsExecutable ||
                 Time.time < GetCooldownEndTime(p_patternIndex))
             {
                 return false;
             }
+
+            return CanPreparePattern(
+                p_patternIndex,
+                p_target);
+        }
+
+        // 쿨타임과 무관하게 현재 거리에서 대기할 수 있는 패턴인지 확인한다.
+        public bool CanPreparePattern(
+            int p_patternIndex,
+            Transform p_target)
+        {
+            EnemyAttackPatternSetting pattern =
+                GetPattern(p_patternIndex);
+
+            if (pattern == null || !pattern.IsExecutable)
+                return false;
 
             return TryMeasureTarget(
                        p_target,
                        out _,
                        out float distance) &&
                    pattern.IsWithinDistance(distance);
+        }
+
+        // 가장 먼저 준비될 패턴을 고를 수 있도록 남은 쿨타임을 반환한다.
+        public float GetCooldownRemaining(int p_patternIndex)
+        {
+            return Mathf.Max(
+                0f,
+                GetCooldownEndTime(p_patternIndex) - Time.time);
         }
 
         public bool TryBeginAttack(

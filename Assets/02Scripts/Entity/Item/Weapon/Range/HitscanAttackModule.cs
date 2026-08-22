@@ -56,7 +56,11 @@ namespace Alpha.Item.Weapon.Range
                 p_request.Damage,
                 hit.point,
                 hit.normal,
-                p_request.Direction);
+                p_request.Direction,
+                p_hitReaction:
+                    p_request.HitReaction,
+                p_deliveryType:
+                    EDamageDeliveryType.Ranged);
 
             DamageSystem.TryApply(
                 hit.collider,

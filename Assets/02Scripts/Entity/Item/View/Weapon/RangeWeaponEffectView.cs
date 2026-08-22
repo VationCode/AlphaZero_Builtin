@@ -36,7 +36,7 @@ namespace Alpha.Item.Weapon.View
 
         [Header("Camera Shake")]
         [SerializeField]
-        private CameraShakeSetting _cameraShakeSetting;
+        private string _fireShakeName = "Weak";
 
         private CameraCore _cameraCore;
 
@@ -73,7 +73,7 @@ namespace Alpha.Item.Weapon.View
             _audioView?.PlayFire();
 
             _cameraCore?.RequestShake(
-                _cameraShakeSetting);
+                _fireShakeName);
 
             // View 설정과 즉시 판정 결과가 모두 Hitscan일 때만 Tracer를 생성한다.
             if (_tracerMode != ERangeTracerMode.Hitscan ||

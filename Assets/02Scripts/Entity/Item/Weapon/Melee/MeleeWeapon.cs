@@ -17,6 +17,9 @@ namespace Alpha.Item.Weapon.Melee
         [SerializeField, Min(0f)]
         private float _damageMultiplier = 1f;
 
+        [SerializeField]
+        private EHitReaction _hitReaction = EHitReaction.Light;
+
         [SerializeField, Min(0f)]
         private float _knockbackDistance = 1.5f;
 
@@ -28,6 +31,7 @@ namespace Alpha.Item.Weapon.Melee
 
         public float HitNormalizedTime => _hitNormalizedTime;
         public float DamageMultiplier => _damageMultiplier;
+        public EHitReaction HitReaction => _hitReaction;
         public float KnockbackDistance => _knockbackDistance;
         public float KnockbackDuration => _knockbackDuration;
         public DetectionAreaSettings Area => _area;
@@ -369,15 +373,20 @@ namespace Alpha.Item.Weapon.Melee
                     damage,
                     hit.HitPoint,
                     -hit.Direction,
-                    hit.Direction);
+                    hit.Direction,
+                    p_hitReaction:
+                        p_settings.HitReaction,
+                    p_deliveryType:
+                        EDamageDeliveryType.Melee);
 
                 if (!DamageSystem.TryApply(hit.Collider, damageInfo))
                     continue;
 
                 hasConfirmedHit = true;
 
+                // 각 접촉점이 아니라 공격 범위의 전방으로 함께 밀어낸다.
                 Vector3 knockbackDirection = Vector3.ProjectOnPlane(
-                    hit.Direction,
+                    request.Forward,
                     Vector3.up);
 
                 if (knockbackDirection.sqrMagnitude <= 0.0001f)

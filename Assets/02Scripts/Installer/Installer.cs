@@ -49,7 +49,9 @@ public class Installer : MonoBehaviour
         // 카메라가 준비된 경우 마우스와 기본 시점을 함께 설정한다.
         if (_cameraCore.Bind(_input))
         {
-            _uiManager.CrossHairUI?.Bind(_cameraCore);
+            _uiManager.CrossHairUI?.Bind(
+                _cameraCore,
+                _playerCore.CombatModule);
             ConnectCrossHairState();
             _mouseSystem.Bind(_cameraCore.RenderCamera);
             _cameraCore.RequestView(ECameraViewType.ThirdPerson);

@@ -15,7 +15,7 @@ namespace Alpha.Combat
         None,
         Light,
         Heavy,
-        Knockback,
+        Knockdown,
         Launch
     }
 

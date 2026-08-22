@@ -59,11 +59,10 @@ namespace Alpha.AlphaCamera
             OnViewRequested?.Invoke(p_viewType);
         }
 
-        // 외부 View가 전달한 표현 설정으로 Camera Shake를 요청한다.
-        public void RequestShake(
-            in CameraShakeSetting p_setting)
+        // 외부 View의 이름 기반 요청을 Camera Shake Module로 전달한다.
+        public void RequestShake(string p_name)
         {
-            ShakeModule?.Play(p_setting);
+            ShakeModule?.Play(p_name);
         }
 
         // CameraViewFlow만 전환 생명주기 이벤트를 확정할 수 있다.

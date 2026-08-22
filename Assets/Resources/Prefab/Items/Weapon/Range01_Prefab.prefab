@@ -117,6 +117,7 @@ MonoBehaviour:
   _attackModule: {fileID: -517230948712345678}
   _leftHandIKTarget: {fileID: 231466525834666578}
   _baseDamage: 80
+  _hitReaction: 2
   _fireInterval: 1.5
   _postAttackFacingDuration: 0.5
   _maxDistance: 200
@@ -142,6 +143,7 @@ MonoBehaviour:
     _hitMask:
       serializedVersion: 2
       m_Bits: 129
+    _lifetime: 8
 --- !u!114 &3817526409832714056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,14 +159,10 @@ MonoBehaviour:
   _weapon: {fileID: 6693522905435540571}
   _audioView: {fileID: 7901648954064959378}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _muzzleLifetime: 0.5
   _tracerMode: 0
   _bulletTracerPrefab: {fileID: 0}
-  _muzzleLifetime: 0.5
-  _cameraShakeSetting:
-    _duration: 0.22
-    _positionAmplitude: {x: 0.035, y: 0.025, z: 0.015}
-    _rotationAmplitude: {x: 2.2, y: 0.55, z: 0.35}
-    _frequency: 18
+  _fireShakeName: Strong
 --- !u!114 &7901648954064959378
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -175,8 +173,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   _audioSource: {fileID: 0}
   _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
   _fireVolume: 1

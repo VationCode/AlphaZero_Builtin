@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Alpha.AlphaCamera
@@ -8,23 +10,9 @@ namespace Alpha.AlphaCamera
         [SerializeField]
         private Transform _shakeRoot;
 
-        [Header("Fire Shake")]
-        [SerializeField, Min(0.01f)]
-        private float _duration = 0.12f;
-
+        [Header("Shake Presets")]
         [SerializeField]
-        private Vector3 _positionAmplitude =
-            new(0.02f, 0.015f, 0.01f);
-
-        [SerializeField]
-        private Vector3 _rotationAmplitude =
-            new(1.1f, 0.45f, 0.25f);
-
-        [SerializeField, Min(0.01f)]
-        private float _frequency = 24f;
-
-        [SerializeField, Min(1f)]
-        private float _maxStrength = 2f;
+        private CameraShakePreset[] _presets;
 
         [SerializeField]
         private AnimationCurve _envelope =
@@ -34,74 +22,142 @@ namespace Alpha.AlphaCamera
                 1f,
                 0f);
 
+        private readonly Dictionary<string, CameraShakeSetting>
+            _presetCache = new(StringComparer.Ordinal);
+
+        private bool _isPresetCacheReady;
+
         private float _remainingTime;
-        private float _currentStrength;
         private float _activeDuration;
-        private Vector3 _activePositionAmplitude;
-        private Vector3 _activeRotationAmplitude;
+        private float _activeHorizontalAmplitude;
+        private float _activeVerticalAmplitude;
+        private float _activeYawAngle;
+        private float _activeRollAngle;
         private float _activeFrequency;
 
         public bool Initialize()
         {
+            RebuildPresetCache(true);
             return _shakeRoot != null;
         }
 
-        // 연사 시 시간을 갱신하되 강도는 제한 범위 안에서 유지한다.
-        public void Play(float p_strength = 1f)
+        // 외부에는 수치 대신 Inspector에 등록한 이름만 받아 Shake를 실행한다.
+        public bool Play(string p_name)
         {
-            BeginShake(
-                _duration,
-                _positionAmplitude,
-                _rotationAmplitude,
-                _frequency,
-                p_strength);
-        }
-
-        // 무기 View가 전달한 설정으로 현재 Shake 표현을 교체한다.
-        public void Play(
-            in CameraShakeSetting p_setting)
-        {
-            if (!p_setting.IsValid)
-                return;
-
-            BeginShake(
-                p_setting.Duration,
-                p_setting.PositionAmplitude,
-                p_setting.RotationAmplitude,
-                p_setting.Frequency,
-                1f);
-        }
-
-        private void BeginShake(
-            float p_duration,
-            Vector3 p_positionAmplitude,
-            Vector3 p_rotationAmplitude,
-            float p_frequency,
-            float p_strength)
-        {
-            if (_shakeRoot == null ||
-                p_duration <= 0f ||
-                p_frequency <= 0f ||
-                p_strength <= 0f)
+            if (string.IsNullOrWhiteSpace(p_name))
             {
-                return;
+                Debug.LogWarning(
+                    "Camera Shake preset 이름이 비어 있습니다.",
+                    this);
+                return false;
             }
 
-            _activeDuration = p_duration;
-            _activePositionAmplitude =
-                p_positionAmplitude;
-            _activeRotationAmplitude =
-                p_rotationAmplitude;
-            _activeFrequency = p_frequency;
+            if (!TryGetSetting(
+                    p_name,
+                    out CameraShakeSetting setting))
+            {
+                Debug.LogWarning(
+                    $"Camera Shake preset을 찾을 수 없습니다: {p_name}",
+                    this);
+                return false;
+            }
+
+            if (!setting.IsValid)
+            {
+                Debug.LogWarning(
+                    $"Camera Shake preset 설정값이 유효하지 않습니다: {p_name}. " +
+                    "Duration과 Frequency는 0보다 커야 하고, " +
+                    "Horizontal, Vertical, Yaw Angle, Roll Angle 중 하나는 0보다 커야 합니다.",
+                    this);
+                return false;
+            }
+
+            BeginShake(setting);
+
+            return true;
+        }
+
+        // 다른 Camera 기능도 동일한 이름으로 설정값을 조회할 수 있다.
+        public bool TryGetSetting(
+            string p_name,
+            out CameraShakeSetting p_setting)
+        {
+            p_setting = default;
+
+            if (string.IsNullOrWhiteSpace(p_name))
+                return false;
+
+            EnsurePresetCache();
+
+            return _presetCache.TryGetValue(
+                p_name.Trim(),
+                out p_setting);
+        }
+
+        private void EnsurePresetCache()
+        {
+            if (!_isPresetCacheReady)
+                RebuildPresetCache(false);
+        }
+
+        private void RebuildPresetCache(bool p_logWarnings)
+        {
+            _presetCache.Clear();
+            _isPresetCacheReady = true;
+
+            if (_presets == null)
+                return;
+
+            for (int index = 0; index < _presets.Length; index++)
+            {
+                CameraShakePreset preset = _presets[index];
+                string presetName = preset.Name?.Trim();
+
+                if (string.IsNullOrWhiteSpace(presetName))
+                {
+                    if (p_logWarnings)
+                    {
+                        Debug.LogWarning(
+                            $"Camera Shake preset #{index}의 이름이 비어 있습니다.",
+                            this);
+                    }
+
+                    continue;
+                }
+
+                if (_presetCache.ContainsKey(presetName))
+                {
+                    if (p_logWarnings)
+                    {
+                        Debug.LogWarning(
+                            $"Camera Shake preset 이름이 중복되었습니다: {presetName}",
+                            this);
+                    }
+
+                    continue;
+                }
+
+                _presetCache.Add(
+                    presetName,
+                    preset.Setting);
+            }
+        }
+
+        private void BeginShake(in CameraShakeSetting p_setting)
+        {
+            if (_shakeRoot == null || !p_setting.IsValid)
+                return;
+
+            _activeDuration = p_setting.Duration;
+            _activeHorizontalAmplitude =
+                p_setting.HorizontalAmplitude;
+            _activeVerticalAmplitude =
+                p_setting.VerticalAmplitude;
+            _activeYawAngle = p_setting.YawAngle;
+            _activeRollAngle = p_setting.RollAngle;
+            _activeFrequency = p_setting.Frequency;
 
             _remainingTime = _activeDuration;
-
-            _currentStrength = Mathf.Clamp(
-                Mathf.Max(
-                    _currentStrength,
-                    p_strength),
-                0f,
-                _maxStrength);
         }
 
         private void LateUpdate()
@@ -122,33 +178,33 @@ namespace Alpha.AlphaCamera
                     ? _envelope.Evaluate(elapsedRatio)
                     : 1f - elapsedRatio;
 
-            float weight =
-                envelopeWeight *
-                _currentStrength;
+            float weight = envelopeWeight;
 
             float noiseTime =
                 Time.time * _activeFrequency;
 
-            Vector3 positionNoise = new(
-                SignedNoise(noiseTime, 11.3f),
-                SignedNoise(noiseTime, 27.7f),
-                SignedNoise(noiseTime, 43.1f));
+            float horizontalNoise =
+                SignedNoise(noiseTime, 11.3f);
+            float verticalNoise =
+                SignedNoise(noiseTime, 27.7f);
 
-            Vector3 rotationNoise = new(
-                SignedNoise(noiseTime, 58.9f),
-                SignedNoise(noiseTime, 71.5f),
-                SignedNoise(noiseTime, 93.7f));
+            _shakeRoot.localPosition = new Vector3(
+                horizontalNoise * _activeHorizontalAmplitude,
+                verticalNoise * _activeVerticalAmplitude,
+                0f) * weight;
 
-            _shakeRoot.localPosition =
-                Vector3.Scale(
-                    positionNoise,
-                    _activePositionAmplitude) * weight;
+            // Yaw는 불규칙한 좌우 회전, Roll은 Z축 기준의 명확한 왕복 기울기를 담당한다.
+            float yawAngle =
+                SignedNoise(noiseTime, 58.9f) *
+                _activeYawAngle *
+                weight;
+            float rollAngle =
+                Mathf.Sin(noiseTime) *
+                _activeRollAngle *
+                weight;
 
             _shakeRoot.localRotation =
-                Quaternion.Euler(
-                    Vector3.Scale(
-                        rotationNoise,
-                        _activeRotationAmplitude) * weight);
+                Quaternion.Euler(0f, yawAngle, rollAngle);
 
             if (_remainingTime <= 0f)
                 ResetPose();
@@ -165,8 +221,6 @@ namespace Alpha.AlphaCamera
 
         private void ResetPose()
         {
-            _currentStrength = 0f;
-
             if (_shakeRoot == null)
                 return;
 
@@ -180,12 +234,13 @@ namespace Alpha.AlphaCamera
             ResetPose();
         }
 
-#if UNITY_EDITOR
-        [ContextMenu("Camera Test/Shake")]
-        private void TestShake()
+        private void OnValidate()
         {
-            Play();
+            _isPresetCacheReady = false;
+
+            // Inspector 입력 중에는 미완성 설정으로 경고하지 않고 캐시만 갱신한다.
+            RebuildPresetCache(false);
         }
-#endif
+
     }
 }

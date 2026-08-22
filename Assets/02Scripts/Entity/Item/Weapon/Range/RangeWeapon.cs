@@ -1,4 +1,5 @@
 using System;
+using Alpha.Combat;
 using UnityEngine;
 
 namespace Alpha.Item.Weapon.Range
@@ -38,6 +39,9 @@ namespace Alpha.Item.Weapon.Range
         [Header("Attack Tuning")]
         [SerializeField, Min(0f)]
         private float _baseDamage = 15f;
+
+        [SerializeField]
+        private EHitReaction _hitReaction = EHitReaction.Light;
 
         [Tooltip("발사 사이의 시간(초)입니다. 초당 3발은 약 0.333초입니다.")]
         [SerializeField, Min(0.01f)]
@@ -200,7 +204,8 @@ namespace Alpha.Item.Weapon.Range
                 targetPoint,
                 attackDirection,
                 _baseDamage,
-                _maxDistance);
+                _maxDistance,
+                _hitReaction);
 
             if (!_attackModule.TryExecute(
                     request,

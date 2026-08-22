@@ -1,4 +1,5 @@
 using UnityEngine;
+using Alpha.Combat;
 using Alpha.Item.Weapon;
 using Alpha.Item.Weapon.Melee;
 using Alpha.Item.Weapon.Range;
@@ -19,6 +20,9 @@ namespace Alpha.Player.Combat
 
         // 실제 전투에 적용된 활성 무기의 변경을 외부 표현 계층에 알린다.
         public event Action<WeaponDTO> OnWeaponChanged;
+
+        // Player의 공격으로 피해가 실제 적용된 경우에만 명중 표현에 알린다.
+        public event Action<DamageInfo> OnHitConfirmed;
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
@@ -44,6 +48,16 @@ namespace Alpha.Player.Combat
             _rangeAimModule = GetComponent<RangeAimModule>();
         }
 
+        private void OnEnable()
+        {
+            SubscribeDamageApplied();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeDamageApplied();
+        }
+
         // Player 전투 기능과 런타임 무기 생성 의존성을 연결한다.
         public bool Bind(PlayerCore p_core)
         {
@@ -59,7 +73,41 @@ namespace Alpha.Player.Combat
             }
 
             _core = p_core;
+            SubscribeDamageApplied();
             return true;
+        }
+
+        private void SubscribeDamageApplied()
+        {
+            if (_core == null || !isActiveAndEnabled)
+                return;
+
+            DamageSystem.OnDamageApplied -= HandleDamageApplied;
+            DamageSystem.OnDamageApplied += HandleDamageApplied;
+        }
+
+        private void UnsubscribeDamageApplied()
+        {
+            DamageSystem.OnDamageApplied -= HandleDamageApplied;
+        }
+
+        // 공용 피해 성공 중 Player 또는 Player 자식이 공격자인 경우만 명중으로 확정한다.
+        private void HandleDamageApplied(
+            Collider p_target,
+            DamageInfo p_damageInfo)
+        {
+            Transform player = _core?.PlayerTr;
+            Transform attacker = p_damageInfo.Attacker;
+
+            if (player == null ||
+                attacker == null ||
+                (attacker != player &&
+                 !attacker.IsChildOf(player)))
+            {
+                return;
+            }
+
+            OnHitConfirmed?.Invoke(p_damageInfo);
         }
 
         #region ============================== Weapon Swap

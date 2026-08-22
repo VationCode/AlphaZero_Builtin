@@ -19,6 +19,7 @@ namespace Alpha.Living
         public bool IsDead => HealthContext?.IsDead ?? false;
         public bool IsBound => HealthContext != null;
 
+        public event Action<DamageInfo> OnDamaged;
         public event Action OnDeath;
 
         // 피해를 받은 직후 일정 시간 동안 중복 피해를 막는다.
@@ -53,9 +54,12 @@ namespace Alpha.Living
             }
 
             _lastDamagedTime = Time.time;
-            HealthContext.SetCurrentHealth(
-                CurrentHealth - p_damageInfo.Amount);
+            HealthContext.SetCurrentHealth(CurrentHealth - p_damageInfo.Amount);
 
+            // 피해를 실제로 적용한 경우에만 Entity별 피격 Flow에 전달한다.
+            OnDamaged?.Invoke(p_damageInfo);
+
+            Debug.Log(HealthContext.CurrentHealth);
             if (CurrentHealth <= 0f)
                 Die();
 

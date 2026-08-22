@@ -148,6 +148,7 @@ MonoBehaviour:
   _attackModule: {fileID: 2547388243239626150}
   _leftHandIKTarget: {fileID: 5077971494930581541}
   _baseDamage: 15
+  _hitReaction: 1
   _fireInterval: 0.12
   _postAttackFacingDuration: 0.25
   _maxDistance: 100
@@ -189,11 +190,7 @@ MonoBehaviour:
   _tracerMode: 1
   _bulletTracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
   _muzzleLifetime: 0.5
-  _cameraShakeSetting:
-    _duration: 0.1
-    _positionAmplitude: {x: 0.012, y: 0.01, z: 0.005}
-    _rotationAmplitude: {x: 0.7, y: 0.2, z: 0.12}
-    _frequency: 28
+  _fireShakeName: Weak
 --- !u!114 &7901648954064959377
 MonoBehaviour:
   m_ObjectHideFlags: 0

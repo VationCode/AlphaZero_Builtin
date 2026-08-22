@@ -68,7 +68,8 @@ namespace Alpha.Enemy
                     profile.DamageType,
                     profile.HitReaction,
                     profile.KnockbackDistance,
-                    profile.KnockbackDuration);
+                    profile.KnockbackDuration,
+                    EDamageDeliveryType.Melee);
 
                 hasAppliedDamage |= DamageSystem.TryApply(
                     hit.Collider,

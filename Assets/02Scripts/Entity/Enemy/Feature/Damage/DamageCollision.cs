@@ -150,7 +150,8 @@ public class DamageCollision : MonoBehaviour, IDamageSource
             _activeSession.Profile.DamageType,
             _activeSession.Profile.HitReaction,
             _activeSession.Profile.KnockbackDistance,
-            _activeSession.Profile.KnockbackDuration);
+            _activeSession.Profile.KnockbackDuration,
+            EDamageDeliveryType.Melee);
 
         return p_damageInfo.IsValid;
     }
