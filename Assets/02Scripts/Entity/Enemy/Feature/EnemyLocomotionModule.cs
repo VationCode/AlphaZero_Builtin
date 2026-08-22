@@ -5,7 +5,7 @@ namespace Alpha.Enemy
 {
     // Rigidbody Ground 이동과 현재 위치 중심의 랜덤 A/B 순찰을 담당한다.
     [DisallowMultipleComponent]
-    public sealed class EnemyLocomotionModule : MonoBehaviour
+    public sealed class EnemyLocomotionModule : MonoBehaviour, IKnockbackable
     {
         private const float DirectionEpsilon = 0.0001f;
         private const float RotationCompleteAngle = 0.1f;
@@ -61,6 +61,7 @@ namespace Alpha.Enemy
         private bool _hasPatrolPoints;
         private bool _isPatrolEnabled = true;
         private bool _hasLoggedMissingRigidbody;
+        private bool _canReceiveKnockback = true;
         private bool _isKnockbackActive;
         private Vector3 _knockbackVelocity;
         private float _knockbackRemainingTime;
@@ -74,6 +75,8 @@ namespace Alpha.Enemy
         public bool HasPatrolPoints => _hasPatrolPoints;
         public bool IsPatrolEnabled => _isPatrolEnabled;
         public bool IsKnockbackActive => _isKnockbackActive;
+        public bool CanReceiveKnockback =>
+            _canReceiveKnockback && CanApplyKnockback;
         public bool CanApplyKnockback =>
             isActiveAndEnabled &&
             _rigidbody != null &&
@@ -93,6 +96,7 @@ namespace Alpha.Enemy
                 : transform.position;
             _isMovingToA = true;
             _isPatrolEnabled = true;
+            _canReceiveKnockback = true;
             _hasPatrolPoints = TryCreateInitialPoints();
 
             if (!_hasPatrolPoints)
@@ -210,7 +214,8 @@ namespace Alpha.Enemy
         public bool TryApplyKnockback(
             in KnockbackInfo p_knockbackInfo)
         {
-            if (!p_knockbackInfo.IsValid ||
+            if (!CanReceiveKnockback ||
+                !p_knockbackInfo.IsValid ||
                 !TryGetRigidbody(out Rigidbody body) ||
                 body.isKinematic)
             {
@@ -243,6 +248,15 @@ namespace Alpha.Enemy
 
             SetHorizontalVelocity(body, _knockbackVelocity);
             return true;
+        }
+
+        // 사망한 Enemy가 이후 넉백 요청을 다시 받지 않도록 수신 상태를 관리한다.
+        public void SetKnockbackEnabled(bool p_enabled)
+        {
+            _canReceiveKnockback = p_enabled;
+
+            if (!p_enabled)
+                CancelKnockback();
         }
 
         // 사망처럼 강제 종료가 필요한 경우 넉백과 수평 이동을 함께 정리한다.

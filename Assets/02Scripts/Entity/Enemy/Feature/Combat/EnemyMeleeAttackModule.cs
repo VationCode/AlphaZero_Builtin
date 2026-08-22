@@ -49,10 +49,9 @@ namespace Alpha.Enemy
             for (int index = 0; index < hitCount; index++)
             {
                 DetectionAreaHit hit = _hitBuffer[index];
-                IDamageable damageable =
-                    hit.Collider.GetComponentInParent<IDamageable>();
-
-                if (damageable == null ||
+                if (!DamageSystem.TryGetDamageable(
+                        hit.Collider,
+                        out IDamageable damageable) ||
                     !_damagedTargets.Add(damageable))
                 {
                     continue;

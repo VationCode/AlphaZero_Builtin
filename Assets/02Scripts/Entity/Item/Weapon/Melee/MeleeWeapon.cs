@@ -358,11 +358,10 @@ namespace Alpha.Item.Weapon.Melee
             for (int index = 0; index < hitCount; index++)
             {
                 DetectionAreaHit hit = _hitBuffer[index];
-                IDamageable damageable =
-                    hit.Collider.GetComponentInParent<IDamageable>();
-
                 // 하나의 대상이 여러 Collider를 가져도 공격당 피해는 한 번만 적용한다.
-                if (damageable == null ||
+                if (!DamageSystem.TryGetDamageable(
+                        hit.Collider,
+                        out IDamageable damageable) ||
                     !_damagedTargets.Add(damageable))
                 {
                     continue;

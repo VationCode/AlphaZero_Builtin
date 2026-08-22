@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Alpha.Enemy
 {
-    public class EnemyCore : MonoBehaviour, IDamageable, IKnockbackable
+    public class EnemyCore : MonoBehaviour
     {
         [SerializeField]
         private EnemyHealthModule _healthModule;
@@ -44,13 +44,6 @@ namespace Alpha.Enemy
         public EnemyAnimationView AnimationView => _animationView;
         public EnemyAudioView AudioView => _audioView;
 
-        public bool CanReceiveKnockback =>
-            _healthModule != null &&
-            _healthModule.IsBound &&
-            !_healthModule.IsDead &&
-            _locomotionModule != null &&
-            _locomotionModule.CanApplyKnockback;
-
         private void Awake()
         {
             _healthModule ??= GetComponentInChildren<EnemyHealthModule>(true);
@@ -80,20 +73,6 @@ namespace Alpha.Enemy
             _actionFlow?.Bind(this);
         }
 
-        // Enemy 루트의 피격 진입점을 실제 체력 Module로 전달한다.
-        public bool TryApplyDamage(DamageInfo p_damageInfo)
-        {
-            return _healthModule != null &&
-                   _healthModule.TryApplyDamage(p_damageInfo);
-        }
-
-        // 공용 넉백 요청을 Enemy 이동 Module로 전달한다.
-        public bool TryApplyKnockback(in KnockbackInfo p_knockbackInfo)
-        {
-            return CanReceiveKnockback &&
-                   _locomotionModule.TryApplyKnockback(p_knockbackInfo);
-        }
-
         // Core는 공용 피해 이벤트를 Enemy 행동 Flow로 연결만 한다.
         private void HandleDamaged(DamageInfo p_damageInfo)
         {
@@ -102,7 +81,7 @@ namespace Alpha.Enemy
 
         private void HandleDeath()
         {
-            _locomotionModule?.CancelKnockback();
+            _locomotionModule?.SetKnockbackEnabled(false);
             _actionFlow?.HandleDeath();
         }
 

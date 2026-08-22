@@ -21,7 +21,7 @@ namespace Alpha.Combat
             }
 
             IKnockbackable knockbackable =
-                p_target.GetComponentInParent<IKnockbackable>();
+                CombatTargetResolver.Find<IKnockbackable>(p_target);
 
             return knockbackable != null &&
                    knockbackable.CanReceiveKnockback &&

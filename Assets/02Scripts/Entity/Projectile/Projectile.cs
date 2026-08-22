@@ -261,8 +261,9 @@ namespace Alpha.Projectile
             string layerName = LayerMask.LayerToName(
                 p_hit.collider.gameObject.layer);
 
-            IDamageable damageable =
-                p_hit.collider.GetComponentInParent<IDamageable>();
+            DamageSystem.TryGetDamageable(
+                p_hit.collider,
+                out IDamageable damageable);
 
             LogLifecycle(
                 $"Hit | Collider={p_hit.collider.name}, " +
@@ -314,12 +315,10 @@ namespace Alpha.Projectile
             for (int index = 0; index < hitCount; index++)
             {
                 Collider targetCollider = _impactBuffer[index];
-                IDamageable damageable = targetCollider != null
-                    ? targetCollider.GetComponentInParent<IDamageable>()
-                    : null;
-
                 // 하나의 대상이 여러 Collider를 가져도 폭발당 피해는 한 번만 적용한다.
-                if (damageable == null ||
+                if (!DamageSystem.TryGetDamageable(
+                        targetCollider,
+                        out IDamageable damageable) ||
                     !_damagedTargets.Add(damageable))
                 {
                     continue;
