@@ -18,7 +18,8 @@ public enum ELocomotionMode
 
 namespace Alpha.Player.Locomotion
 {
-    // LocomotionModeFlow 요청의 조건과 실행 순서를 결정한다.
+    // Player의 이동 Mode와 하위 이동 State의 시작·갱신·종료 순서를 조정한다.
+    // ActionFlow가 일반 이동을 막아도 환경 판정과 넉백처럼 필수 이동 처리는 계속 갱신한다.
     public class LocomotionModeFlow : MonoBehaviour
     {
         private PlayerCore _core;
@@ -56,7 +57,8 @@ namespace Alpha.Player.Locomotion
                 return;
 
             // Mode 전환
-            if (!_core.LocomotionModule.BlocksInput &&
+            if (_core.CanUseLocomotion &&
+                !_core.LocomotionModule.BlocksInput &&
                 _currentStateFlow.CanChangeMode(
                     out ELocomotionMode nextMode,
                     out ELocoStateType entryState))

@@ -13,21 +13,11 @@ namespace Alpha.Player.Actions
         Dead
     }
 
-    // 공용 충격 판정 결과를 Player 행동 상태와 Module/View 실행으로 변환한다.
+    // Player 전체 행동의 우선순위를 소유하고 Combat과 Locomotion의 실행을 허용하거나 차단한다.
+    // 피격·넉다운·사망처럼 일반 행동보다 우선하는 상태만 이 Flow에서 조정한다.
     [DisallowMultipleComponent]
     public sealed class PlayerActionFlow : MonoBehaviour
     {
-        private enum EReactionPhase
-        {
-            None,
-            Hit,
-            Knockdown,
-            Down,
-            Standup,
-            DeadFalling,
-            Dead
-        }
-
         [Header("Hit Type Response")]
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
@@ -41,43 +31,56 @@ namespace Alpha.Player.Actions
         [SerializeField, Min(0f)]
         private float _standupDuration = 0.95f;
 
-        [Header("Camera Shake")]
-        [SerializeField]
-        private string _lightShakeName = "Weak";
-
-        [SerializeField]
-        private string _heavyShakeName = "Medium";
-
-        [SerializeField]
-        private string _knockdownShakeName = "Strong";
+        private readonly HitReactionFlow _hitReactionFlow = new();
 
         private PlayerCore _core;
-        private EHitReaction _activeReaction = EHitReaction.None;
-        private EReactionPhase _phase = EReactionPhase.None;
-        private float _remainingTime;
-        private float _downRecoveryDuration;
+        private float _deathFallRemainingTime;
+        private bool _isDeathFalling;
         private bool _ownsActionLock;
         private bool _hasCurrentState;
         private bool _isDead;
+        private bool _isCombatInputBlocked;
 
         public EPlayerActionState CurrentState { get; private set; } =
             EPlayerActionState.Normal;
+
+        // 상위 Action이 Normal이고 외부 UI가 막지 않을 때만 CombatFlow를 허용한다.
+        public bool AllowsCombat =>
+            CurrentState == EPlayerActionState.Normal &&
+            !_isCombatInputBlocked;
+
+        // 상위 Action이 Normal일 때만 LocomotionFlow의 일반 입력 이동을 허용한다.
+        // Root Motion처럼 Combat이 별도로 소유한 잠금은 LocomotionModule이 추가로 판단한다.
+        public bool AllowsLocomotion =>
+            CurrentState == EPlayerActionState.Normal;
 
         public bool IsReacting =>
             CurrentState == EPlayerActionState.HitReaction ||
             CurrentState == EPlayerActionState.Knockdown;
 
         public bool IsDead => _isDead;
+        public bool IsDeathFalling => _isDeathFalling;
+
+        public EHitReaction ActiveHitReaction =>
+            _hitReactionFlow.CurrentReaction;
+
+        public EHitReactionPhase HitReactionPhase =>
+            _hitReactionFlow.CurrentPhase;
 
         public event System.Action<EPlayerActionState> OnStateChanged;
+        public event System.Action<EHitReaction> OnHitReactionStarted;
+        public event System.Action<EHitReactionPhase> OnHitReactionPhaseChanged;
+        public event System.Action OnHitReactionCompleted;
+        public event System.Action<EHitReaction> OnDamageFeedbackRequested;
+        public event System.Action OnDeathStarted;
+        public event System.Action OnDeathDownStarted;
 
         public void Bind(PlayerCore p_core)
         {
             _core = p_core;
-            _activeReaction = EHitReaction.None;
-            _phase = EReactionPhase.None;
-            _remainingTime = 0f;
-            _downRecoveryDuration = 0f;
+            _hitReactionFlow.Reset();
+            _deathFallRemainingTime = 0f;
+            _isDeathFalling = false;
             _ownsActionLock = false;
             _hasCurrentState = false;
             _isDead = false;
@@ -90,6 +93,12 @@ namespace Alpha.Player.Actions
             ReleaseActionLock(true);
             _core = null;
             _hasCurrentState = false;
+        }
+
+        // Inventory처럼 Player 외부 상태가 Combat 입력만 일시적으로 차단할 때 사용한다.
+        internal void SetCombatInputBlocked(bool p_isBlocked)
+        {
+            _isCombatInputBlocked = p_isBlocked;
         }
 
         // Core가 전달한 피해를 공용 충격 판정 후 Player 상태 전환으로 요청한다.
@@ -111,7 +120,7 @@ namespace Alpha.Player.Actions
                     _hitTypeResponseSettings);
 
             ApplyKnockback(p_damageInfo, reactionResult);
-            RequestDamageShake(reactionResult.Reaction);
+            OnDamageFeedbackRequested?.Invoke(reactionResult.Reaction);
             TryEnterHitReaction(reactionResult);
         }
 
@@ -136,31 +145,30 @@ namespace Alpha.Player.Actions
         private bool TryEnterHitReaction(
             in ImpactReactionResult p_result)
         {
-            if (!p_result.HasReaction ||
-                p_result.Priority < (int)_activeReaction)
+            if (!_hitReactionFlow.TryBegin(
+                    p_result,
+                    Time.time,
+                    0f,
+                    _knockdownFallDuration,
+                    _standupDuration))
             {
                 return false;
             }
 
             AcquireActionLock();
-            _activeReaction = p_result.Reaction;
 
-            if (p_result.Reaction == EHitReaction.Knockdown ||
-                p_result.Reaction == EHitReaction.Launch)
-            {
-                _phase = EReactionPhase.Knockdown;
-                _remainingTime = _knockdownFallDuration;
-                _downRecoveryDuration = p_result.RecoveryDuration;
-                ChangeState(EPlayerActionState.Knockdown);
-                _core.AnimationView?.PlayHitReaction(p_result.Reaction);
-                return true;
-            }
+            EHitReaction reaction =
+                _hitReactionFlow.CurrentReaction;
 
-            _phase = EReactionPhase.Hit;
-            _remainingTime = p_result.RecoveryDuration;
-            _downRecoveryDuration = 0f;
-            ChangeState(EPlayerActionState.HitReaction);
-            _core.AnimationView?.PlayHitReaction(p_result.Reaction);
+            ChangeState(
+                reaction is EHitReaction.Knockdown or
+                    EHitReaction.Launch
+                    ? EPlayerActionState.Knockdown
+                    : EPlayerActionState.HitReaction);
+
+            OnHitReactionStarted?.Invoke(reaction);
+            OnHitReactionPhaseChanged?.Invoke(
+                _hitReactionFlow.CurrentPhase);
             return true;
         }
 
@@ -170,91 +178,65 @@ namespace Alpha.Player.Actions
                 return;
 
             _isDead = true;
-            _activeReaction = EHitReaction.None;
+            _hitReactionFlow.Clear();
             AcquireActionLock();
-            RequestShake(_knockdownShakeName);
 
-            _phase = EReactionPhase.DeadFalling;
-            _remainingTime = _knockdownFallDuration;
+            _isDeathFalling = true;
+            _deathFallRemainingTime = _knockdownFallDuration;
             ChangeState(EPlayerActionState.Dead);
-            _core.AnimationView?.PlayKnockdown();
+            OnDeathStarted?.Invoke();
         }
 
         private void Update()
         {
-            if (_core == null || _phase == EReactionPhase.None)
+            if (_core == null)
                 return;
 
-            switch (_phase)
+            if (_isDeathFalling)
             {
-                case EReactionPhase.Hit:
-                    if (TickTimer(Time.deltaTime))
-                        CompleteReaction();
-                    break;
+                if (TickDeathFall(Time.deltaTime))
+                {
+                    _isDeathFalling = false;
+                    OnDeathDownStarted?.Invoke();
+                }
 
-                case EReactionPhase.Knockdown:
-                    if (TickTimer(Time.deltaTime))
-                        EnterDownPhase();
-                    break;
-
-                case EReactionPhase.Down:
-                    // Enemy와 동일하게 물리 넉백이 끝난 뒤 Down 회복 시간을 계산한다.
-                    if (_core.LocomotionModule?.IsKnockbackActive == true)
-                        break;
-
-                    if (TickTimer(Time.deltaTime))
-                        EnterStandupPhase();
-                    break;
-
-                case EReactionPhase.Standup:
-                    if (TickTimer(Time.deltaTime))
-                        CompleteReaction();
-                    break;
-
-                case EReactionPhase.DeadFalling:
-                    if (TickTimer(Time.deltaTime))
-                    {
-                        _phase = EReactionPhase.Dead;
-                        _core.AnimationView?.PlayKnockdownLoop();
-                    }
-                    break;
+                return;
             }
-        }
 
-        private void EnterDownPhase()
-        {
-            _phase = EReactionPhase.Down;
-            _remainingTime = _downRecoveryDuration;
-            _core.AnimationView?.PlayKnockdownLoop();
-        }
+            if (!_hitReactionFlow.IsActive)
+                return;
 
-        private void EnterStandupPhase()
-        {
-            _phase = EReactionPhase.Standup;
-            _remainingTime = _standupDuration;
-            _core.AnimationView?.PlayKnockdownStandup();
+            EHitReactionPhase previousPhase =
+                _hitReactionFlow.CurrentPhase;
+
+            bool isReactionActive = _hitReactionFlow.Tick(
+                Time.deltaTime,
+                _core.LocomotionModule?.IsKnockbackActive == true);
+
+            if (previousPhase != _hitReactionFlow.CurrentPhase)
+            {
+                OnHitReactionPhaseChanged?.Invoke(
+                    _hitReactionFlow.CurrentPhase);
+            }
+
+            if (!isReactionActive)
+                CompleteReaction();
         }
 
         private void CompleteReaction()
         {
-            _activeReaction = EHitReaction.None;
-            _phase = EReactionPhase.None;
-            _remainingTime = 0f;
-            _downRecoveryDuration = 0f;
-
             ReleaseActionLock();
-            RestoreLocomotionPresentation();
             ChangeState(EPlayerActionState.Normal);
+            OnHitReactionCompleted?.Invoke();
         }
 
-        // Player의 상위 행동 상태가 이동·전투 Flow를 함께 중단한다.
+        // 우선 행동이 시작될 때 하위 Combat을 취소하고 Locomotion 입력을 잠근다.
         private void AcquireActionLock()
         {
             if (_ownsActionLock || _core == null)
                 return;
 
             _ownsActionLock = true;
-            _core.BeginCombatBlock();
             _core.LocomotionModule?.BeginInputLock();
             _core.CombatFlow?.TryChangeState(ECombatStateType.Idle);
             _core.CombatModule?.CancelWeaponAction();
@@ -280,41 +262,6 @@ namespace Alpha.Player.Actions
 
             _ownsActionLock = false;
             _core.LocomotionModule?.EndInputLock();
-            _core.EndCombatBlock();
-        }
-
-        private void RestoreLocomotionPresentation()
-        {
-            if (_core?.AnimationView == null)
-                return;
-
-            _core.AnimationView.EndDamageReaction();
-
-            switch (_core.LocomotionContext.CurrentState)
-            {
-                case ELocoStateType.Jump:
-                    _core.AnimationView.PlayJump();
-                    break;
-
-                case ELocoStateType.Fall:
-                    _core.AnimationView.PlayFall();
-                    break;
-
-                case ELocoStateType.Land:
-                    _core.AnimationView.PlayLand();
-                    break;
-
-                case ELocoStateType.Dash:
-                    _core.AnimationView.PlayDash();
-                    break;
-
-                default:
-                    _core.AnimationView.PlayGroundLocomotion(
-                        Vector2.zero,
-                        false,
-                        _core.CombatContext.UsesAimFacing);
-                    break;
-            }
         }
 
         private void ChangeState(EPlayerActionState p_nextState)
@@ -327,35 +274,13 @@ namespace Alpha.Player.Actions
             OnStateChanged?.Invoke(CurrentState);
         }
 
-        private bool TickTimer(float p_deltaTime)
+        private bool TickDeathFall(float p_deltaTime)
         {
-            _remainingTime = Mathf.Max(
+            _deathFallRemainingTime = Mathf.Max(
                 0f,
-                _remainingTime - Mathf.Max(0f, p_deltaTime));
+                _deathFallRemainingTime - Mathf.Max(0f, p_deltaTime));
 
-            return _remainingTime <= 0f;
-        }
-
-        private void RequestDamageShake(EHitReaction p_reaction)
-        {
-            if (p_reaction == EHitReaction.None)
-                return;
-
-            string shakeName = p_reaction switch
-            {
-                EHitReaction.Heavy => _heavyShakeName,
-                EHitReaction.Knockdown or EHitReaction.Launch =>
-                    _knockdownShakeName,
-                _ => _lightShakeName
-            };
-
-            RequestShake(shakeName);
-        }
-
-        private void RequestShake(string p_name)
-        {
-            if (!string.IsNullOrWhiteSpace(p_name))
-                _core?.CameraCore?.RequestShake(p_name.Trim());
+            return _deathFallRemainingTime <= 0f;
         }
 
         private void OnValidate()

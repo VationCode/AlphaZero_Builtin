@@ -98,7 +98,8 @@ namespace Alpha.Enemy.Audio
         private float _deathVolume = 1f;
 
         private EnemyActionFlow _actionFlow;
-        private EnemyAttackFlow _attackFlow;
+        private EnemyCombatFlow _combatFlow;
+        private DamageReceiverModule _damageReceiver;
         private EnemyHealthModule _healthModule;
         private bool _isSubscribed;
 
@@ -112,13 +113,15 @@ namespace Alpha.Enemy.Audio
 
         public void Bind(
             EnemyActionFlow p_actionFlow,
-            EnemyAttackFlow p_attackFlow,
+            EnemyCombatFlow p_combatFlow,
+            DamageReceiverModule p_damageReceiver,
             EnemyHealthModule p_healthModule)
         {
             Unbind();
 
             _actionFlow = p_actionFlow;
-            _attackFlow = p_attackFlow;
+            _combatFlow = p_combatFlow;
+            _damageReceiver = p_damageReceiver;
             _healthModule = p_healthModule;
 
             Subscribe();
@@ -128,7 +131,8 @@ namespace Alpha.Enemy.Audio
         {
             Unsubscribe();
             _actionFlow = null;
-            _attackFlow = null;
+            _combatFlow = null;
+            _damageReceiver = null;
             _healthModule = null;
         }
 
@@ -148,16 +152,17 @@ namespace Alpha.Enemy.Audio
             if (_isSubscribed ||
                 !isActiveAndEnabled ||
                 _actionFlow == null ||
-                _attackFlow == null ||
+                _combatFlow == null ||
+                _damageReceiver == null ||
                 _healthModule == null)
             {
                 return;
             }
 
             _actionFlow.OnStateChanged += PlayActionState;
-            _attackFlow.OnAttackWaitStarted += PlayAttackWait;
-            _attackFlow.OnAttackStarted += PlayAttack;
-            _healthModule.OnDamaged += HandleDamaged;
+            _combatFlow.OnAttackWaitStarted += PlayAttackWait;
+            _combatFlow.OnAttackStarted += PlayAttack;
+            _damageReceiver.OnDamaged += HandleDamaged;
             _healthModule.OnDeath += PlayDeath;
             _isSubscribed = true;
         }
@@ -170,15 +175,17 @@ namespace Alpha.Enemy.Audio
             if (_actionFlow != null)
                 _actionFlow.OnStateChanged -= PlayActionState;
 
-            if (_attackFlow != null)
+            if (_combatFlow != null)
             {
-                _attackFlow.OnAttackWaitStarted -= PlayAttackWait;
-                _attackFlow.OnAttackStarted -= PlayAttack;
+                _combatFlow.OnAttackWaitStarted -= PlayAttackWait;
+                _combatFlow.OnAttackStarted -= PlayAttack;
             }
+
+            if (_damageReceiver != null)
+                _damageReceiver.OnDamaged -= HandleDamaged;
 
             if (_healthModule != null)
             {
-                _healthModule.OnDamaged -= HandleDamaged;
                 _healthModule.OnDeath -= PlayDeath;
             }
 

@@ -1,4 +1,3 @@
-using System;
 using Alpha.Utility;
 using UnityEngine;
 
@@ -9,7 +8,6 @@ namespace Alpha.Enemy
     public sealed class EnemyCombatModule : MonoBehaviour
     {
         public const int MinimumPatternCount = 1;
-        public const int MaximumPatternCount = 2;
 
         [SerializeField]
         private Transform _owner;
@@ -23,23 +21,18 @@ namespace Alpha.Enemy
         private readonly EnemyMeleeAttackModule _meleeAttack = new();
         private readonly EnemyRangeAttackModule _rangeAttack = new();
         private readonly EnemyRushAttackModule _rushAttack = new();
-
-        private float[] _cooldownEndTimes =
-            new float[MinimumPatternCount];
+        private readonly EnemyAttackCooldown _attackCooldown = new();
 
         private Transform _currentTarget;
         private EnemyAttackPatternSetting _currentPattern;
         private int _currentPatternIndex = -1;
-        private float _attackElapsedTime;
         private bool _didActivateAttack;
 
         public int PatternCount => _attackPatterns?.Length ?? 0;
         public Transform Owner => ResolveOwner();
         public bool IsAttacking => _currentPattern != null;
-        public bool IsRushMovementActive =>
-            IsAttacking &&
-            _currentPattern.AttackType == EEnemyAttackType.Rush &&
-            _rushAttack.IsActive;
+        public bool IsAttackActivated =>
+            IsAttacking && _didActivateAttack;
 
         public EnemyAttackPatternSetting CurrentPattern =>
             _currentPattern;
@@ -48,7 +41,7 @@ namespace Alpha.Enemy
         {
             _owner = p_owner;
             EnsurePatternRange();
-            EnsureCooldownStorage();
+            ConfigureCooldown();
             CancelAttack(null);
         }
 
@@ -86,13 +79,17 @@ namespace Alpha.Enemy
             return false;
         }
 
-        // AttackFlow가 가중치 선택 전에 거리와 쿨타임 후보를 검사한다.
+        // CombatFlow가 가중치 선택 전에 거리와 쿨타임 후보를 검사한다.
         public bool CanStartPattern(
             int p_patternIndex,
             Transform p_target)
         {
+            ConfigureCooldown();
+
             if (IsAttacking ||
-                Time.time < GetCooldownEndTime(p_patternIndex))
+                !_attackCooldown.IsReady(
+                    p_patternIndex,
+                    Time.time))
             {
                 return false;
             }
@@ -123,9 +120,10 @@ namespace Alpha.Enemy
         // 가장 먼저 준비될 패턴을 고를 수 있도록 남은 쿨타임을 반환한다.
         public float GetCooldownRemaining(int p_patternIndex)
         {
-            return Mathf.Max(
-                0f,
-                GetCooldownEndTime(p_patternIndex) - Time.time);
+            ConfigureCooldown();
+            return _attackCooldown.GetRemaining(
+                p_patternIndex,
+                Time.time);
         }
 
         public bool TryBeginAttack(
@@ -144,66 +142,46 @@ namespace Alpha.Enemy
             _currentPatternIndex = p_patternIndex;
             _currentPattern = p_pattern;
             _currentTarget = p_target;
-            _attackElapsedTime = 0f;
             _didActivateAttack = false;
 
             return true;
         }
 
-        // 현재 패턴의 선딜레이, 실행, 후딜레이 순서를 갱신한다.
-        public bool TickAttack(
-            Transform p_target,
-            EnemyLocomotionModule p_locomotion,
-            float p_deltaTime)
+        // Flow가 결정한 실행 시점에 선택된 타입의 실제 공격을 시작한다.
+        public bool ActivateAttack(Transform p_target)
         {
-            if (!IsAttacking)
+            if (!IsAttacking || _didActivateAttack)
                 return false;
 
             if (p_target != null && p_target.gameObject.activeInHierarchy)
                 _currentTarget = p_target;
 
-            _attackElapsedTime += Mathf.Max(0f, p_deltaTime);
-
-            if (!_didActivateAttack &&
-                _attackElapsedTime >= _currentPattern.WindupDuration)
-            {
-                ActivateCurrentAttack();
-            }
-
-            if (_didActivateAttack &&
-                _currentPattern.AttackType == EEnemyAttackType.Rush)
-            {
-                float rushEndTime =
-                    _currentPattern.WindupDuration +
-                    _currentPattern.RushDuration;
-
-                if (_attackElapsedTime <= rushEndTime)
-                {
-                    _rushAttack.Tick(
-                        ResolveOwner(),
-                        p_locomotion,
-                        _currentPattern,
-                        p_deltaTime);
-                }
-                else
-                {
-                    _rushAttack.End();
-                    p_locomotion?.Stop();
-                }
-            }
-
-            if (_attackElapsedTime < _currentPattern.TotalDuration)
-                return false;
-
-            CompleteAttack(p_locomotion);
+            _didActivateAttack = true;
+            ExecuteCurrentAttack();
             return true;
         }
 
-        public void CancelAttack(EnemyLocomotionModule p_locomotion)
+        // Rush처럼 실행 구간 동안 지속 갱신이 필요한 공격만 처리한다.
+        public void TickActiveAttack(
+            EnemyLocomotionModule p_locomotion,
+            float p_deltaTime)
         {
-            if (_currentPattern != null && _didActivateAttack)
-                StartCooldown(_currentPatternIndex, _currentPattern);
+            if (!IsAttackActivated ||
+                _currentPattern.AttackType != EEnemyAttackType.Rush)
+            {
+                return;
+            }
 
+            _rushAttack.Tick(
+                ResolveOwner(),
+                p_locomotion,
+                _currentPattern,
+                p_deltaTime);
+        }
+
+        public void EndAttackExecution(
+            EnemyLocomotionModule p_locomotion)
+        {
             _rushAttack.End();
 
             if (_currentPattern != null &&
@@ -211,6 +189,32 @@ namespace Alpha.Enemy
             {
                 p_locomotion?.Stop();
             }
+        }
+
+        // Recovery가 끝난 패턴의 쿨타임을 시작하고 실행 정보를 정리한다.
+        public void CompleteAttack(
+            EnemyLocomotionModule p_locomotion)
+        {
+            if (!IsAttacking)
+                return;
+
+            EnemyAttackPatternSetting completedPattern =
+                _currentPattern;
+            int completedPatternIndex = _currentPatternIndex;
+
+            EndAttackExecution(p_locomotion);
+            StartCooldown(
+                completedPatternIndex,
+                completedPattern);
+            ClearCurrentAttack();
+        }
+
+        public void CancelAttack(EnemyLocomotionModule p_locomotion)
+        {
+            if (_currentPattern != null && _didActivateAttack)
+                StartCooldown(_currentPatternIndex, _currentPattern);
+
+            EndAttackExecution(p_locomotion);
 
             ClearCurrentAttack();
         }
@@ -253,9 +257,8 @@ namespace Alpha.Enemy
             return true;
         }
 
-        private void ActivateCurrentAttack()
+        private void ExecuteCurrentAttack()
         {
-            _didActivateAttack = true;
             Transform owner = ResolveOwner();
 
             switch (_currentPattern.AttackType)
@@ -280,49 +283,19 @@ namespace Alpha.Enemy
             }
         }
 
-        private void CompleteAttack(
-            EnemyLocomotionModule p_locomotion)
-        {
-            EnemyAttackPatternSetting completedPattern =
-                _currentPattern;
-            int completedPatternIndex = _currentPatternIndex;
-
-            _rushAttack.End();
-
-            if (completedPattern.AttackType == EEnemyAttackType.Rush)
-                p_locomotion?.Stop();
-
-            StartCooldown(
-                completedPatternIndex,
-                completedPattern);
-            ClearCurrentAttack();
-        }
-
         private void StartCooldown(
             int p_patternIndex,
             EnemyAttackPatternSetting p_pattern)
         {
-            EnsureCooldownStorage();
+            ConfigureCooldown();
 
-            if (p_patternIndex < 0 ||
-                p_patternIndex >= _cooldownEndTimes.Length ||
-                p_pattern == null)
-            {
+            if (p_pattern == null)
                 return;
-            }
 
-            _cooldownEndTimes[p_patternIndex] =
-                Time.time + p_pattern.Cooldown;
-        }
-
-        private float GetCooldownEndTime(int p_patternIndex)
-        {
-            EnsureCooldownStorage();
-
-            return p_patternIndex >= 0 &&
-                   p_patternIndex < _cooldownEndTimes.Length
-                ? _cooldownEndTimes[p_patternIndex]
-                : float.PositiveInfinity;
+            _attackCooldown.Start(
+                p_patternIndex,
+                p_pattern.Cooldown,
+                Time.time);
         }
 
         private void ClearCurrentAttack()
@@ -330,7 +303,6 @@ namespace Alpha.Enemy
             _currentTarget = null;
             _currentPattern = null;
             _currentPatternIndex = -1;
-            _attackElapsedTime = 0f;
             _didActivateAttack = false;
         }
 
@@ -352,13 +324,6 @@ namespace Alpha.Enemy
                 _attackPatterns =
                     new[] { new EnemyAttackPatternSetting() };
             }
-            else if (_attackPatterns.Length > MaximumPatternCount)
-            {
-                Array.Resize(
-                    ref _attackPatterns,
-                    MaximumPatternCount);
-            }
-
             for (int index = 0; index < _attackPatterns.Length; index++)
             {
                 _attackPatterns[index] ??=
@@ -367,24 +332,9 @@ namespace Alpha.Enemy
             }
         }
 
-        private void EnsureCooldownStorage()
+        private void ConfigureCooldown()
         {
-            int requiredCount = Mathf.Max(
-                MinimumPatternCount,
-                PatternCount);
-
-            if (_cooldownEndTimes == null)
-            {
-                _cooldownEndTimes = new float[requiredCount];
-                return;
-            }
-
-            if (_cooldownEndTimes.Length != requiredCount)
-            {
-                Array.Resize(
-                    ref _cooldownEndTimes,
-                    requiredCount);
-            }
+            _attackCooldown.Configure(PatternCount);
         }
 
         private void OnDisable()
@@ -398,7 +348,7 @@ namespace Alpha.Enemy
         private void OnValidate()
         {
             EnsurePatternRange();
-            EnsureCooldownStorage();
+            ConfigureCooldown();
         }
     }
 }

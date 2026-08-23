@@ -1,5 +1,8 @@
 using System;
 using Alpha.Combat;
+using Alpha.Player.Actions;
+using Alpha.Player.Combat;
+using Alpha.Player.Locomotion;
 using UnityEngine;
 
 namespace Alpha.Player.Animation
@@ -97,6 +100,10 @@ namespace Alpha.Player.Animation
 
         private int _currentBaseState;
         private bool _isDamageReactionActive;
+        private PlayerActionFlow _actionFlow;
+        private LocomotionContext _locomotionContext;
+        private CombatContext _combatContext;
+        private bool _isActionSubscribed;
 
 
         private RuntimeAnimatorController _initialController;
@@ -148,9 +155,175 @@ namespace Alpha.Player.Animation
 
         }
 
+        // Action 이벤트와 현재 이동 상태를 Player Animator 표현에 연결한다.
+        public void Bind(
+            PlayerActionFlow p_actionFlow,
+            LocomotionContext p_locomotionContext,
+            CombatContext p_combatContext)
+        {
+            Unbind();
+            _actionFlow = p_actionFlow;
+            _locomotionContext = p_locomotionContext;
+            _combatContext = p_combatContext;
+            SubscribeToAction();
+        }
+
+        public void Unbind()
+        {
+            UnsubscribeFromAction();
+            _actionFlow = null;
+            _locomotionContext = null;
+            _combatContext = null;
+        }
+
+        private void SubscribeToAction()
+        {
+            if (_isActionSubscribed ||
+                !isActiveAndEnabled ||
+                _actionFlow == null)
+            {
+                return;
+            }
+
+            _actionFlow.OnHitReactionStarted +=
+                HandleHitReactionStarted;
+            _actionFlow.OnHitReactionPhaseChanged +=
+                HandleHitReactionPhaseChanged;
+            _actionFlow.OnHitReactionCompleted +=
+                HandleHitReactionCompleted;
+            _actionFlow.OnDeathStarted += HandleDeathStarted;
+            _actionFlow.OnDeathDownStarted += HandleDeathDownStarted;
+            _isActionSubscribed = true;
+
+            if (_actionFlow.IsDead)
+            {
+                if (_actionFlow.IsDeathFalling)
+                    PlayKnockdown();
+                else
+                    PlayKnockdownLoop();
+            }
+            else if (_actionFlow.ActiveHitReaction != EHitReaction.None)
+            {
+                PlayHitReaction(
+                    _actionFlow.ActiveHitReaction);
+                HandleHitReactionPhaseChanged(
+                    _actionFlow.HitReactionPhase);
+            }
+            else
+            {
+                // View가 비활성화된 동안 반응이 끝났다면 표현 잠금을 즉시 복구한다.
+                EndDamageReaction();
+                RestoreLocomotionPresentation();
+            }
+        }
+
+        private void UnsubscribeFromAction()
+        {
+            if (!_isActionSubscribed)
+                return;
+
+            if (_actionFlow != null)
+            {
+                _actionFlow.OnHitReactionStarted -=
+                    HandleHitReactionStarted;
+                _actionFlow.OnHitReactionPhaseChanged -=
+                    HandleHitReactionPhaseChanged;
+                _actionFlow.OnHitReactionCompleted -=
+                    HandleHitReactionCompleted;
+                _actionFlow.OnDeathStarted -= HandleDeathStarted;
+                _actionFlow.OnDeathDownStarted -= HandleDeathDownStarted;
+            }
+
+            _isActionSubscribed = false;
+        }
+
+        private void HandleHitReactionStarted(
+            EHitReaction p_reaction)
+        {
+            PlayHitReaction(p_reaction);
+        }
+
+        private void HandleHitReactionPhaseChanged(
+            EHitReactionPhase p_phase)
+        {
+            switch (p_phase)
+            {
+                case EHitReactionPhase.Down:
+                    PlayKnockdownLoop();
+                    break;
+
+                case EHitReactionPhase.Standup:
+                    PlayKnockdownStandup();
+                    break;
+
+                case EHitReactionPhase.None:
+                    EndDamageReaction();
+                    break;
+            }
+        }
+
+        private void HandleHitReactionCompleted()
+        {
+            EndDamageReaction();
+            RestoreLocomotionPresentation();
+        }
+
+        private void HandleDeathStarted()
+        {
+            PlayKnockdown();
+        }
+
+        private void HandleDeathDownStarted()
+        {
+            PlayKnockdownLoop();
+        }
+
+        // 피격 종료 시 현재 Locomotion 상태의 표현으로 되돌린다.
+        private void RestoreLocomotionPresentation()
+        {
+            if (_locomotionContext == null)
+                return;
+
+            switch (_locomotionContext.CurrentState)
+            {
+                case ELocoStateType.Jump:
+                    PlayJump();
+                    break;
+
+                case ELocoStateType.Fall:
+                    PlayFall();
+                    break;
+
+                case ELocoStateType.Land:
+                    PlayLand();
+                    break;
+
+                case ELocoStateType.Dash:
+                    PlayDash();
+                    break;
+
+                default:
+                    PlayGroundLocomotion(
+                        Vector2.zero,
+                        false,
+                        _combatContext?.UsesAimFacing == true);
+                    break;
+            }
+        }
+
         private void Update()
         {
             UpdateMeleeLayerBlend();
+        }
+
+        private void OnEnable()
+        {
+            SubscribeToAction();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromAction();
         }
 
         // Animator 평가가 끝난 뒤 이동 애니메이션의 발걸음 주기를 확인한다.

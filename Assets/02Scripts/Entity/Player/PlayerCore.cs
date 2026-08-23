@@ -10,6 +10,7 @@ using Alpha.Player.Effect;
 using Alpha.Player.Health;
 using Alpha.Player.Actions;
 using Alpha.Living;
+using Alpha.Combat;
 using Alpha.Rig.Player;
 using UnityEngine;
 
@@ -52,7 +53,7 @@ namespace Alpha.Player
         public EquipmentModule EquipmentModule { get; private set; }
         public CombatModule CombatModule { get; private set; }
         public HealthModule HealthModule { get; private set; }
-        public CheckTrigger CheckTrigger { get; private set; }
+        public DamageReceiverModule DamageReceiver { get; private set; }
         #endregion
 
         #region ========== View
@@ -61,6 +62,7 @@ namespace Alpha.Player
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
         public PlayerHitFeedbackView HitFeedbackView { get; private set; }
+        public PlayerDamageFeedbackView DamageFeedbackView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
@@ -69,13 +71,11 @@ namespace Alpha.Player
 
         public Transform PlayerTr {  get; private set; }
 
-        public bool CanLocomotion => _canLocomotion;
-        private bool _canLocomotion;
-
-        public bool BlockCombat =>
-            _isCombatBlocked || _combatBlockCount > 0;
-        private bool _isCombatBlocked;
-        private int _combatBlockCount;
+        // 하위 Feature는 Core를 통해 상위 ActionFlow의 허용 여부만 조회한다.
+        public bool CanUseCombat =>
+            ActionFlow?.AllowsCombat == true;
+        public bool CanUseLocomotion =>
+            ActionFlow?.AllowsLocomotion == true;
 
         // Installer가 소유한 입력·카메라·마우스·데이터 참조를 전달받는다.
         public void Bind(
@@ -118,7 +118,7 @@ namespace Alpha.Player
                 ActionFlow = owner.AddComponent<PlayerActionFlow>();
             }
 
-            CheckTrigger = GetComponent<CheckTrigger>();
+            DamageReceiver = GetComponent<DamageReceiverModule>();
 
             // View
             AnimationView = GetComponentInChildren<PlayerAnimationView>(true);
@@ -126,6 +126,7 @@ namespace Alpha.Player
             LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
             HitFeedbackView = GetComponentInChildren<PlayerHitFeedbackView>(true);
+            DamageFeedbackView = GetComponentInChildren<PlayerDamageFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
 
@@ -165,13 +166,24 @@ namespace Alpha.Player
             ItemPickupFlow.Bind(InventoryModule, ItemDatabase, Input);
 
             HealthModule?.Bind(HealthContext);
-            CheckTrigger.Bind(HealthModule);
+
+            if (HealthModule != null && DamageReceiver != null)
+            {
+                DamageReceiver.Bind(
+                    PlayerTr,
+                    HealthModule.TryDecreaseHealth);
+                DamageReceiver.OnDamaged -= HandleDamaged;
+                DamageReceiver.OnDamaged += HandleDamaged;
+            }
+
             ActionFlow?.Bind(this);
+            AnimationView?.Bind(
+                ActionFlow,
+                LocomotionContext,
+                CombatContext);
 
             if (HealthModule != null)
             {
-                HealthModule.OnDamaged -= HandleDamaged;
-                HealthModule.OnDamaged += HandleDamaged;
                 HealthModule.OnDeath -= HandleDeath;
                 HealthModule.OnDeath += HandleDeath;
             }
@@ -196,6 +208,7 @@ namespace Alpha.Player
             LocomotionAudioView?.Bind(LocomotionContext);
             ActionEffectView?.Bind(LocomotionContext);
             HitFeedbackView?.Bind(CombatModule, CameraCore);
+            DamageFeedbackView?.Bind(ActionFlow, CameraCore);
             ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
             AnimationView.OnRootMotion += LocomotionModule.ApplyRootMotion;
@@ -208,21 +221,10 @@ namespace Alpha.Player
 
         }
 
-        // 다른 행동이 전투 입력을 막는 상태인지 기록한다.
+        // Installer의 UI 상태를 Player 상위 ActionFlow의 Combat 차단 조건으로 전달한다.
         public void SetCombatBlocked(bool p_isBlocked)
         {
-            _isCombatBlocked = p_isBlocked;
-        }
-
-        // 여러 Player 행동이 전투 차단을 함께 소유할 수 있도록 개수를 누적한다.
-        public void BeginCombatBlock()
-        {
-            _combatBlockCount++;
-        }
-
-        public void EndCombatBlock()
-        {
-            _combatBlockCount = Mathf.Max(0, _combatBlockCount - 1);
+            ActionFlow?.SetCombatInputBlocked(p_isBlocked);
         }
 
         // Core는 공용 피해 이벤트를 Player 상위 행동 Flow로 연결만 한다.
@@ -239,11 +241,17 @@ namespace Alpha.Player
         // Player가 연결한 장비 변경 이벤트를 해제한다.
         private void OnDestroy()
         {
+            AnimationView?.Unbind();
             ActionFlow?.Unbind();
+
+            if (DamageReceiver != null)
+            {
+                DamageReceiver.OnDamaged -= HandleDamaged;
+                DamageReceiver.Unbind();
+            }
 
             if (HealthModule != null)
             {
-                HealthModule.OnDamaged -= HandleDamaged;
                 HealthModule.OnDeath -= HandleDeath;
             }
 
@@ -265,6 +273,7 @@ namespace Alpha.Player
             LocomotionAudioView?.Unbind();
             ActionEffectView?.Unbind();
             HitFeedbackView?.Unbind();
+            DamageFeedbackView?.Unbind();
             ArmorView?.Unbind();
             EquipmentModule?.Unbind();
 

@@ -100,13 +100,6 @@ namespace Alpha.Enemy
         public float RushDuration => _rushDuration;
         public DetectionAreaSettings RushArea => _rushArea;
 
-        public float TotalDuration =>
-            _windupDuration +
-            (_attackType == EEnemyAttackType.Rush
-                ? _rushDuration
-                : 0f) +
-            _recoveryDuration;
-
         public bool IsExecutable =>
             _damageProfile != null &&
             _damageProfile.IsValid &&

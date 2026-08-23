@@ -15,7 +15,8 @@ namespace Alpha.Player.Combat
         WeaponAction
     }
 
-    // Player의 무기 교체와 조준 흐름을 판단한다.
+    // ActionFlow가 Combat을 허용하는 동안 공격 요청과 무기 행동의 상태 전환을 조정한다.
+    // 실제 공격·무기 교체 처리는 대표 CombatModule과 현재 Weapon에 맡긴다.
     public class CombatFlow : MonoBehaviour
     {
         private PlayerCore _core;
@@ -274,7 +275,7 @@ namespace Alpha.Player.Combat
                 return;
 
             if (context.IsRangeAttacking ||
-                _core.BlockCombat ||
+                !_core.CanUseCombat ||
                 _core.CombatModule.CurrentRangeWeapon == null ||
                 CurrentState?.Type == ECombatStateType.WeaponSwap ||
                 !CanUseRangeAttack())
@@ -314,7 +315,7 @@ namespace Alpha.Player.Combat
         public bool RequestWeaponAction(EWeaponActionType p_actionType)
         {
             if (_core == null ||
-                _core.BlockCombat ||
+                !_core.CanUseCombat ||
                 CurrentState?.Type != ECombatStateType.Idle ||
                 !_core.CombatModule.HasWeapon ||
                 p_actionType == EWeaponActionType.None)
@@ -359,7 +360,7 @@ namespace Alpha.Player.Combat
 
             bool canUseSecondary =
                 _core.Input != null &&
-                !_core.BlockCombat &&
+                _core.CanUseCombat &&
                 CurrentState?.Type != ECombatStateType.WeaponSwap &&
                 currentRangeWeapon != null &&
                 (currentRangeWeapon.SecondaryType != ERangeSecondaryType.Charging ||

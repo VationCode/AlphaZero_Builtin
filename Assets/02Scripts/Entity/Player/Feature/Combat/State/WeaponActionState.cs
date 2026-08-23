@@ -132,7 +132,7 @@ namespace Alpha.Player.Combat
         {
             CombatModule module = _Core.CombatModule;
 
-            if (_Core.BlockCombat || !module.HasActiveAction)
+            if (!_Core.CanUseCombat || !module.HasActiveAction)
             {
                 module.CancelWeaponAction();
                 TryChangeState(ECombatStateType.Idle);

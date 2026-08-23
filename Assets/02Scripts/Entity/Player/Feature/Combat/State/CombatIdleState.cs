@@ -25,7 +25,7 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            if (_Input == null || _Core.BlockCombat)
+            if (_Input == null || !_Core.CanUseCombat)
             {
                 return;
             }

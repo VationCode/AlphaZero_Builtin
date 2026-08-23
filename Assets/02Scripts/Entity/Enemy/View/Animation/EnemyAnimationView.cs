@@ -67,12 +67,48 @@ namespace Alpha.Enemy.Animation
 
         private int _currentBaseState;
         private bool _hasCurrentBaseState;
+        private EnemyActionFlow _actionFlow;
+        private EnemyLocomotionFlow _locomotionFlow;
+        private EnemyCombatFlow _combatFlow;
+        private bool _isActionSubscribed;
+        private bool _isLocomotionSubscribed;
+        private bool _isCombatSubscribed;
 
         public event Action OnDeathAnimationCompleted;
 
         private void Awake()
         {
             _animator = GetComponent<Animator>();
+        }
+
+        // Entity Flow의 상태 이벤트를 Animation 표현에 연결한다.
+        public void Bind(
+            EnemyActionFlow p_actionFlow,
+            EnemyLocomotionFlow p_locomotionFlow,
+            EnemyCombatFlow p_combatFlow)
+        {
+            UnsubscribeFromAction();
+            UnsubscribeFromLocomotion();
+            UnsubscribeFromCombat();
+
+            _actionFlow = p_actionFlow;
+            _locomotionFlow = p_locomotionFlow;
+            _combatFlow = p_combatFlow;
+
+            SubscribeToAction();
+            SubscribeToLocomotion();
+            SubscribeToCombat();
+        }
+
+        public void Unbind()
+        {
+            UnsubscribeFromAction();
+            UnsubscribeFromLocomotion();
+            UnsubscribeFromCombat();
+
+            _actionFlow = null;
+            _locomotionFlow = null;
+            _combatFlow = null;
         }
 
         // 공격 타입에 맞는 쿨타임 대기 상태를 재생한다.
@@ -151,6 +187,178 @@ namespace Alpha.Enemy.Animation
             return CrossFadeBase(DeadState, DeadStatePath, 0.05f);
         }
 
+        private void SubscribeToAction()
+        {
+            if (_isActionSubscribed ||
+                !isActiveAndEnabled ||
+                _actionFlow == null)
+            {
+                return;
+            }
+
+            _actionFlow.OnStateChanged +=
+                HandleActionStateChanged;
+            _actionFlow.OnHitReactionStarted +=
+                HandleHitReactionStarted;
+            _actionFlow.OnHitReactionPhaseChanged +=
+                HandleHitReactionPhaseChanged;
+            _isActionSubscribed = true;
+
+            SynchronizeActionState();
+        }
+
+        private void UnsubscribeFromAction()
+        {
+            if (!_isActionSubscribed)
+                return;
+
+            if (_actionFlow != null)
+            {
+                _actionFlow.OnStateChanged -=
+                    HandleActionStateChanged;
+                _actionFlow.OnHitReactionStarted -=
+                    HandleHitReactionStarted;
+                _actionFlow.OnHitReactionPhaseChanged -=
+                    HandleHitReactionPhaseChanged;
+            }
+
+            _isActionSubscribed = false;
+        }
+
+        private void SynchronizeActionState()
+        {
+            HandleActionStateChanged(_actionFlow.CurrentState);
+
+            if ((_actionFlow.CurrentState is
+                     EEnemyActionState.HitReaction or
+                     EEnemyActionState.Knockdown) &&
+                _actionFlow.ActiveHitReaction != EHitReaction.None)
+            {
+                PlayHit(_actionFlow.ActiveHitReaction);
+                HandleHitReactionPhaseChanged(
+                    _actionFlow.HitReactionPhase);
+            }
+        }
+
+        private void HandleActionStateChanged(
+            EEnemyActionState p_state)
+        {
+            if (p_state == EEnemyActionState.Dead)
+                PlayDeath();
+        }
+
+        private void HandleHitReactionStarted(
+            EHitReaction p_hitReaction)
+        {
+            PlayHit(p_hitReaction);
+        }
+
+        private void HandleHitReactionPhaseChanged(
+            EHitReactionPhase p_phase)
+        {
+            if (p_phase is EHitReactionPhase.Knockdown or
+                EHitReactionPhase.Down)
+            {
+                // 현재 Enemy Animator에는 단일 Knockdown 상태만 있어 Down까지 유지한다.
+                CrossFadeBase(
+                    KnockdownState,
+                    KnockdownStatePath,
+                    0.05f);
+            }
+        }
+
+        private void SubscribeToLocomotion()
+        {
+            if (_isLocomotionSubscribed ||
+                !isActiveAndEnabled ||
+                _locomotionFlow == null)
+            {
+                return;
+            }
+
+            _locomotionFlow.OnStateChanged +=
+                HandleLocomotionStateChanged;
+            _isLocomotionSubscribed = true;
+
+            // View가 다시 활성화된 경우 현재 이동 상태를 즉시 복원한다.
+            HandleLocomotionStateChanged(
+                _locomotionFlow.CurrentState);
+        }
+
+        private void UnsubscribeFromLocomotion()
+        {
+            if (!_isLocomotionSubscribed)
+                return;
+
+            if (_locomotionFlow != null)
+            {
+                _locomotionFlow.OnStateChanged -=
+                    HandleLocomotionStateChanged;
+            }
+
+            _isLocomotionSubscribed = false;
+        }
+
+        private void HandleLocomotionStateChanged(
+            EEnemyLocomotionState p_state)
+        {
+            switch (p_state)
+            {
+                case EEnemyLocomotionState.Patrol:
+                case EEnemyLocomotionState.ReturnToPatrol:
+                    PlayPatrol();
+                    break;
+
+                case EEnemyLocomotionState.Chase:
+                    PlayChase();
+                    break;
+            }
+        }
+
+        private void SubscribeToCombat()
+        {
+            if (_isCombatSubscribed ||
+                !isActiveAndEnabled ||
+                _combatFlow == null)
+            {
+                return;
+            }
+
+            _combatFlow.OnAttackWaitStarted +=
+                HandleAttackWaitStarted;
+            _combatFlow.OnAttackStarted +=
+                HandleAttackStarted;
+            _isCombatSubscribed = true;
+        }
+
+        private void UnsubscribeFromCombat()
+        {
+            if (!_isCombatSubscribed)
+                return;
+
+            if (_combatFlow != null)
+            {
+                _combatFlow.OnAttackWaitStarted -=
+                    HandleAttackWaitStarted;
+                _combatFlow.OnAttackStarted -=
+                    HandleAttackStarted;
+            }
+
+            _isCombatSubscribed = false;
+        }
+
+        private void HandleAttackWaitStarted(
+            EEnemyAttackType p_attackType)
+        {
+            PlayAttackWait(p_attackType);
+        }
+
+        private void HandleAttackStarted(
+            EEnemyAttackType p_attackType)
+        {
+            PlayAttack(p_attackType);
+        }
+
         // Death Animation Clip 마지막 프레임의 Animation Event에서 호출한다.
         public void NotifyDeathAnimationCompleted()
         {
@@ -222,6 +430,24 @@ namespace Alpha.Enemy.Animation
             _hasCurrentBaseState = true;
 
             return true;
+        }
+
+        private void OnEnable()
+        {
+            SubscribeToAction();
+            SubscribeToLocomotion();
+            SubscribeToCombat();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeFromAction();
+            UnsubscribeFromLocomotion();
+            UnsubscribeFromCombat();
+
+            // 다시 활성화될 때 현재 Flow 상태를 Animator에 확실히 반영한다.
+            _currentBaseState = 0;
+            _hasCurrentBaseState = false;
         }
 
     }

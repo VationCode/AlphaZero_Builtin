@@ -1,17 +1,13 @@
-using Alpha.Combat;
 using System;
 using UnityEngine;
 
 namespace Alpha.Living
 {
-    // Living Entity가 공유하는 피해, 회복, 사망 규칙을 실행한다.
-    public class LivingModule : MonoBehaviour, IDamageable
+    // Living Entity가 공유하는 체력 증감과 사망 규칙만 실행한다.
+    public class LivingModule : MonoBehaviour
     {
         [SerializeField, Min(1f)]
         private float _startHealth = 100f;
-
-        [SerializeField, Min(0f)]
-        private float _minTimeBetweenDamaged = 0.1f;
 
         protected HealthContext HealthContext { get; private set; }
 
@@ -19,19 +15,7 @@ namespace Alpha.Living
         public bool IsDead => HealthContext?.IsDead ?? false;
         public bool IsBound => HealthContext != null;
 
-        public event Action<DamageInfo> OnDamaged;
         public event Action OnDeath;
-
-        // 피해를 받은 직후 일정 시간 동안 중복 피해를 막는다.
-        private float _lastDamagedTime = float.NegativeInfinity;
-
-        protected bool IsInvulnerable =>
-            Time.time < _lastDamagedTime + _minTimeBetweenDamaged;
-
-        protected virtual void OnEnable()
-        {
-            _lastDamagedTime = float.NegativeInfinity;
-        }
 
         // Entity Core가 소유한 Context를 연결하고 최초 체력을 설정한다.
         public void Bind(HealthContext p_healthContext)
@@ -42,24 +26,18 @@ namespace Alpha.Living
             ResetHealth();
         }
 
-        public virtual bool TryApplyDamage(DamageInfo p_damageInfo)
+        // 원인과 무관하게 체력을 감소시키고 0이 되면 사망 상태로 전환한다.
+        public virtual bool TryDecreaseHealth(float p_amount)
         {
             if (!IsBound ||
-                !p_damageInfo.IsValid ||
-                IsInvulnerable ||
-                IsSelfAttack(p_damageInfo.Attacker) ||
-                IsDead)
+                IsDead ||
+                p_amount <= 0f)
             {
                 return false;
             }
 
-            _lastDamagedTime = Time.time;
-            HealthContext.SetCurrentHealth(CurrentHealth - p_damageInfo.Amount);
+            HealthContext.SetCurrentHealth(CurrentHealth - p_amount);
 
-            // 피해를 실제로 적용한 경우에만 Entity별 피격 Flow에 전달한다.
-            OnDamaged?.Invoke(p_damageInfo);
-
-            Debug.Log(HealthContext.CurrentHealth);
             if (CurrentHealth <= 0f)
                 Die();
 
@@ -80,7 +58,6 @@ namespace Alpha.Living
             if (!IsBound)
                 return;
 
-            _lastDamagedTime = float.NegativeInfinity;
             HealthContext.Initialize(_startHealth);
         }
 
@@ -92,13 +69,6 @@ namespace Alpha.Living
             HealthContext.SetCurrentHealth(0f);
             HealthContext.SetDead();
             OnDeath?.Invoke();
-        }
-
-        private bool IsSelfAttack(Transform p_attacker)
-        {
-            return p_attacker == transform ||
-                   transform.IsChildOf(p_attacker) ||
-                   p_attacker.IsChildOf(transform);
         }
     }
 }

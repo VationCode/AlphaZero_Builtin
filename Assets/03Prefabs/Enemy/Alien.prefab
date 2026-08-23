@@ -76,6 +76,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5fbe8127904d27b7a51fd0aa89e627, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _scanInterval: 0.2
   _detectionOrigin: {fileID: 0}
   _detectionArea:
     _shape: 1
@@ -134,7 +135,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _startHealth: 100
-  _minTimeBetweenDamaged: 0.1
 --- !u!1 &6476124510539691320
 GameObject:
   m_ObjectHideFlags: 0
@@ -291,6 +291,8 @@ GameObject:
   m_Component:
   - component: {fileID: 9048689407455957205}
   - component: {fileID: 2794967453750430713}
+  - component: {fileID: 8400000000000000001}
+  - component: {fileID: 8600000000000000001}
   m_Layer: 0
   m_Name: Locomotion
   m_TagString: Untagged
@@ -326,9 +328,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rigidbody: {fileID: 1288187409822234835}
+  _patrolModule: {fileID: 8400000000000000001}
+  _knockbackModule: {fileID: 8600000000000000001}
   _moveSpeed: 2
   _rotationSpeed: 360
   _arrivalDistance: 0.05
+--- !u!114 &8400000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7414833627074950610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d2cfe18a79b4fcaa245753aa2ccfba2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
   _areaRadius: 10
   _maxChaseDistanceFromPatrolArea: 6
   _minimumPointDistance: 2
@@ -338,6 +354,19 @@ MonoBehaviour:
   _groundProbeHeight: 10
   _groundProbeDepth: 30
   _sampleAttempts: 16
+--- !u!114 &8600000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7414833627074950610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f83b0c4a9d74df6bf21e9d6e3a5c871, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _rigidbody: {fileID: 1288187409822234835}
 --- !u!1 &8027543150498926219
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,6 +380,7 @@ GameObject:
   - component: {fileID: 9136441086989376941}
   - component: {fileID: 1288187409822234835}
   - component: {fileID: 7007343714405111812}
+  - component: {fileID: 8300000000000000001}
   m_Layer: 7
   m_Name: Alien
   m_TagString: Untagged
@@ -392,6 +422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _healthModule: {fileID: 0}
+  _damageReceiver: {fileID: 8300000000000000001}
   _locomotionModule: {fileID: 0}
   _targetModule: {fileID: 0}
   _combatModule: {fileID: 0}
@@ -399,6 +430,19 @@ MonoBehaviour:
   _actionFlow: {fileID: 0}
   _animationView: {fileID: 4694784262545560254}
   _audioView: {fileID: 0}
+--- !u!114 &8300000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8027543150498926219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad23467ace058034a9578f3cbcb8f04d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _minTimeBetweenDamaged: 0.1
 --- !u!114 &9136441086989376941
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -411,13 +455,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03c96c8ca4fb4ee4a2bb4597d673f7ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _targetScanInterval: 0.2
   _hitTypeResponseSettings:
     _respondToLight: 1
     _respondToHeavy: 1
     _respondToKnockdown: 1
     _respondToLaunch: 1
   _lightHitRepeatInterval: 0.15
+  _knockdownFallDuration: 1.1
+  _standupDuration: 0.95
   _corpseRemovalDelay: 3
   _logStateChanges: 1
 --- !u!54 &1288187409822234835

@@ -127,7 +127,7 @@ namespace Alpha.Player.Locomotion
             CombatContext context = _Core.CombatContext;
 
             // 전투 차단 또는 Aim Facing이 필요하지 않으면 이전 방향을 제거한다.
-            if (_Core.BlockCombat ||
+            if (!_Core.CanUseCombat ||
                 !context.UsesAimFacing)
             {
                 ClearRangeAimPresentation();
