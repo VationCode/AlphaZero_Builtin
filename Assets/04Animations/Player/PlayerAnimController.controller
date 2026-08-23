@@ -7,7 +7,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hit
+  m_Name: LightHit
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -687,7 +687,7 @@ AnimatorStateMachine:
     m_Position: {x: 760, y: -30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 7534646073377844953}
-    m_Position: {x: 760, y: 20, z: 0}
+    m_Position: {x: 760, y: 30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8959310175347114099}
     m_Position: {x: 1000, y: -90, z: 0}
@@ -1018,7 +1018,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: KnockDown_Standup
+  m_Name: HeavyHit
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []

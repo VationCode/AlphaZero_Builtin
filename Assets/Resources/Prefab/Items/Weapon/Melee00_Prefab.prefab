@@ -42,8 +42,6 @@ GameObject:
   - component: {fileID: 1214895462139616480}
   - component: {fileID: 6533356335210811891}
   - component: {fileID: -4397296409328816200}
-  - component: {fileID: 8300540284703023291}
-  - component: {fileID: 3710824910278123456}
   - component: {fileID: 7141517826021692345}
   m_Layer: 0
   m_Name: Melee00_Prefab
@@ -178,103 +176,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b16aaa88f436124c95bcd137366f728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _comboClips:
-  - {fileID: 7400000, guid: 4db94756285a5744cabdf85876d72e87, type: 2}
-  - {fileID: 7400000, guid: d506756a298994349880f63feae6e586, type: 2}
-  - {fileID: 7400000, guid: a4728a00a37ed5b4c886b64acedd91ba, type: 2}
-  _secondaryClip: {fileID: 7400000, guid: 9e7516049c548bc41995576b478c6760, type: 2}
-  _primaryInputMode: 1
-  _comboInputWindowStart: 0.8
-  _comboGraceDuration: 0.5
   _baseDamage: 20
-  _comboAttackSettings:
-  - _hitNormalizedTime: 0.35
-    _damageMultiplier: 1
-    _hitReaction: 0
-    _knockbackDistance: 1
-    _knockbackDuration: 0.2
-    _area:
-      _shape: 0
-      _localOffset: {x: 0, y: 0.9, z: 0}
-      _width: 1.7
-      _length: 1.7
-      _radius: 1
-      _angle: 100
-      _height: 1.5
-      _targetMask:
-        serializedVersion: 2
-        m_Bits: 128
-      _triggerInteraction: 1
-  - _hitNormalizedTime: 0.4
-    _damageMultiplier: 1.15
-    _hitReaction: 0
-    _knockbackDistance: 1
-    _knockbackDuration: 0.2
-    _area:
-      _shape: 0
-      _localOffset: {x: 0, y: 0.9, z: 0}
-      _width: 1.7
-      _length: 1.7
-      _radius: 1
-      _angle: 90
-      _height: 1.8
-      _targetMask:
-        serializedVersion: 2
-        m_Bits: 128
-      _triggerInteraction: 1
-  - _hitNormalizedTime: 0.45
-    _damageMultiplier: 1.5
-    _hitReaction: 1
-    _knockbackDistance: 1
-    _knockbackDuration: 0.2
-    _area:
-      _shape: 0
-      _localOffset: {x: 0, y: 0.9, z: 0}
-      _width: 1.7
-      _length: 1.7
-      _radius: 1
-      _angle: 360
-      _height: 1.8
-      _targetMask:
-        serializedVersion: 2
-        m_Bits: 128
-      _triggerInteraction: 1
-  _hitBufferCapacity: 16
---- !u!114 &8300540284703023291
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6237326805543741600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcb899333f234dd3ba92efd4ed546d4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _weapon: {fileID: -4397296409328816200}
-  _origin: {fileID: 1214895462139616480}
-  _previewComboIndex: 0
-  _showPreview: 1
-  _areaColor: {r: 1, g: 0.65, b: 0, a: 1}
---- !u!114 &3710824910278123456
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6237326805543741600}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec39c7d57c8b44d4b1f6a69409821265, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _weapon: {fileID: -4397296409328816200}
-  _hitShakeBindings:
-  - _comboIndex: 0
-    _shakeName: Weak
-  - _comboIndex: 2
-    _shakeName: Melee
+  _animatorOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
 --- !u!114 &7141517826021692345
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -289,10 +192,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: -4397296409328816200}
   _audioSource: {fileID: 6533356335210811891}
-  _comboClips:
-  - {fileID: 8300000, guid: 6a9699bc025213b47bbf8a4a0bd7fada, type: 3}
-  - {fileID: 8300000, guid: 661162310b90c5f4db09f1a1d241871a, type: 3}
-  - {fileID: 8300000, guid: cde62ff56eff30049a21badc0d9d8ebd, type: 3}
+  _comboAudioBindings:
+  - _comboName: Combo1
+    _clip: {fileID: 8300000, guid: 6a9699bc025213b47bbf8a4a0bd7fada, type: 3}
+  - _comboName: Combo2
+    _clip: {fileID: 8300000, guid: 661162310b90c5f4db09f1a1d241871a, type: 3}
+  - _comboName: Combo3
+    _clip: {fileID: 8300000, guid: cde62ff56eff30049a21badc0d9d8ebd, type: 3}
   _volume: 1
 --- !u!1001 &2072573014597669160
 PrefabInstance:

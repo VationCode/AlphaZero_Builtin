@@ -51,6 +51,10 @@ namespace Alpha.Player.Locomotion
             // State 실행 전에 환경 상태 갱신
             _core.LocomotionModule.UpdateEnvironment(gravityScale);
 
+            // 넉백 이동이 진행 중인 프레임에는 현재 State 이동을 중복 적용하지 않는다.
+            if (_core.LocomotionModule.TickKnockback(Time.deltaTime))
+                return;
+
             // Mode 전환
             if (!_core.LocomotionModule.BlocksInput &&
                 _currentStateFlow.CanChangeMode(

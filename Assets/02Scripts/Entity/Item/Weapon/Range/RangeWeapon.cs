@@ -41,7 +41,7 @@ namespace Alpha.Item.Weapon.Range
         private float _baseDamage = 15f;
 
         [SerializeField]
-        private EHitReaction _hitReaction = EHitReaction.Light;
+        private AttackImpactSettings _impactSettings = new();
 
         [Tooltip("발사 사이의 시간(초)입니다. 초당 3발은 약 0.333초입니다.")]
         [SerializeField, Min(0.01f)]
@@ -203,9 +203,9 @@ namespace Alpha.Item.Weapon.Range
                 attackOrigin,
                 targetPoint,
                 attackDirection,
-                _baseDamage,
+                _attackSource.ResolveDamage(_baseDamage),
                 _maxDistance,
-                _hitReaction);
+                _impactSettings.CreateInfo());
 
             if (!_attackModule.TryExecute(
                     request,
@@ -334,6 +334,19 @@ namespace Alpha.Item.Weapon.Range
         protected virtual void OnChargeReleased(float p_chargeRatio)
         {
             TryFireByRate();
+        }
+
+        private void OnValidate()
+        {
+            _baseDamage = Mathf.Max(0f, _baseDamage);
+            _impactSettings ??= new AttackImpactSettings();
+            _impactSettings.Validate();
+            _fireInterval = Mathf.Max(0.01f, _fireInterval);
+            _postAttackFacingDuration =
+                Mathf.Max(0f, _postAttackFacingDuration);
+            _maxDistance = Mathf.Max(0.01f, _maxDistance);
+            _maxChargeDuration =
+                Mathf.Max(0.01f, _maxChargeDuration);
         }
     }
 }

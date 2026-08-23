@@ -57,8 +57,7 @@ namespace Alpha.Item.Weapon.Range
                 hit.point,
                 hit.normal,
                 p_request.Direction,
-                p_hitReaction:
-                    p_request.HitReaction,
+                p_impact: p_request.Impact,
                 p_deliveryType:
                     EDamageDeliveryType.Ranged);
 

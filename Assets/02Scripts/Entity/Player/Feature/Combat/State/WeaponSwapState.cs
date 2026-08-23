@@ -80,8 +80,17 @@ namespace Alpha.Player.Combat
                 currentWeapon?.Data?.WeaponType ??
                 EWeaponType.None;
 
-            _Core.AnimationView?
-                .ApplyWeaponOverrideController(currentType);
+            if (currentWeapon is MeleeWeapon meleeWeapon)
+            {
+                _Core.AnimationView?
+                    .ApplyMeleeWeapon(
+                        meleeWeapon.AnimatorOverrideController);
+            }
+            else
+            {
+                _Core.AnimationView?
+                    .ApplyWeaponOverrideController(currentType);
+            }
 
             // 오른손이 무기 기준이므로 Range의 왼손 지지점만 IK Target으로 연결한다.
             if (currentWeapon is RangeWeapon rangeWeapon)
@@ -99,19 +108,6 @@ namespace Alpha.Player.Combat
             {
                 _Core.RigView?
                     .ClearLeftHandIKTarget();
-            }
-
-            if (currentWeapon is MeleeWeapon meleeWeapon)
-            {
-                _Core.AnimationView?
-                    .ApplyMeleeWeapon(
-                        meleeWeapon.ComboClips,
-                        meleeWeapon.SecondaryClip);
-
-                // Player가 장착한 Melee View만 Local Camera Shake를 요청할 수 있다.
-                meleeWeapon
-                    .GetComponent<MeleeWeaponEffectView>()?
-                    .BindCamera(_Core.CameraCore);
             }
 
             _Core.RigView?.RefreshAnimatorLayer();

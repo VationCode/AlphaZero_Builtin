@@ -60,7 +60,7 @@ namespace Alpha.Combat
     // 명중 Collider를 기준으로 Entity가 소유한 전투 계약을 찾는다.
     internal static class CombatTargetResolver
     {
-        public static T Find<T>(Collider p_target) where T : class
+        public static T Find<T>(Component p_target) where T : class
         {
             if (p_target == null)
                 return null;
@@ -73,8 +73,9 @@ namespace Alpha.Combat
 
             // Rigidbody 루트를 Entity 경계로 우선 사용하고, CharacterController처럼
             // Rigidbody가 없는 대상은 최상위 Transform의 자식 Feature를 조회한다.
-            Transform entityRoot = p_target.attachedRigidbody != null
-                ? p_target.attachedRigidbody.transform
+            Collider targetCollider = p_target as Collider;
+            Transform entityRoot = targetCollider?.attachedRigidbody != null
+                ? targetCollider.attachedRigidbody.transform
                 : p_target.transform.root;
 
             return entityRoot != null

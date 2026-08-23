@@ -7,6 +7,8 @@ namespace Alpha.Enemy
         Chase = 1,
         Attack = 2,
         ReturnToPatrol = 3,
-        HitReaction = 4
+        HitReaction = 4,
+        Knockdown = 5,
+        Dead = 6
     }
 }

@@ -11,16 +11,9 @@ namespace Alpha.Enemy
         [SerializeField, Min(0.05f)]
         private float _targetScanInterval = 0.2f;
 
-        [Header("Hit Reaction")]
-        [SerializeField, Min(0f)]
-        private float _lightHitRecoveryDuration = 0.2f;
-
-        [SerializeField, Min(0f)]
-        private float _heavyHitRecoveryDuration = 0.45f;
-
-        [Tooltip("물리 넉백이 끝난 뒤에도 Enemy가 쓰러진 상태로 대기할 추가 시간입니다.")]
-        [SerializeField, Min(0f)]
-        private float _knockdownRecoveryDuration = 0.8f;
+        [Header("Hit Type Response")]
+        [SerializeField]
+        private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
         [Tooltip("연사 공격이 Light 피격 애니메이션을 매 프레임 다시 시작하지 않게 하는 간격입니다.")]
         [SerializeField, Min(0f)]
@@ -74,7 +67,13 @@ namespace Alpha.Enemy
                 return;
             }
 
-            TryEnterHitReaction(p_damageInfo.HitReaction);
+            ImpactReactionResult reactionResult =
+                ImpactReactionSystem.Resolve(
+                    p_damageInfo,
+                    _hitTypeResponseSettings);
+
+            ApplyKnockback(p_damageInfo, reactionResult);
+            TryEnterHitReaction(reactionResult);
 
             Transform attacker = p_damageInfo.Attacker;
             EnemyDetectionModule targetModule = _core.TargetModule;
@@ -102,41 +101,60 @@ namespace Alpha.Enemy
                 ChangeState(SelectState());
         }
 
-        private bool TryEnterHitReaction(EHitReaction p_hitReaction)
+        // 공격 방향과 Enemy가 소유한 타입별 거리/시간을 실제 넉백 요청으로 조합한다.
+        private void ApplyKnockback(
+            in DamageInfo p_damageInfo,
+            in ImpactReactionResult p_result)
         {
-            if (p_hitReaction == EHitReaction.None ||
-                GetHitReactionPriority(p_hitReaction) <
-                GetHitReactionPriority(_activeHitReaction))
+            if (!p_result.HasKnockback)
+                return;
+
+            KnockbackInfo knockbackInfo = new(
+                p_damageInfo.Attacker,
+                p_damageInfo.Direction,
+                p_result.KnockbackDistance,
+                p_result.KnockbackDuration);
+
+            KnockbackSystem.TryApply(this, knockbackInfo);
+        }
+
+        // 공용 충격 판정 결과를 Enemy 행동 상태로 전환한다.
+        private bool TryEnterHitReaction(
+            in ImpactReactionResult p_result)
+        {
+            if (!p_result.HasReaction ||
+                p_result.Priority < (int)_activeHitReaction)
             {
                 return false;
             }
 
-            if (p_hitReaction == EHitReaction.Light &&
+            if (p_result.Reaction == EHitReaction.Light &&
                 Time.time < _nextLightHitTime)
             {
                 return false;
             }
 
-            float recoveryDuration =
-                GetHitReactionDuration(p_hitReaction);
-
-            if (recoveryDuration <= 0f)
-                return false;
-
-            if (p_hitReaction == EHitReaction.Light)
+            if (p_result.Reaction == EHitReaction.Light)
             {
                 _nextLightHitTime =
                     Time.time + _lightHitRepeatInterval;
             }
 
-            _activeHitReaction = p_hitReaction;
-            _hitReactionRemainingTime = recoveryDuration;
+            _activeHitReaction = p_result.Reaction;
+            _hitReactionRemainingTime =
+                p_result.RecoveryDuration;
 
             _core.AttackFlow?.CancelAttack();
             _core.LocomotionModule?.Stop();
 
-            ChangeState(EEnemyActionState.HitReaction);
-            _core.AnimationView?.PlayHit(p_hitReaction);
+            EEnemyActionState reactionState =
+                p_result.Reaction == EHitReaction.Knockdown ||
+                p_result.Reaction == EHitReaction.Launch
+                    ? EEnemyActionState.Knockdown
+                    : EEnemyActionState.HitReaction;
+
+            ChangeState(reactionState);
+            _core.AnimationView?.PlayHit(p_result.Reaction);
             return true;
         }
 
@@ -167,31 +185,6 @@ namespace Alpha.Enemy
             return false;
         }
 
-        private float GetHitReactionDuration(EHitReaction p_hitReaction)
-        {
-            return p_hitReaction switch
-            {
-                EHitReaction.Light => _lightHitRecoveryDuration,
-                EHitReaction.Heavy => _heavyHitRecoveryDuration,
-                EHitReaction.Knockdown => _knockdownRecoveryDuration,
-                EHitReaction.Launch => _knockdownRecoveryDuration,
-                _ => 0f
-            };
-        }
-
-        private static int GetHitReactionPriority(
-            EHitReaction p_hitReaction)
-        {
-            return p_hitReaction switch
-            {
-                EHitReaction.Light => 1,
-                EHitReaction.Heavy => 2,
-                EHitReaction.Knockdown => 3,
-                EHitReaction.Launch => 4,
-                _ => 0
-            };
-        }
-
         // 사망한 Enemy가 제거 전까지 이동하거나 공격하지 않도록 모든 행동을 종료한다.
         internal void HandleDeath()
         {
@@ -205,8 +198,8 @@ namespace Alpha.Enemy
             _core.ClearTarget();
             _core.LocomotionModule?.Stop();
             _core.LocomotionModule?.SetPatrolEnabled(false);
+            ChangeState(EEnemyActionState.Dead);
             _core.AnimationView?.PlayDeath();
-            _hasCurrentState = false;
 
             Destroy(
                 _core.gameObject,
@@ -463,12 +456,7 @@ namespace Alpha.Enemy
         {
             _targetScanInterval =
                 Mathf.Max(0.05f, _targetScanInterval);
-            _lightHitRecoveryDuration =
-                Mathf.Max(0f, _lightHitRecoveryDuration);
-            _heavyHitRecoveryDuration =
-                Mathf.Max(0f, _heavyHitRecoveryDuration);
-            _knockdownRecoveryDuration =
-                Mathf.Max(0f, _knockdownRecoveryDuration);
+            _hitTypeResponseSettings ??= new HitTypeResponseSettings();
             _lightHitRepeatInterval =
                 Mathf.Max(0f, _lightHitRepeatInterval);
             _corpseRemovalDelay =

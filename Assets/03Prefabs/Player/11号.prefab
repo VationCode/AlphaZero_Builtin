@@ -8717,14 +8717,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _unarmedOverrideController: {fileID: 22100000, guid: 64c20a7c82c403e4ca94e227a09ff7e9, type: 2}
-  _meleeOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
   _rangeOverrideController: {fileID: 22100000, guid: 34976b7d7579db54a873721598e98762, type: 2}
   _specialOverrideController: {fileID: 22100000, guid: c2489d0853f6b6e42ae85cb2a04bc33c, type: 2}
-  _meleeComboSlots:
-  - {fileID: 7400000, guid: 4db94756285a5744cabdf85876d72e87, type: 2}
-  - {fileID: 7400000, guid: d506756a298994349880f63feae6e586, type: 2}
-  - {fileID: 7400000, guid: a4728a00a37ed5b4c886b64acedd91ba, type: 2}
-  _meleeGuardSlot: {fileID: 7400000, guid: 9e7516049c548bc41995576b478c6760, type: 2}
   _meleeLayerEnterDuration: 0.05
   _meleeLayerExitDuration: 0.15
   _firstFootstepPhase: 0.2

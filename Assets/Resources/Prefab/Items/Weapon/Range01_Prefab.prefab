@@ -117,7 +117,11 @@ MonoBehaviour:
   _attackModule: {fileID: -517230948712345678}
   _leftHandIKTarget: {fileID: 231466525834666578}
   _baseDamage: 80
-  _hitReaction: 2
+  _impactSettings:
+    _hitType: 2
+    _knockbackDistance: 1.5
+    _knockbackDuration: 0.35
+    _recoveryDuration: 0.45
   _fireInterval: 1.5
   _postAttackFacingDuration: 0.5
   _maxDistance: 200

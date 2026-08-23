@@ -1,12 +1,15 @@
 using System;
+using Alpha.Combat;
 using UnityEngine;
 
 namespace Alpha.Player.Locomotion
 {
     // Locomotion 세부 기능을 하나의 실행 흐름으로 조합한다.
     [RequireComponent(typeof(LocomotionMoveModule), typeof(LocomotionRotationModule))]
-    public class LocomotionModule : MonoBehaviour
+    public class LocomotionModule : MonoBehaviour, IKnockbackable
     {
+        private const float DirectionEpsilon = 0.0001f;
+
         private CharacterController _controller;
 
         // 실제 이동과 회전은 각각의 세부 Module이 담당한다.
@@ -14,7 +17,10 @@ namespace Alpha.Player.Locomotion
         private LocomotionRotationModule _rotationModule;
         private LocomotionContext _context;
         private readonly RootMotionModule _rootMotionModule = new();
-        private bool _isInputLocked;
+        private int _inputLockCount;
+        private bool _isKnockbackActive;
+        private Vector3 _knockbackVelocity;
+        private float _knockbackRemainingTime;
 
 
         [Header("Jump")]
@@ -52,7 +58,13 @@ namespace Alpha.Player.Locomotion
         public float LandDuration => _landDuration;
         public float DashDuration => _dashDuration;
         public bool UsesRootMotion => _rootMotionModule.IsActive;
-        public bool BlocksInput => UsesRootMotion || _isInputLocked;
+        public bool BlocksInput =>
+            UsesRootMotion || _inputLockCount > 0;
+        public bool IsKnockbackActive => _isKnockbackActive;
+        public bool CanReceiveKnockback =>
+            isActiveAndEnabled &&
+            _controller != null &&
+            _controller.enabled;
 
 
         public bool IsGrounded { get; private set; }
@@ -67,6 +79,11 @@ namespace Alpha.Player.Locomotion
             _rotationModule = GetComponent<LocomotionRotationModule>();
         }
 
+        private void OnDisable()
+        {
+            CancelKnockback();
+        }
+
         // 이동 Context와 세부 이동·회전 Module을 Player Transform에 연결한다.
         public void Bind(LocomotionContext p_context, Transform p_playerTransform)
         {
@@ -78,6 +95,8 @@ namespace Alpha.Player.Locomotion
             }
 
             _context = p_context;
+            _inputLockCount = 0;
+            CancelKnockback();
 
             _moveModule.Bind(p_context);
             _rotationModule.Bind(p_playerTransform);
@@ -167,13 +186,90 @@ namespace Alpha.Player.Locomotion
         // Root Motion을 사용하지 않는 행동이 이동 입력을 잠근다.
         public void BeginInputLock()
         {
-            _isInputLocked = true;
+            _inputLockCount++;
         }
 
         // 현재 행동이 소유한 이동 입력 잠금을 해제한다.
         public void EndInputLock()
         {
-            _isInputLocked = false;
+            _inputLockCount = Mathf.Max(0, _inputLockCount - 1);
+        }
+
+        // 공격 방향과 거리/시간을 CharacterController의 수평 속도로 변환한다.
+        public bool TryApplyKnockback(
+            in KnockbackInfo p_knockbackInfo)
+        {
+            if (!CanReceiveKnockback ||
+                !p_knockbackInfo.IsValid)
+            {
+                return false;
+            }
+
+            Vector3 direction = Vector3.ProjectOnPlane(
+                p_knockbackInfo.Direction,
+                Vector3.up);
+
+            if (direction.sqrMagnitude <= DirectionEpsilon)
+            {
+                direction = Vector3.ProjectOnPlane(
+                    _controller.transform.position -
+                    p_knockbackInfo.Attacker.position,
+                    Vector3.up);
+            }
+
+            if (direction.sqrMagnitude <= DirectionEpsilon)
+                return false;
+
+            _knockbackVelocity =
+                direction.normalized *
+                (p_knockbackInfo.Distance /
+                 p_knockbackInfo.Duration);
+            _knockbackRemainingTime =
+                p_knockbackInfo.Duration;
+            _isKnockbackActive = true;
+
+            return true;
+        }
+
+        // 넉백은 현재 Locomotion State보다 먼저 이동하고 해당 프레임 입력 이동을 대체한다.
+        public bool TickKnockback(float p_deltaTime)
+        {
+            if (!_isKnockbackActive)
+                return false;
+
+            if (!CanReceiveKnockback ||
+                _moveModule == null ||
+                _knockbackRemainingTime <= 0f)
+            {
+                CancelKnockback();
+                return false;
+            }
+
+            float deltaTime = Mathf.Max(0f, p_deltaTime);
+            float activeTime = Mathf.Min(
+                _knockbackRemainingTime,
+                deltaTime);
+
+            Vector3 deltaPosition =
+                _knockbackVelocity * activeTime;
+
+            // 수평 넉백 중에도 접지력과 공중 중력은 계속 적용한다.
+            deltaPosition.y = GroundVerticalVelocity * deltaTime;
+            _moveModule.MoveDelta(deltaPosition);
+
+            _knockbackRemainingTime -= activeTime;
+
+            if (_knockbackRemainingTime <= 0f)
+                CancelKnockback();
+
+            return true;
+        }
+
+        public void CancelKnockback()
+        {
+            _isKnockbackActive = false;
+            _knockbackVelocity = Vector3.zero;
+            _knockbackRemainingTime = 0f;
         }
 
 

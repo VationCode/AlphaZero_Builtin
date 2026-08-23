@@ -63,16 +63,18 @@ namespace Alpha.Enemy
                     profile.Damage,
                     hit.HitPoint,
                     -hit.Direction,
-                    hit.Direction,
-                    profile.DamageType,
-                    profile.HitReaction,
-                    profile.KnockbackDistance,
-                    profile.KnockbackDuration,
-                    EDamageDeliveryType.Melee);
+                    p_owner.forward,
+                    p_impact: profile.Impact,
+                    p_deliveryType: EDamageDeliveryType.Melee);
 
-                hasAppliedDamage |= DamageSystem.TryApply(
-                    hit.Collider,
-                    damageInfo);
+                if (!DamageSystem.TryApply(
+                        hit.Collider,
+                        damageInfo))
+                {
+                    continue;
+                }
+
+                hasAppliedDamage = true;
             }
 
             return hasAppliedDamage;

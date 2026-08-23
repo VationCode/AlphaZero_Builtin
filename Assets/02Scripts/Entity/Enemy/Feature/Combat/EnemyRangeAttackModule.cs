@@ -51,7 +51,7 @@ namespace Alpha.Enemy
                 direction,
                 p_pattern.DamageProfile.Damage,
                 projectileTravelDistance,
-                p_pattern.DamageProfile.HitReaction);
+                p_pattern.DamageProfile.Impact);
 
             ProjectileEntity projectile = UnityEngine.Object.Instantiate(
                 launchSettings.Prefab,

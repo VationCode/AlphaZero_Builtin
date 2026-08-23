@@ -13,7 +13,7 @@ namespace Alpha.Item.Weapon.Range
         public Vector3 Direction { get; }
         public float Damage { get; }
         public float MaxDistance { get; }
-        public EHitReaction HitReaction { get; }
+        public AttackImpactInfo Impact { get; }
 
         public bool IsValid =>
             Attacker != null &&
@@ -29,7 +29,7 @@ namespace Alpha.Item.Weapon.Range
             Vector3 p_direction,
             float p_damage,
             float p_maxDistance,
-            EHitReaction p_hitReaction)
+            AttackImpactInfo p_impact = default)
         {
             Attacker = p_attacker;
             MuzzleOrigin = p_muzzleOrigin;
@@ -42,7 +42,7 @@ namespace Alpha.Item.Weapon.Range
 
             Damage = p_damage;
             MaxDistance = p_maxDistance;
-            HitReaction = p_hitReaction;
+            Impact = p_impact;
         }
     }
 }

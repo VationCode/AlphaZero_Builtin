@@ -8,6 +8,7 @@ using Alpha.Player.Combat;
 using Alpha.Player.Audio;
 using Alpha.Player.Effect;
 using Alpha.Player.Health;
+using Alpha.Player.Actions;
 using Alpha.Living;
 using Alpha.Rig.Player;
 using UnityEngine;
@@ -29,6 +30,7 @@ namespace Alpha.Player
         public LocomotionModeFlow LocomotionModeFlow { get; private set; }
         public InventoryFlow InventoryFlow { get; private set; }
         public CombatFlow CombatFlow { get; private set; }
+        public PlayerActionFlow ActionFlow { get; private set; }
         public ItemPickupFlow ItemPickupFlow { get; private set; }
         public EquipmentFlow EquipmentFlow { get; private set; }
         #endregion
@@ -70,8 +72,10 @@ namespace Alpha.Player
         public bool CanLocomotion => _canLocomotion;
         private bool _canLocomotion;
 
-        public bool BlockCombat => _isCombatBlocked;
+        public bool BlockCombat =>
+            _isCombatBlocked || _combatBlockCount > 0;
         private bool _isCombatBlocked;
+        private int _combatBlockCount;
 
         // Installer가 소유한 입력·카메라·마우스·데이터 참조를 전달받는다.
         public void Bind(
@@ -97,6 +101,7 @@ namespace Alpha.Player
             EquipmentFlow = GetComponentInChildren<EquipmentFlow>(true);
             CombatFlow = GetComponentInChildren<CombatFlow>(true);
             ItemPickupFlow = GetComponentInChildren<ItemPickupFlow>();
+            ActionFlow = GetComponentInChildren<PlayerActionFlow>(true);
 
             // Module
             LocomotionModule = GetComponentInChildren<LocomotionModule>(true);
@@ -104,6 +109,15 @@ namespace Alpha.Player
             EquipmentModule = GetComponentInChildren<EquipmentModule>(true);
             CombatModule = GetComponentInChildren<CombatModule>(true);
             HealthModule = GetComponentInChildren<HealthModule>(true);
+            // Scene에 아직 상위 행동 Flow가 없다면 Health Feature에 기본 구성으로 추가한다.
+            if (ActionFlow == null)
+            {
+                GameObject owner = HealthModule != null
+                    ? HealthModule.gameObject
+                    : gameObject;
+                ActionFlow = owner.AddComponent<PlayerActionFlow>();
+            }
+
             CheckTrigger = GetComponent<CheckTrigger>();
 
             // View
@@ -152,6 +166,15 @@ namespace Alpha.Player
 
             HealthModule?.Bind(HealthContext);
             CheckTrigger.Bind(HealthModule);
+            ActionFlow?.Bind(this);
+
+            if (HealthModule != null)
+            {
+                HealthModule.OnDamaged -= HandleDamaged;
+                HealthModule.OnDamaged += HandleDamaged;
+                HealthModule.OnDeath -= HandleDeath;
+                HealthModule.OnDeath += HandleDeath;
+            }
 
             RigView?.Bind(PlayerTr);
 
@@ -191,9 +214,39 @@ namespace Alpha.Player
             _isCombatBlocked = p_isBlocked;
         }
 
+        // 여러 Player 행동이 전투 차단을 함께 소유할 수 있도록 개수를 누적한다.
+        public void BeginCombatBlock()
+        {
+            _combatBlockCount++;
+        }
+
+        public void EndCombatBlock()
+        {
+            _combatBlockCount = Mathf.Max(0, _combatBlockCount - 1);
+        }
+
+        // Core는 공용 피해 이벤트를 Player 상위 행동 Flow로 연결만 한다.
+        private void HandleDamaged(Alpha.Combat.DamageInfo p_damageInfo)
+        {
+            ActionFlow?.HandleDamaged(p_damageInfo);
+        }
+
+        private void HandleDeath()
+        {
+            ActionFlow?.HandleDeath();
+        }
+
         // Player가 연결한 장비 변경 이벤트를 해제한다.
         private void OnDestroy()
         {
+            ActionFlow?.Unbind();
+
+            if (HealthModule != null)
+            {
+                HealthModule.OnDamaged -= HandleDamaged;
+                HealthModule.OnDeath -= HandleDeath;
+            }
+
             if (EquipmentFlow != null && CombatModule != null)
                 EquipmentFlow.OnWeaponChanged -= CombatFlow.HandleEquipmentWeaponChanged;
 

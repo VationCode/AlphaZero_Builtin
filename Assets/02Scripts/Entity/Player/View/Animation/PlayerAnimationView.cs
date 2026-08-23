@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Alpha.Combat;
 using UnityEngine;
 
 namespace Alpha.Player.Animation
@@ -15,20 +15,10 @@ namespace Alpha.Player.Animation
         private AnimatorOverrideController _unarmedOverrideController;
 
         [SerializeField]
-        private AnimatorOverrideController _meleeOverrideController;
-
-        [SerializeField]
         private AnimatorOverrideController _rangeOverrideController;
 
         [SerializeField]
         private AnimatorOverrideController _specialOverrideController;
-
-        [Header("Melee Combo Slots")]
-        [SerializeField]
-        private AnimationClip[] _meleeComboSlots;
-
-        [SerializeField]
-        private AnimationClip _meleeGuardSlot;
 
         [Header("Melee Layer Blend")]
         [SerializeField, Min(0f)]
@@ -36,9 +26,6 @@ namespace Alpha.Player.Animation
 
         [SerializeField, Min(0f)]
         private float _meleeLayerExitDuration = 0.15f;
-
-        private AnimatorOverrideController _runtimeMeleeController;
-        private List<KeyValuePair<AnimationClip, AnimationClip>> _meleeOverrides;
 
         private const int BaseLayer = 0;
 
@@ -93,17 +80,26 @@ namespace Alpha.Player.Animation
         private static readonly int DashState =
             Animator.StringToHash("Base Layer.Dash");
 
+        private static readonly int LightHitReactionState =
+            Animator.StringToHash("Base Layer.LightHit");
+
+        private static readonly int HeavyHitReactionState =
+            Animator.StringToHash("Base Layer.HeavyHit");
+
+        private static readonly int KnockdownState =
+            Animator.StringToHash("Base Layer.KnockDown");
+
+        private static readonly int KnockdownLoopState =
+            Animator.StringToHash("Base Layer.KnockDown_Front_Loop");
+
+        private static readonly int KnockdownStandupState =
+            Animator.StringToHash("Base Layer.Rolling_StandUp");
+
         private int _currentBaseState;
+        private bool _isDamageReactionActive;
 
 
         private RuntimeAnimatorController _initialController;
-
-        private static readonly int[] MeleeComboStates =
-        {
-            Animator.StringToHash("Weapon FullBody Layer.Combo1"),
-            Animator.StringToHash("Weapon FullBody Layer.Combo2"),
-            Animator.StringToHash("Weapon FullBody Layer.Combo3")
-        };
 
         private static readonly int MeleeGuardState =
             Animator.StringToHash("Weapon FullBody Layer.Guard");
@@ -150,7 +146,6 @@ namespace Alpha.Player.Animation
                 SetMeleeLayerWeightImmediate(0f);
             }
 
-            InitializeMeleeController();
         }
 
         private void Update()
@@ -171,13 +166,6 @@ namespace Alpha.Player.Animation
                 return;
 
             OnRootMotion?.Invoke(_anim.deltaPosition);
-        }
-
-        // Player 전용으로 생성한 런타임 Controller를 함께 정리한다.
-        private void OnDestroy()
-        {
-            if (_runtimeMeleeController != null)
-                Destroy(_runtimeMeleeController);
         }
 
         /// <summary>
@@ -204,6 +192,9 @@ namespace Alpha.Player.Animation
         // 일반 이동과 전투 이동에 맞는 BlendTree를 선택하고 입력 파라미터를 갱신한다.
         public void PlayGroundLocomotion(Vector2 p_moveInput, bool p_isSprint, bool p_isCombat = false)
         {
+            if (_isDamageReactionActive)
+                return;
+
             Vector2 input = Vector2.ClampMagnitude(p_moveInput, 1f);
             _hasGroundMoveInput = input.sqrMagnitude > 0.01f;
 
@@ -304,24 +295,110 @@ namespace Alpha.Player.Animation
         // 점프 애니메이션으로 전환한다.
         public void PlayJump()
         {
+            if (_isDamageReactionActive)
+                return;
+
             CrossFadeBase(Jump, 0.15f, 0);
         }
         // 낙하 애니메이션으로 전환한다.
         public void PlayFall()
         {
+            if (_isDamageReactionActive)
+                return;
+
             CrossFadeBase(Fall, 0.15f, 0f);
         }
         // 착지 클립의 충격 구간부터 재생한다.
         public void PlayLand()
         {
+            if (_isDamageReactionActive)
+                return;
+
             CrossFadeBase(Land, 0.143f, 0.443f);
         }
 
         // 연속 입력도 재생되도록 Dash 애니메이션을 강제로 처음부터 실행한다.
         public void PlayDash()
         {
+            if (_isDamageReactionActive)
+                return;
+
             // 연속 Dash 입력에도 처음부터 재생한다.
             CrossFadeBase(DashState, 0.05f, 0f, true);
+        }
+
+        // DamageInfo의 반응 타입을 Player Base Layer 피격 상태로 변환한다.
+        public bool PlayHitReaction(EHitReaction p_reaction)
+        {
+            switch (p_reaction)
+            {
+                case EHitReaction.Light:
+                    PlayDamageState(LightHitReactionState);
+                    return true;
+
+                case EHitReaction.Heavy:
+                    PlayDamageState(HeavyHitReactionState);
+                    return true;
+
+                case EHitReaction.Knockdown:
+                case EHitReaction.Launch:
+                    PlayKnockdown();
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public void PlayKnockdown()
+        {
+            PlayDamageState(KnockdownState);
+        }
+
+        public void PlayKnockdownLoop()
+        {
+            PlayDamageState(KnockdownLoopState);
+        }
+
+        public void PlayKnockdownStandup()
+        {
+            PlayDamageState(KnockdownStandupState);
+        }
+
+        // 피격 전용 표현 잠금을 해제하고 다음 Locomotion 요청을 다시 받는다.
+        public void EndDamageReaction()
+        {
+            if (!_isDamageReactionActive)
+                return;
+
+            _isDamageReactionActive = false;
+            _currentBaseState = 0;
+
+            if (_weaponUpperBodyLayerIndex >= 0)
+                _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+
+            if (_meleeFullBodyLayerIndex >= 0)
+                SetMeleeLayerWeightImmediate(0f);
+        }
+
+        private void PlayDamageState(int p_stateHash)
+        {
+            _isDamageReactionActive = true;
+            _hasGroundMoveInput = false;
+            ResetFootstepCycle();
+
+            // 상체·근접 Layer가 Base Layer의 피격 자세를 덮지 않게 한다.
+            if (_weaponUpperBodyLayerIndex >= 0)
+                _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 0f);
+
+            if (_meleeFullBodyLayerIndex >= 0)
+                SetMeleeLayerWeightImmediate(0f);
+
+            CrossFadeBase(
+                p_stateHash,
+                0.05f,
+                0f,
+                true);
         }
 
 
@@ -350,103 +427,44 @@ namespace Alpha.Player.Animation
             RefreshWeaponLayerIndices();
         }
 
-        // 공용 Melee Controller를 복사해 Player 전용 런타임 Controller를 준비한다.
-        private void InitializeMeleeController()
-        {
-            if (_meleeOverrideController == null)
-                return;
-
-            _runtimeMeleeController =
-                new AnimatorOverrideController(
-                    _meleeOverrideController.runtimeAnimatorController);
-
-            _meleeOverrides =
-                new List<KeyValuePair<AnimationClip, AnimationClip>>(
-                    _meleeOverrideController.overridesCount);
-        }
-
-        // 현재 Melee Prefab의 콤보와 가드 클립을 Player 전용 Controller에 적용한다.
+        // 무기가 소유한 Override Controller를 적용해 상태 구조는 유지하고 모션만 변경한다.
         public bool ApplyMeleeWeapon(
-            IReadOnlyList<AnimationClip> p_comboClips,
-            AnimationClip p_guardClip)
+            AnimatorOverrideController p_overrideController)
         {
-            if (_anim == null ||
-                _runtimeMeleeController == null ||
-                _meleeOverrides == null ||
-                _meleeComboSlots == null ||
-                _meleeGuardSlot == null ||
-                p_comboClips == null ||
-                p_guardClip == null)
-            {
+            if (_anim == null || p_overrideController == null)
                 return false;
-            }
 
-            // 이전 무기의 변경값이 남지 않도록 공용 템플릿부터 다시 복사한다.
-            _meleeOverrideController.GetOverrides(_meleeOverrides);
+            RuntimeAnimatorController expectedBaseController =
+                GetBaseController(_initialController);
+            RuntimeAnimatorController overrideBaseController =
+                GetBaseController(p_overrideController);
 
-            int applyCount = Mathf.Min(
-                _meleeComboSlots.Length,
-                p_comboClips.Count);
-
-            for (int index = 0; index < applyCount; index++)
-            {
-                AnimationClip slotClip = _meleeComboSlots[index];
-                AnimationClip weaponClip = p_comboClips[index];
-
-                if (slotClip == null || weaponClip == null)
-                    continue;
-
-                if (!ReplaceOverride(
-                    _meleeOverrides,
-                    slotClip,
-                    weaponClip))
-                {
-                    Debug.LogError(
-                        $"Melee Combo 원본 슬롯을 찾을 수 없습니다: {slotClip.name}",
-                        this);
-                    return false;
-                }
-            }
-
-            if (!ReplaceOverride(
-                    _meleeOverrides,
-                    _meleeGuardSlot,
-                    p_guardClip))
+            if (expectedBaseController != null &&
+                overrideBaseController != expectedBaseController)
             {
                 Debug.LogError(
-                    $"Melee Guard 원본 슬롯을 찾을 수 없습니다: {_meleeGuardSlot.name}",
+                    "Melee AnimatorOverrideController의 원본 Controller가 Player Animator와 다릅니다.",
                     this);
                 return false;
             }
 
-            // 모든 행동 슬롯을 한 번에 변경해 Clip Binding 갱신을 한 번만 수행한다.
-            _runtimeMeleeController.ApplyOverrides(_meleeOverrides);
-            _anim.runtimeAnimatorController = _runtimeMeleeController;
-
+            _anim.runtimeAnimatorController = p_overrideController;
             RefreshWeaponLayerIndices();
             return true;
         }
 
-        // 원본 슬롯을 찾아 현재 무기 Prefab의 클립으로 교체한다.
-        private static bool ReplaceOverride(
-            List<KeyValuePair<AnimationClip, AnimationClip>> p_overrides,
-            AnimationClip p_slotClip,
-            AnimationClip p_weaponClip)
+        private static RuntimeAnimatorController GetBaseController(
+            RuntimeAnimatorController p_controller)
         {
-            for (int index = 0; index < p_overrides.Count; index++)
+            RuntimeAnimatorController currentController = p_controller;
+
+            while (currentController is AnimatorOverrideController overrideController)
             {
-                if (p_overrides[index].Key != p_slotClip)
-                    continue;
-
-                p_overrides[index] =
-                    new KeyValuePair<AnimationClip, AnimationClip>(
-                        p_slotClip,
-                        p_weaponClip);
-
-                return true;
+                currentController =
+                    overrideController.runtimeAnimatorController;
             }
 
-            return false;
+            return currentController;
         }
 
         // Controller 변경 후 Layer Index와 기본 Weight를 다시 설정한다.
@@ -459,7 +477,11 @@ namespace Alpha.Player.Animation
                 _anim.GetLayerIndex(MeleeFullBodyLayerName);
 
             if (_weaponUpperBodyLayerIndex >= 0)
-                _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
+            {
+                _anim.SetLayerWeight(
+                    _weaponUpperBodyLayerIndex,
+                    _isDamageReactionActive ? 0f : 1f);
+            }
 
             if (_meleeFullBodyLayerIndex >= 0)
                 SetMeleeLayerWeightImmediate(0f);
@@ -472,7 +494,7 @@ namespace Alpha.Player.Animation
             switch (p_weaponType)
             {
                 case EWeaponType.Melee:
-                    return _meleeOverrideController;
+                    return null;
 
                 case EWeaponType.Range:
                     return _rangeOverrideController;
@@ -514,7 +536,8 @@ namespace Alpha.Player.Animation
         // 상체 Layer를 활성화하고 무기 교체 Trigger를 다시 발생시킨다.
         public void PlayWeaponSwap()
         {
-            if (_anim == null) return;
+            if (_anim == null || _isDamageReactionActive)
+                return;
 
             if (_weaponUpperBodyLayerIndex >= 0)
             {
@@ -525,24 +548,42 @@ namespace Alpha.Player.Animation
             _anim.SetTrigger(_swap);
         }
 
-        // 지정한 콤보 순서의 전신 공격 애니메이션을 재생한다.
-        public void PlayMeleeCombo(int p_comboIndex)
+        // 콤보 Name과 같은 전신 Layer의 Animator 상태를 직접 재생한다.
+        public bool PlayMeleeCombo(string p_stateName)
         {
-            if (_anim == null || _meleeFullBodyLayerIndex < 0 ||
-                p_comboIndex < 0 || p_comboIndex >= MeleeComboStates.Length)
+            if (_anim == null || _isDamageReactionActive ||
+                _meleeFullBodyLayerIndex < 0 ||
+                string.IsNullOrWhiteSpace(p_stateName))
             {
-                return;
+                return false;
+            }
+
+            string stateName = p_stateName.Trim();
+            int stateHash = Animator.StringToHash(
+                $"{MeleeFullBodyLayerName}.{stateName}");
+
+            if (!_anim.HasState(_meleeFullBodyLayerIndex, stateHash))
+            {
+                Debug.LogWarning(
+                    $"Melee Animator 상태를 찾을 수 없습니다: {stateName}",
+                    this);
+                return false;
             }
 
             BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);
 
-            _anim.CrossFadeInFixedTime(MeleeComboStates[p_comboIndex], 0.05f, _meleeFullBodyLayerIndex);
+            _anim.CrossFadeInFixedTime(
+                stateHash,
+                0.05f,
+                _meleeFullBodyLayerIndex);
+            return true;
         }
 
         // 우클릭을 유지하는 동안 반복할 근접 가드 애니메이션을 재생한다.
         public void PlayMeleeGuard()
         {
-            if (_anim == null || _meleeFullBodyLayerIndex < 0)
+            if (_anim == null || _isDamageReactionActive ||
+                _meleeFullBodyLayerIndex < 0)
                 return;
 
             BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);

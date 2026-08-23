@@ -7,6 +7,8 @@ namespace Alpha.Item.Weapon.Range
     {
         Transform Attacker { get; }
 
+        float ResolveDamage(float p_baseDamage);
+
         bool TryGetAttackPose(
             Vector3 p_muzzleOrigin,
             float p_maxDistance,

@@ -6,7 +6,7 @@ namespace Alpha.Combat
     public static class KnockbackSystem
     {
         public static bool TryApply(
-            Collider p_target,
+            Component p_target,
             in KnockbackInfo p_knockbackInfo)
         {
             if (p_target == null || !p_knockbackInfo.IsValid)

@@ -48,7 +48,7 @@ namespace Alpha.Projectile
         private Vector3 _gravity;
 
         private float _damage;
-        private EHitReaction _hitReaction;
+        private AttackImpactInfo _attackImpact;
         private float _activeCollisionRadius;
         private float _remainingDistance;
         private float _remainingLifetime;
@@ -83,7 +83,7 @@ namespace Alpha.Projectile
             _velocity = p_request.Direction * p_launchSettings.Speed;
             _gravity = Physics.gravity * _gravityScale;
             _damage = p_request.Damage;
-            _hitReaction = p_request.HitReaction;
+            _attackImpact = p_request.Impact;
             _activeCollisionRadius = CollisionRadius;
             _remainingDistance = p_request.MaxDistance;
             _remainingLifetime = p_launchSettings.Lifetime;
@@ -286,13 +286,18 @@ namespace Alpha.Projectile
                 p_hit.point,
                 p_hit.normal,
                 p_direction,
-                p_hitReaction: _hitReaction,
+                p_impact: _attackImpact,
                 p_deliveryType:
                     EDamageDeliveryType.Ranged);
 
-            return DamageSystem.TryApply(
-                p_hit.collider,
-                damageInfo);
+            if (!DamageSystem.TryApply(
+                    p_hit.collider,
+                    damageInfo))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private int ApplyRadialDamage(
@@ -342,7 +347,7 @@ namespace Alpha.Projectile
                     hitPoint,
                     -direction,
                     direction,
-                    p_hitReaction: _hitReaction,
+                    p_impact: _attackImpact,
                     p_deliveryType:
                         EDamageDeliveryType.Ranged);
 

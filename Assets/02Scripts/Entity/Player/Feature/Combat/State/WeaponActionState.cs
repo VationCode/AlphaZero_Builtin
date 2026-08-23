@@ -249,12 +249,13 @@ namespace Alpha.Player.Combat
         private void UpdateMeleeFacing()
         {
             if (!_isMeleePrimaryAction ||
-                !(_Core.CombatModule.CurrentWeapon is MeleeWeapon meleeWeapon))
+                !(_Core.CombatModule.CurrentWeapon is MeleeWeapon))
             {
                 return;
             }
 
-            int comboIndex = meleeWeapon.CurrentComboIndex;
+            int comboIndex =
+                _Core.CombatModule.CurrentMeleeComboIndex;
 
             if (comboIndex < 0)
                 return;
@@ -300,21 +301,24 @@ namespace Alpha.Player.Combat
         private void PlayCurrentMeleeCombo()
         {
             if (!_isMeleePrimaryAction ||
-                !(_Core.CombatModule.CurrentWeapon
-                    is MeleeWeapon meleeWeapon))
+                !(_Core.CombatModule.CurrentWeapon is MeleeWeapon))
             {
                 return;
             }
 
-            int comboIndex = meleeWeapon.CurrentComboIndex;
+            int comboIndex =
+                _Core.CombatModule.CurrentMeleeComboIndex;
+            string comboName =
+                _Core.CombatModule.CurrentMeleeComboName;
 
             if (comboIndex < 0 ||
+                string.IsNullOrWhiteSpace(comboName) ||
                 comboIndex == _playedComboIndex)
             {
                 return;
             }
 
-            _Core.AnimationView.PlayMeleeCombo(comboIndex);
+            _Core.AnimationView.PlayMeleeCombo(comboName);
             _playedComboIndex = comboIndex;
         }
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Alpha.Combat
 {
-    // 피해 속성과 별개로 공격이 대상에게 전달된 방식을 구분한다.
+    // 공격이 근접 또는 원거리 중 어떤 방식으로 전달됐는지 구분한다.
     public enum EDamageDeliveryType
     {
         Unknown,
@@ -18,11 +18,9 @@ namespace Alpha.Combat
         public Vector3 HitPoint { get; }
         public Vector3 HitNormal { get; }
         public Vector3 Direction { get; }
-        public EDamageType DamageType { get; }
         public EDamageDeliveryType DeliveryType { get; }
-        public EHitReaction HitReaction { get; }
-        public float KnockbackDistance { get; }
-        public float KnockbackDuration { get; }
+        public AttackImpactInfo Impact { get; }
+        public EHitType HitType => Impact.HitType;
 
         public bool IsValid =>
             Attacker != null &&
@@ -34,10 +32,7 @@ namespace Alpha.Combat
             Vector3 p_hitPoint,
             Vector3 p_hitNormal,
             Vector3 p_direction,
-            EDamageType p_damageType = EDamageType.Physical,
-            EHitReaction p_hitReaction = EHitReaction.None,
-            float p_knockbackDistance = 0f,
-            float p_knockbackDuration = 0f,
+            AttackImpactInfo p_impact = default,
             EDamageDeliveryType p_deliveryType =
                 EDamageDeliveryType.Unknown)
         {
@@ -45,11 +40,8 @@ namespace Alpha.Combat
             Amount = p_amount;
             HitPoint = p_hitPoint;
             HitNormal = p_hitNormal;
-            DamageType = p_damageType;
             DeliveryType = p_deliveryType;
-            HitReaction = p_hitReaction;
-            KnockbackDistance = Mathf.Max(0f, p_knockbackDistance);
-            KnockbackDuration = Mathf.Max(0f, p_knockbackDuration);
+            Impact = p_impact;
 
             Direction = p_direction.sqrMagnitude > 0.0001f
                 ? p_direction.normalized

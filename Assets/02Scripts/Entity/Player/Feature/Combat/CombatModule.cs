@@ -11,6 +11,15 @@ namespace Alpha.Player.Combat
     [RequireComponent(typeof(RangeAimModule))]
     public class CombatModule : MonoBehaviour, IRangeAttackSource
     {
+        [Header("Attack Power")]
+        [Tooltip("무기와 콤보가 계산한 공격력에 Player 능력치로 추가할 값입니다.")]
+        [SerializeField, Min(0f)]
+        private float _additionalAttackDamage;
+
+        [Header("Melee Attack")]
+        [SerializeField]
+        private PlayerMeleeAttackModule _meleeAttackModule = new();
+
         private PlayerCore _core;
         private WeaponSwapModule _weaponSwapModule;
         private RangeAimModule _rangeAimModule;
@@ -24,10 +33,19 @@ namespace Alpha.Player.Combat
         // Player의 공격으로 피해가 실제 적용된 경우에만 명중 표현에 알린다.
         public event Action<DamageInfo> OnHitConfirmed;
 
+        // 하나의 Melee 공격이 한 명 이상의 대상을 맞힌 경우 콤보 Name과 함께 한 번만 알린다.
+        public event Action<string> OnMeleeHitConfirmed;
+
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
         public RangeWeapon CurrentRangeWeapon => CurrentWeapon as RangeWeapon;
         public bool HasWeapon => CurrentWeapon != null;
+        public int CurrentMeleeComboIndex =>
+            _meleeAttackModule?.CurrentComboIndex ?? -1;
+        public string CurrentMeleeComboName =>
+            _meleeAttackModule?.CurrentComboName;
+        public Transform MeleeAttackSource =>
+            _meleeAttackModule?.AttackSource;
 
         public EWeaponActionType ActiveActionType =>
             CurrentWeapon?.ActiveActionType ?? EWeaponActionType.None;
@@ -44,8 +62,16 @@ namespace Alpha.Player.Combat
 
         private void Awake()
         {
+            _meleeAttackModule ??= new PlayerMeleeAttackModule();
             _weaponSwapModule = GetComponent<WeaponSwapModule>();
             _rangeAimModule = GetComponent<RangeAimModule>();
+        }
+
+        private void OnValidate()
+        {
+            _additionalAttackDamage = Mathf.Max(0f, _additionalAttackDamage);
+            _meleeAttackModule ??= new PlayerMeleeAttackModule();
+            _meleeAttackModule.Validate();
         }
 
         private void OnEnable()
@@ -73,6 +99,18 @@ namespace Alpha.Player.Combat
             }
 
             _core = p_core;
+
+            if (!_meleeAttackModule.Bind(
+                    Attacker,
+                    ResolveDamage,
+                    HandleMeleeHitConfirmed))
+            {
+                Debug.LogError(
+                    $"{nameof(PlayerMeleeAttackModule)}의 공격 기준을 설정하지 못했습니다.",
+                    this);
+                return false;
+            }
+
             SubscribeDamageApplied();
             return true;
         }
@@ -110,6 +148,11 @@ namespace Alpha.Player.Combat
             OnHitConfirmed?.Invoke(p_damageInfo);
         }
 
+        private void HandleMeleeHitConfirmed(string p_comboName)
+        {
+            OnMeleeHitConfirmed?.Invoke(p_comboName);
+        }
+
         #region ============================== Weapon Swap
         // 공통 무기 교체 요청을 실제 무기 생성 Module에 전달한다.
         public bool ApplyWeaponChange(WeaponDTO p_weapon)
@@ -124,7 +167,7 @@ namespace Alpha.Player.Combat
             MeleeWeapon meleeWeapon = CurrentWeapon as MeleeWeapon;
 
             if (meleeWeapon != null &&
-                !meleeWeapon.BindAttackSource(Attacker))
+                !meleeWeapon.BindActionController(_meleeAttackModule))
             {
                 _weaponSwapModule.Apply(null);
                 OnWeaponChanged?.Invoke(null);
@@ -171,6 +214,20 @@ namespace Alpha.Player.Combat
         public void CancelWeaponAction()
         {
             CurrentWeapon?.CancelAction();
+        }
+
+        // Player가 소유한 콤보별 공격 설정을 View에 읽기 전용으로 제공한다.
+        public PlayerMeleeAttackSettings GetMeleeAttackSettings(
+            int p_comboIndex)
+        {
+            return _meleeAttackModule?.GetAttackSettings(p_comboIndex);
+        }
+
+        // 무기·콤보가 계산한 값에 Player의 공통 추가 공격력을 반영한다.
+        public float ResolveDamage(float p_baseDamage)
+        {
+            return Mathf.Max(0f, p_baseDamage) +
+                   _additionalAttackDamage;
         }
 
         public bool TryGetAttackPose(
