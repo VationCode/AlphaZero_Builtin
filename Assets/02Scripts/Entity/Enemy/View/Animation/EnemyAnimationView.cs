@@ -27,6 +27,8 @@ namespace Alpha.Enemy.Animation
         private const string LightHitStatePath = "Base Layer.LightHit";
         private const string HeavyHitStatePath = "Base Layer.HeavyHit";
         private const string KnockdownStatePath = "Base Layer.Knockdown";
+        private const string LyingDownStatePath = "Base Layer.Lying down";
+        private const string StandUpStatePath = "Base Layer.StandUp";
         private const string DeadStatePath = "Base Layer.Death";
 
         private static readonly int PatrolState =
@@ -61,6 +63,12 @@ namespace Alpha.Enemy.Animation
 
         private static readonly int KnockdownState =
             Animator.StringToHash(KnockdownStatePath);
+
+        private static readonly int LyingDownState =
+            Animator.StringToHash(LyingDownStatePath);
+
+        private static readonly int StandUpState =
+            Animator.StringToHash(StandUpStatePath);
 
         private static readonly int DeadState =
             Animator.StringToHash(DeadStatePath);
@@ -161,20 +169,24 @@ namespace Alpha.Enemy.Animation
             return CrossFadeBase(ChaseState, ChaseStatePath);
         }
 
-        // 반응 타입을 Animator의 실제 피격 상태에 직접 연결한다.
-        public bool PlayHit(EHitReaction p_hitReaction)
+        // 공용 피격 행동 상태를 Enemy Animator 상태에 직접 연결한다.
+        public bool PlayHitReaction(EHitReactionState p_state)
         {
             if (_animator == null)
                 return false;
 
-            return p_hitReaction switch
+            return p_state switch
             {
-                EHitReaction.Light =>
+                EHitReactionState.LightHit =>
                     CrossFadeBase(LightHitState, LightHitStatePath, 0.05f, true),
-                EHitReaction.Heavy =>
-                CrossFadeBase(HeavyHitState, HeavyHitStatePath, 0.05f, true),
-                EHitReaction.Knockdown or
-                EHitReaction.Launch => CrossFadeBase(KnockdownState, KnockdownStatePath, 0.05f, true),
+                EHitReactionState.HeavyHit =>
+                    CrossFadeBase(HeavyHitState, HeavyHitStatePath, 0.05f, true),
+                EHitReactionState.Knockdown =>
+                    CrossFadeBase(KnockdownState, KnockdownStatePath, 0.05f, true),
+                EHitReactionState.LyingDown =>
+                    CrossFadeBase(LyingDownState, LyingDownStatePath, 0.05f),
+                EHitReactionState.StandUp =>
+                    CrossFadeBase(StandUpState, StandUpStatePath, 0.05f),
                 _ => false
             };
         }
@@ -198,10 +210,8 @@ namespace Alpha.Enemy.Animation
 
             _actionFlow.OnStateChanged +=
                 HandleActionStateChanged;
-            _actionFlow.OnHitReactionStarted +=
-                HandleHitReactionStarted;
-            _actionFlow.OnHitReactionPhaseChanged +=
-                HandleHitReactionPhaseChanged;
+            _actionFlow.OnHitReactionStateChanged +=
+                HandleHitReactionStateChanged;
             _isActionSubscribed = true;
 
             SynchronizeActionState();
@@ -216,10 +226,8 @@ namespace Alpha.Enemy.Animation
             {
                 _actionFlow.OnStateChanged -=
                     HandleActionStateChanged;
-                _actionFlow.OnHitReactionStarted -=
-                    HandleHitReactionStarted;
-                _actionFlow.OnHitReactionPhaseChanged -=
-                    HandleHitReactionPhaseChanged;
+                _actionFlow.OnHitReactionStateChanged -=
+                    HandleHitReactionStateChanged;
             }
 
             _isActionSubscribed = false;
@@ -229,14 +237,13 @@ namespace Alpha.Enemy.Animation
         {
             HandleActionStateChanged(_actionFlow.CurrentState);
 
-            if ((_actionFlow.CurrentState is
-                     EEnemyActionState.HitReaction or
-                     EEnemyActionState.Knockdown) &&
-                _actionFlow.ActiveHitReaction != EHitReaction.None)
+            if (_actionFlow.CurrentState ==
+                    EEnemyActionState.HitReaction &&
+                _actionFlow.HitReactionState !=
+                    EHitReactionState.None)
             {
-                PlayHit(_actionFlow.ActiveHitReaction);
-                HandleHitReactionPhaseChanged(
-                    _actionFlow.HitReactionPhase);
+                HandleHitReactionStateChanged(
+                    _actionFlow.HitReactionState);
             }
         }
 
@@ -247,24 +254,10 @@ namespace Alpha.Enemy.Animation
                 PlayDeath();
         }
 
-        private void HandleHitReactionStarted(
-            EHitReaction p_hitReaction)
+        private void HandleHitReactionStateChanged(
+            EHitReactionState p_state)
         {
-            PlayHit(p_hitReaction);
-        }
-
-        private void HandleHitReactionPhaseChanged(
-            EHitReactionPhase p_phase)
-        {
-            if (p_phase is EHitReactionPhase.Knockdown or
-                EHitReactionPhase.Down)
-            {
-                // 현재 Enemy Animator에는 단일 Knockdown 상태만 있어 Down까지 유지한다.
-                CrossFadeBase(
-                    KnockdownState,
-                    KnockdownStatePath,
-                    0.05f);
-            }
+            PlayHitReaction(p_state);
         }
 
         private void SubscribeToLocomotion()

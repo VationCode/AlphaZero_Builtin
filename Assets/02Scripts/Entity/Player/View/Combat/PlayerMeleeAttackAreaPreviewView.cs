@@ -1,9 +1,12 @@
+using Alpha.Combat;
 using Alpha.Detection;
+using Alpha.Item.Weapon.Melee;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.Player.Combat
 {
-    // Player가 소유한 콤보별 공격 범위를 Scene에서 미리 보여준다.
+    // Player가 소유한 Skill별 공격 범위를 Scene에서 미리 보여준다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CombatModule))]
     public sealed class PlayerMeleeAttackAreaPreviewView : MonoBehaviour
@@ -11,8 +14,13 @@ namespace Alpha.Player.Combat
         [SerializeField]
         private CombatModule _combatModule;
 
+        [FormerlySerializedAs("_previewComboIndex")]
         [SerializeField, Min(0)]
-        private int _previewComboIndex;
+        private int _previewSkillIndex;
+
+        [Tooltip("Edit Mode에서 범위를 미리 볼 Melee Combo 자산입니다.")]
+        [SerializeField]
+        private MeleeComboDefinition _previewComboDefinition;
 
         [SerializeField]
         private bool _showPreview = true;
@@ -28,7 +36,7 @@ namespace Alpha.Player.Combat
         private void OnValidate()
         {
             _combatModule ??= GetComponent<CombatModule>();
-            _previewComboIndex = Mathf.Max(0, _previewComboIndex);
+            _previewSkillIndex = Mathf.Max(0, _previewSkillIndex);
         }
 
         private void OnDrawGizmosSelected()
@@ -36,13 +44,15 @@ namespace Alpha.Player.Combat
             if (!_showPreview || !TryResolveCombatModule())
                 return;
 
-            int comboIndex = Application.isPlaying &&
-                             _combatModule.CurrentMeleeComboIndex >= 0
-                ? _combatModule.CurrentMeleeComboIndex
-                : _previewComboIndex;
+            int skillIndex = Application.isPlaying &&
+                             _combatModule.CurrentMeleeSkillIndex >= 0
+                ? _combatModule.CurrentMeleeSkillIndex
+                : _previewSkillIndex;
 
-            PlayerMeleeAttackSettings settings =
-                _combatModule.GetMeleeAttackSettings(comboIndex);
+            MeleeSkillDefinition skill =
+                _combatModule.GetMeleeSkillDefinition(skillIndex) ??
+                _previewComboDefinition?.GetSkill(skillIndex);
+            MeleeSkillAttackSettings settings = skill?.AttackSettings;
 
             if (settings == null || !settings.IsValid)
                 return;

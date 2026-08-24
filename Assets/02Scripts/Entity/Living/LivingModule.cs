@@ -38,6 +38,7 @@ namespace Alpha.Living
 
             HealthContext.SetCurrentHealth(CurrentHealth - p_amount);
 
+            Debug.Log(CurrentHealth);
             if (CurrentHealth <= 0f)
                 Die();
 

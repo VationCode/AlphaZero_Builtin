@@ -1,3 +1,4 @@
+using Alpha.Combat;
 using System;
 using UnityEngine;
 
@@ -35,16 +36,21 @@ namespace Alpha.Item.Weapon.Melee
         [SerializeField, Min(0f)]
         private float _baseDamage = 20f;
 
+        [Tooltip("이 무기가 실행할 Skill 연계 자산입니다.")]
+        [SerializeField]
+        private MeleeComboDefinition _comboDefinition;
+
         [Header("Animation")]
         [SerializeField]
         private AnimatorOverrideController _animatorOverrideController;
 
         public float BaseDamage => _baseDamage;
+        public MeleeComboDefinition ComboDefinition => _comboDefinition;
         public AnimatorOverrideController AnimatorOverrideController =>
             _animatorOverrideController;
 
-        // 무기에 부착된 Audio View가 현재 Player 콤보 표현을 구독한다.
-        public event Action<string> OnComboStarted;
+        // 무기에 부착된 View가 실제로 시작된 공통 Skill 자산을 구독한다.
+        public event Action<CombatSkillDefinition> OnSkillStarted;
 
         private IMeleeWeaponActionController _actionController;
 
@@ -57,8 +63,12 @@ namespace Alpha.Item.Weapon.Melee
         public bool BindActionController(
             IMeleeWeaponActionController p_actionController)
         {
-            if (p_actionController == null)
+            if (p_actionController == null ||
+                _comboDefinition == null ||
+                !_comboDefinition.IsValid)
+            {
                 return false;
+            }
 
             _actionController = p_actionController;
             return true;
@@ -99,10 +109,11 @@ namespace Alpha.Item.Weapon.Melee
             _actionController?.CancelAction(this, p_type);
         }
 
-        // Player 공격 Module이 결정한 콤보 Name을 무기 View에 전달한다.
-        internal void NotifyComboStarted(string p_comboName)
+        // Player 공격 Module이 결정한 Skill 자산을 무기 View에 전달한다.
+        internal void NotifySkillStarted(CombatSkillDefinition p_skill)
         {
-            OnComboStarted?.Invoke(p_comboName);
+            if (p_skill != null)
+                OnSkillStarted?.Invoke(p_skill);
         }
 
         private void OnValidate()

@@ -12,7 +12,7 @@ namespace Alpha.Player.Combat
     public class CombatModule : MonoBehaviour, IRangeAttackSource
     {
         [Header("Attack Power")]
-        [Tooltip("무기와 콤보가 계산한 공격력에 Player 능력치로 추가할 값입니다.")]
+        [Tooltip("무기와 Skill이 계산한 공격력에 Player 능력치로 추가할 값입니다.")]
         [SerializeField, Min(0f)]
         private float _additionalAttackDamage;
 
@@ -33,17 +33,24 @@ namespace Alpha.Player.Combat
         // Player의 공격으로 피해가 실제 적용된 경우에만 명중 표현에 알린다.
         public event Action<DamageInfo> OnHitConfirmed;
 
-        // 하나의 Melee 공격이 한 명 이상의 대상을 맞힌 경우 콤보 Name과 함께 한 번만 알린다.
-        public event Action<string> OnMeleeHitConfirmed;
+        // 설정된 재생 시간에 도달한 Melee Effect를 Player 표현 계층에 요청한다.
+        public event Action<MeleeSkillDefinition> OnMeleeSkillEffectRequested;
+
+        // 하나의 Melee Skill이 한 명 이상의 대상을 맞힌 경우 Skill 자산과 함께 한 번만 알린다.
+        public event Action<MeleeSkillDefinition> OnMeleeSkillHitConfirmed;
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
         public RangeWeapon CurrentRangeWeapon => CurrentWeapon as RangeWeapon;
         public bool HasWeapon => CurrentWeapon != null;
-        public int CurrentMeleeComboIndex =>
-            _meleeAttackModule?.CurrentComboIndex ?? -1;
-        public string CurrentMeleeComboName =>
-            _meleeAttackModule?.CurrentComboName;
+        public int CurrentMeleeSkillIndex =>
+            _meleeAttackModule?.CurrentSkillIndex ?? -1;
+        public MeleeSkillDefinition CurrentMeleeSkill =>
+            _meleeAttackModule?.CurrentSkill;
+        public string CurrentMeleeSkillId =>
+            _meleeAttackModule?.CurrentSkillId;
+        public string CurrentMeleeAnimationKey =>
+            _meleeAttackModule?.CurrentAnimationKey;
         public Transform MeleeAttackSource =>
             _meleeAttackModule?.AttackSource;
 
@@ -103,7 +110,8 @@ namespace Alpha.Player.Combat
             if (!_meleeAttackModule.Bind(
                     Attacker,
                     ResolveDamage,
-                    HandleMeleeHitConfirmed))
+                    HandleMeleeSkillEffectRequested,
+                    HandleMeleeSkillHitConfirmed))
             {
                 Debug.LogError(
                     $"{nameof(PlayerMeleeAttackModule)}의 공격 기준을 설정하지 못했습니다.",
@@ -148,9 +156,16 @@ namespace Alpha.Player.Combat
             OnHitConfirmed?.Invoke(p_damageInfo);
         }
 
-        private void HandleMeleeHitConfirmed(string p_comboName)
+        private void HandleMeleeSkillHitConfirmed(
+            MeleeSkillDefinition p_skill)
         {
-            OnMeleeHitConfirmed?.Invoke(p_comboName);
+            OnMeleeSkillHitConfirmed?.Invoke(p_skill);
+        }
+
+        private void HandleMeleeSkillEffectRequested(
+            MeleeSkillDefinition p_skill)
+        {
+            OnMeleeSkillEffectRequested?.Invoke(p_skill);
         }
 
         #region ============================== Weapon Swap
@@ -216,14 +231,15 @@ namespace Alpha.Player.Combat
             CurrentWeapon?.CancelAction();
         }
 
-        // Player가 소유한 콤보별 공격 설정을 View에 읽기 전용으로 제공한다.
-        public PlayerMeleeAttackSettings GetMeleeAttackSettings(
-            int p_comboIndex)
+        // 현재 MeleeWeapon이 참조하는 Skill 자산을 View에 읽기 전용으로 제공한다.
+        public MeleeSkillDefinition GetMeleeSkillDefinition(
+            int p_skillIndex)
         {
-            return _meleeAttackModule?.GetAttackSettings(p_comboIndex);
+            MeleeWeapon weapon = CurrentWeapon as MeleeWeapon;
+            return weapon?.ComboDefinition?.GetSkill(p_skillIndex);
         }
 
-        // 무기·콤보가 계산한 값에 Player의 공통 추가 공격력을 반영한다.
+        // 무기·Skill이 계산한 값에 Player의 공통 추가 공격력을 반영한다.
         public float ResolveDamage(float p_baseDamage)
         {
             return Mathf.Max(0f, p_baseDamage) +

@@ -177,6 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _baseDamage: 20
+  _comboDefinition: {fileID: 11400000, guid: 2ba64cd94dad4f8f92685216f23be318, type: 2}
   _animatorOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
 --- !u!114 &7141517826021692345
 MonoBehaviour:
@@ -192,13 +193,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: -4397296409328816200}
   _audioSource: {fileID: 6533356335210811891}
-  _comboAudioBindings:
-  - _comboName: Combo1
-    _clip: {fileID: 8300000, guid: 6a9699bc025213b47bbf8a4a0bd7fada, type: 3}
-  - _comboName: Combo2
-    _clip: {fileID: 8300000, guid: 661162310b90c5f4db09f1a1d241871a, type: 3}
-  - _comboName: Combo3
-    _clip: {fileID: 8300000, guid: cde62ff56eff30049a21badc0d9d8ebd, type: 3}
   _volume: 1
 --- !u!1001 &2072573014597669160
 PrefabInstance:

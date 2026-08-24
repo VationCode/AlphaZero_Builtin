@@ -92,11 +92,11 @@ namespace Alpha.Player.Animation
         private static readonly int KnockdownState =
             Animator.StringToHash("Base Layer.KnockDown");
 
-        private static readonly int KnockdownLoopState =
-            Animator.StringToHash("Base Layer.KnockDown_Front_Loop");
+        private static readonly int LyingDownState =
+            Animator.StringToHash("Base Layer.LyingDown");
 
-        private static readonly int KnockdownStandupState =
-            Animator.StringToHash("Base Layer.Rolling_StandUp");
+        private static readonly int StandUpState =
+            Animator.StringToHash("Base Layer.StandUp");
 
         private int _currentBaseState;
         private bool _isDamageReactionActive;
@@ -185,12 +185,8 @@ namespace Alpha.Player.Animation
                 return;
             }
 
-            _actionFlow.OnHitReactionStarted +=
-                HandleHitReactionStarted;
-            _actionFlow.OnHitReactionPhaseChanged +=
-                HandleHitReactionPhaseChanged;
-            _actionFlow.OnHitReactionCompleted +=
-                HandleHitReactionCompleted;
+            _actionFlow.OnHitReactionStateChanged +=
+                HandleHitReactionStateChanged;
             _actionFlow.OnDeathStarted += HandleDeathStarted;
             _actionFlow.OnDeathDownStarted += HandleDeathDownStarted;
             _isActionSubscribed = true;
@@ -200,20 +196,12 @@ namespace Alpha.Player.Animation
                 if (_actionFlow.IsDeathFalling)
                     PlayKnockdown();
                 else
-                    PlayKnockdownLoop();
-            }
-            else if (_actionFlow.ActiveHitReaction != EHitReaction.None)
-            {
-                PlayHitReaction(
-                    _actionFlow.ActiveHitReaction);
-                HandleHitReactionPhaseChanged(
-                    _actionFlow.HitReactionPhase);
+                    PlayLyingDown();
             }
             else
             {
-                // View가 비활성화된 동안 반응이 끝났다면 표현 잠금을 즉시 복구한다.
-                EndDamageReaction();
-                RestoreLocomotionPresentation();
+                HandleHitReactionStateChanged(
+                    _actionFlow.HitReactionState);
             }
         }
 
@@ -224,12 +212,8 @@ namespace Alpha.Player.Animation
 
             if (_actionFlow != null)
             {
-                _actionFlow.OnHitReactionStarted -=
-                    HandleHitReactionStarted;
-                _actionFlow.OnHitReactionPhaseChanged -=
-                    HandleHitReactionPhaseChanged;
-                _actionFlow.OnHitReactionCompleted -=
-                    HandleHitReactionCompleted;
+                _actionFlow.OnHitReactionStateChanged -=
+                    HandleHitReactionStateChanged;
                 _actionFlow.OnDeathStarted -= HandleDeathStarted;
                 _actionFlow.OnDeathDownStarted -= HandleDeathDownStarted;
             }
@@ -237,35 +221,18 @@ namespace Alpha.Player.Animation
             _isActionSubscribed = false;
         }
 
-        private void HandleHitReactionStarted(
-            EHitReaction p_reaction)
+        private void HandleHitReactionStateChanged(
+            EHitReactionState p_state)
         {
-            PlayHitReaction(p_reaction);
-        }
-
-        private void HandleHitReactionPhaseChanged(
-            EHitReactionPhase p_phase)
-        {
-            switch (p_phase)
+            if (p_state == EHitReactionState.None)
             {
-                case EHitReactionPhase.Down:
-                    PlayKnockdownLoop();
-                    break;
-
-                case EHitReactionPhase.Standup:
-                    PlayKnockdownStandup();
-                    break;
-
-                case EHitReactionPhase.None:
-                    EndDamageReaction();
-                    break;
+                // View가 비활성화된 동안 반응이 끝난 경우에도 표현 잠금을 복구한다.
+                EndDamageReaction();
+                RestoreLocomotionPresentation();
+                return;
             }
-        }
 
-        private void HandleHitReactionCompleted()
-        {
-            EndDamageReaction();
-            RestoreLocomotionPresentation();
+            PlayHitReaction(p_state);
         }
 
         private void HandleDeathStarted()
@@ -275,7 +242,7 @@ namespace Alpha.Player.Animation
 
         private void HandleDeathDownStarted()
         {
-            PlayKnockdownLoop();
+            PlayLyingDown();
         }
 
         // 피격 종료 시 현재 Locomotion 상태의 표현으로 되돌린다.
@@ -500,22 +467,29 @@ namespace Alpha.Player.Animation
             CrossFadeBase(DashState, 0.05f, 0f, true);
         }
 
-        // DamageInfo의 반응 타입을 Player Base Layer 피격 상태로 변환한다.
-        public bool PlayHitReaction(EHitReaction p_reaction)
+        // 공용 피격 행동 상태를 Player Base Layer 상태로 변환한다.
+        public bool PlayHitReaction(EHitReactionState p_state)
         {
-            switch (p_reaction)
+            switch (p_state)
             {
-                case EHitReaction.Light:
+                case EHitReactionState.LightHit:
                     PlayDamageState(LightHitReactionState);
                     return true;
 
-                case EHitReaction.Heavy:
+                case EHitReactionState.HeavyHit:
                     PlayDamageState(HeavyHitReactionState);
                     return true;
 
-                case EHitReaction.Knockdown:
-                case EHitReaction.Launch:
+                case EHitReactionState.Knockdown:
                     PlayKnockdown();
+                    return true;
+
+                case EHitReactionState.LyingDown:
+                    PlayLyingDown();
+                    return true;
+
+                case EHitReactionState.StandUp:
+                    PlayStandUp();
                     return true;
 
                 default:
@@ -528,14 +502,14 @@ namespace Alpha.Player.Animation
             PlayDamageState(KnockdownState);
         }
 
-        public void PlayKnockdownLoop()
+        public void PlayLyingDown()
         {
-            PlayDamageState(KnockdownLoopState);
+            PlayDamageState(LyingDownState);
         }
 
-        public void PlayKnockdownStandup()
+        public void PlayStandUp()
         {
-            PlayDamageState(KnockdownStandupState);
+            PlayDamageState(StandUpState);
         }
 
         // 피격 전용 표현 잠금을 해제하고 다음 Locomotion 요청을 다시 받는다.
@@ -721,8 +695,8 @@ namespace Alpha.Player.Animation
             _anim.SetTrigger(_swap);
         }
 
-        // 콤보 Name과 같은 전신 Layer의 Animator 상태를 직접 재생한다.
-        public bool PlayMeleeCombo(string p_stateName)
+        // Skill Animation Key와 같은 전신 Layer의 Animator 상태를 직접 재생한다.
+        public bool PlayMeleeSkill(string p_stateName)
         {
             if (_anim == null || _isDamageReactionActive ||
                 _meleeFullBodyLayerIndex < 0 ||

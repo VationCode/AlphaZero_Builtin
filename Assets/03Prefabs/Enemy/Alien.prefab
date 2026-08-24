@@ -407,6 +407,7 @@ Transform:
   - {fileID: 4614282319370366953}
   - {fileID: 4456987178932006254}
   - {fileID: 8500000000000000002}
+  - {fileID: 9164000000000000002}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8233654151018037111
@@ -430,6 +431,7 @@ MonoBehaviour:
   _actionFlow: {fileID: 0}
   _animationView: {fileID: 4694784262545560254}
   _audioView: {fileID: 0}
+  _damageEffectView: {fileID: 9164000000000000003}
 --- !u!114 &8300000000000000001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1435,3 +1437,49 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400116, guid: 9df7021e1cc3dda4181323979d90c1ea, type: 3}
   m_PrefabInstance: {fileID: 6123169917769495242}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &9164000000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9164000000000000002}
+  - component: {fileID: 9164000000000000003}
+  m_Layer: 7
+  m_Name: Effect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9164000000000000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9164000000000000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5408109729579062560}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9164000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9164000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d98a7610fbc42b89e5a3671c420de83, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _effectPrefab: {fileID: 4709844674621904195, guid: f0dcb29c0d669184387ce2c2a6384a22, type: 3}
+  _lifetime: 1

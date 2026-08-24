@@ -5,7 +5,6 @@ namespace Alpha.Enemy
     {
         Normal = 0,
         HitReaction = 1,
-        Knockdown = 2,
-        Dead = 3
+        Dead = 2
     }
 }

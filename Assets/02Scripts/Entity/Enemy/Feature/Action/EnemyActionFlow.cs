@@ -17,11 +17,11 @@ namespace Alpha.Enemy
         private float _lightHitRepeatInterval = 0.15f;
 
         [Header("Knockdown")]
-        [Tooltip("Knockdown 자세로 전환한 뒤 Down 단계에 진입하기까지의 시간입니다.")]
+        [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _knockdownFallDuration = 1.1f;
 
-        [Tooltip("Down 회복 후 일반 행동을 다시 허용하기까지의 기상 시간입니다.")]
+        [Tooltip("StandUp 상태가 끝날 때까지 행동을 잠그는 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _standupDuration = 0.95f;
 
@@ -43,11 +43,8 @@ namespace Alpha.Enemy
         public EEnemyActionState CurrentState { get; private set; } =
             EEnemyActionState.Normal;
 
-        public EHitReaction ActiveHitReaction =>
-            _hitReactionFlow.CurrentReaction;
-
-        public EHitReactionPhase HitReactionPhase =>
-            _hitReactionFlow.CurrentPhase;
+        public EHitReactionState HitReactionState =>
+            _hitReactionFlow.CurrentState;
 
         public bool AllowsCombat =>
             !_isDead && CurrentState == EEnemyActionState.Normal;
@@ -56,8 +53,7 @@ namespace Alpha.Enemy
             !_isDead && CurrentState == EEnemyActionState.Normal;
 
         public event Action<EEnemyActionState> OnStateChanged;
-        public event Action<EHitReaction> OnHitReactionStarted;
-        public event Action<EHitReactionPhase> OnHitReactionPhaseChanged;
+        public event Action<EHitReactionState> OnHitReactionStateChanged;
 
         public void Bind(EnemyCore p_core)
         {
@@ -127,22 +123,12 @@ namespace Alpha.Enemy
                 return false;
             }
 
-            EHitReaction reaction =
-                _hitReactionFlow.CurrentReaction;
-
             _core.CombatFlow?.CancelCombat();
             _core.LocomotionFlow?.Stop();
 
-            EEnemyActionState reactionState =
-                reaction is EHitReaction.Knockdown or
-                    EHitReaction.Launch
-                    ? EEnemyActionState.Knockdown
-                    : EEnemyActionState.HitReaction;
-
-            ChangeState(reactionState);
-            OnHitReactionStarted?.Invoke(reaction);
-            OnHitReactionPhaseChanged?.Invoke(
-                _hitReactionFlow.CurrentPhase);
+            ChangeState(EEnemyActionState.HitReaction);
+            OnHitReactionStateChanged?.Invoke(
+                _hitReactionFlow.CurrentState);
             return true;
         }
 
@@ -152,27 +138,32 @@ namespace Alpha.Enemy
                 _core.LocomotionModule != null &&
                 _core.LocomotionModule.IsKnockbackActive;
 
-            EHitReactionPhase previousPhase =
-                _hitReactionFlow.CurrentPhase;
+            EHitReactionState previousState =
+                _hitReactionFlow.CurrentState;
 
             bool isReactionActive = _hitReactionFlow.Tick(
                 p_deltaTime,
                 isKnockbackActive);
 
-            if (previousPhase != _hitReactionFlow.CurrentPhase)
+            if (!isReactionActive)
             {
-                OnHitReactionPhaseChanged?.Invoke(
-                    _hitReactionFlow.CurrentPhase);
+                if (CurrentState == EEnemyActionState.HitReaction)
+                {
+                    ChangeState(EEnemyActionState.Normal);
+                    OnHitReactionStateChanged?.Invoke(
+                        EHitReactionState.None);
+                }
+
+                return false;
             }
 
-            if (!isReactionActive &&
-                (CurrentState is EEnemyActionState.HitReaction or
-                    EEnemyActionState.Knockdown))
+            if (previousState != _hitReactionFlow.CurrentState)
             {
-                ChangeState(EEnemyActionState.Normal);
+                OnHitReactionStateChanged?.Invoke(
+                    _hitReactionFlow.CurrentState);
             }
 
-            return isReactionActive;
+            return true;
         }
 
         // 사망한 Enemy가 제거 전까지 이동하거나 공격하지 않도록 모든 행동을 종료한다.

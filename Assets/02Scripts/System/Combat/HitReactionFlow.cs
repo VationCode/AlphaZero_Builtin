@@ -2,17 +2,18 @@ using UnityEngine;
 
 namespace Alpha.Combat
 {
-    // Hit Reaction의 공통 실행 단계를 나타낸다.
-    public enum EHitReactionPhase
+    // Entity가 실제로 진행 중인 공용 피격 행동 상태를 나타낸다.
+    public enum EHitReactionState
     {
         None,
-        Hit,
+        LightHit,
+        HeavyHit,
         Knockdown,
-        Down,
-        Standup
+        LyingDown,
+        StandUp
     }
 
-    // Entity와 무관하게 피격 우선순위와 단계별 시간을 관리한다.
+    // Entity와 무관하게 피격 우선순위와 상태별 시간을 관리한다.
     public sealed class HitReactionFlow
     {
         private float _remainingTime;
@@ -23,11 +24,11 @@ namespace Alpha.Combat
         public EHitReaction CurrentReaction { get; private set; } =
             EHitReaction.None;
 
-        public EHitReactionPhase CurrentPhase { get; private set; } =
-            EHitReactionPhase.None;
+        public EHitReactionState CurrentState { get; private set; } =
+            EHitReactionState.None;
 
         public bool IsActive =>
-            CurrentReaction != EHitReaction.None;
+            CurrentState != EHitReactionState.None;
 
         public void Reset()
         {
@@ -39,7 +40,7 @@ namespace Alpha.Combat
         public void Clear()
         {
             CurrentReaction = EHitReaction.None;
-            CurrentPhase = EHitReactionPhase.None;
+            CurrentState = EHitReactionState.None;
             _remainingTime = 0f;
             _downRecoveryDuration = 0f;
             _standupDuration = 0f;
@@ -77,7 +78,7 @@ namespace Alpha.Combat
             if (CurrentReaction is EHitReaction.Knockdown or
                 EHitReaction.Launch)
             {
-                CurrentPhase = EHitReactionPhase.Knockdown;
+                CurrentState = EHitReactionState.Knockdown;
                 _remainingTime = Mathf.Max(
                     0f,
                     p_knockdownFallDuration);
@@ -85,13 +86,15 @@ namespace Alpha.Combat
                 return true;
             }
 
-            CurrentPhase = EHitReactionPhase.Hit;
+            CurrentState = CurrentReaction == EHitReaction.Heavy
+                ? EHitReactionState.HeavyHit
+                : EHitReactionState.LightHit;
             _remainingTime = p_result.RecoveryDuration;
             _downRecoveryDuration = 0f;
             return true;
         }
 
-        // 현재 단계의 시간을 갱신하고 반응이 유지되는지 반환한다.
+        // 현재 상태의 시간을 갱신하고 반응이 유지되는지 반환한다.
         public bool Tick(
             float p_deltaTime,
             bool p_isKnockbackActive)
@@ -99,9 +102,10 @@ namespace Alpha.Combat
             if (!IsActive)
                 return false;
 
-            switch (CurrentPhase)
+            switch (CurrentState)
             {
-                case EHitReactionPhase.Hit:
+                case EHitReactionState.LightHit:
+                case EHitReactionState.HeavyHit:
                     if (TickTimer(p_deltaTime))
                     {
                         Clear();
@@ -109,25 +113,25 @@ namespace Alpha.Combat
                     }
                     break;
 
-                case EHitReactionPhase.Knockdown:
+                case EHitReactionState.Knockdown:
                     if (TickTimer(p_deltaTime))
                     {
-                        CurrentPhase = EHitReactionPhase.Down;
+                        CurrentState = EHitReactionState.LyingDown;
                         _remainingTime = _downRecoveryDuration;
                     }
                     break;
 
-                case EHitReactionPhase.Down:
-                    // 물리 넉백이 끝난 뒤부터 Down 회복 시간을 계산한다.
+                case EHitReactionState.LyingDown:
+                    // 물리 넉백이 끝난 뒤부터 LyingDown 회복 시간을 계산한다.
                     if (!p_isKnockbackActive &&
                         TickTimer(p_deltaTime))
                     {
-                        CurrentPhase = EHitReactionPhase.Standup;
+                        CurrentState = EHitReactionState.StandUp;
                         _remainingTime = _standupDuration;
                     }
                     break;
 
-                case EHitReactionPhase.Standup:
+                case EHitReactionState.StandUp:
                     if (TickTimer(p_deltaTime))
                     {
                         Clear();

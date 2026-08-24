@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97d98f60674a4275be8daa0f1f4cf11a, type: 3}
+  m_Name: BaseAttack1
+  m_EditorClassIdentifier: 
+  _skillId: BaseAttack1
+  _animationKey: BaseAttack1
+  _audioClips:
+  - {fileID: 8300000, guid: 6a9699bc025213b47bbf8a4a0bd7fada, type: 3}
+  _effectPrefab: {fileID: 6808585451359539416, guid: 0581a3741df659e46b6271e4501a2cfd, type: 3}
+  _effectStartTime: 0.2
+  _attackSettings:
+    _duration: 0.5833333
+    _hitTime: 0.20416665
+    _damageMultiplier: 1
+    _impactSettings:
+      _hitType: 1
+      _lightKnockback:
+        _distance: 1
+        _duration: 0.2
+      _heavyKnockback:
+        _distance: 1
+        _duration: 0.2
+      _knockdownKnockback:
+        _distance: 1
+        _duration: 0.2
+      _launchKnockback:
+        _distance: 1
+        _duration: 0.2
+      _knockbackDistance: 1
+      _knockbackDuration: 0.2
+      _knockbackSettingsVersion: 1
+      _recoveryDuration: 1
+    _area:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _width: 1.7
+      _length: 1.7
+      _radius: 1
+      _angle: 100
+      _height: 1.5
+      _targetMask:
+        serializedVersion: 2
+        m_Bits: 128
+      _triggerInteraction: 1

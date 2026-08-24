@@ -61,7 +61,8 @@ namespace Alpha.Player
         public RigView RigView { get; private set; }
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
-        public PlayerHitFeedbackView HitFeedbackView { get; private set; }
+        public PlayerMeleeSkillEffectView MeleeSkillEffectView { get; private set; }
+        public PlayerTargetHitFeedbackView HitFeedbackView { get; private set; }
         public PlayerDamageFeedbackView DamageFeedbackView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
@@ -125,7 +126,21 @@ namespace Alpha.Player
             RigView = GetComponentInChildren<RigView>(true);
             LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
-            HitFeedbackView = GetComponentInChildren<PlayerHitFeedbackView>(true);
+            MeleeSkillEffectView = GetComponentInChildren<PlayerMeleeSkillEffectView>(true);
+
+            // Scene에서 View가 누락되어도 기존 Effect/Combat을 표현 소유자로 사용한다.
+            if (MeleeSkillEffectView == null)
+            {
+                Transform combatEffectOwner = transform.Find("Effect/Combat");
+
+                if (combatEffectOwner != null)
+                {
+                    MeleeSkillEffectView = combatEffectOwner.gameObject
+                        .AddComponent<PlayerMeleeSkillEffectView>();
+                }
+            }
+
+            HitFeedbackView = GetComponentInChildren<PlayerTargetHitFeedbackView>(true);
             DamageFeedbackView = GetComponentInChildren<PlayerDamageFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
@@ -207,6 +222,7 @@ namespace Alpha.Player
 
             LocomotionAudioView?.Bind(LocomotionContext);
             ActionEffectView?.Bind(LocomotionContext);
+            MeleeSkillEffectView?.Bind(CombatModule);
             HitFeedbackView?.Bind(CombatModule, CameraCore);
             DamageFeedbackView?.Bind(ActionFlow, CameraCore);
             ScopeView?.Bind(CameraCore);
@@ -272,6 +288,7 @@ namespace Alpha.Player
 
             LocomotionAudioView?.Unbind();
             ActionEffectView?.Unbind();
+            MeleeSkillEffectView?.Unbind();
             HitFeedbackView?.Unbind();
             DamageFeedbackView?.Unbind();
             ArmorView?.Unbind();

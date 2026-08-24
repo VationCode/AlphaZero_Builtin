@@ -13,8 +13,8 @@ namespace Alpha.Player.Combat
         private bool _isMeleeSecondaryAction;
         private bool _isRangePrimaryAction;
         private RangeWeapon _activeRangeWeapon;
-        private int _playedComboIndex = -1;
-        private int _facingComboIndex = -1;
+        private int _playedSkillIndex = -1;
+        private int _facingSkillIndex = -1;
         private bool _hasMeleeFacingDirection;
         private Vector3 _meleeFacingDirection;
 
@@ -123,9 +123,9 @@ namespace Alpha.Player.Combat
                 _Core.AnimationView?.PlayMeleeGuard();
             }
 
-            _playedComboIndex = -1;
+            _playedSkillIndex = -1;
             ResetMeleeFacing();
-            PlayCurrentMeleeCombo();
+            PlayCurrentMeleeSkill();
         }
 
         protected override void Tick()
@@ -183,7 +183,7 @@ namespace Alpha.Player.Combat
                     _activeRangeWeapon.LastFireDirection);
             }
 
-            PlayCurrentMeleeCombo();
+            PlayCurrentMeleeSkill();
 
             // Melee Primary처럼 무기 내부에서 완료한 행동은 Idle로 복귀한다.
             if (!module.HasActiveAction)
@@ -241,11 +241,11 @@ namespace Alpha.Player.Combat
             _isMeleeSecondaryAction = false;
             _isRangePrimaryAction = false;
             _activeRangeWeapon = null;
-            _playedComboIndex = -1;
+            _playedSkillIndex = -1;
             ResetMeleeFacing();
         }
 
-        // 콤보 하나에서 첫 유효 입력 방향만 저장하고 해당 방향으로 계속 회전한다.
+        // Skill 하나에서 첫 유효 입력 방향만 저장하고 해당 방향으로 계속 회전한다.
         private void UpdateMeleeFacing()
         {
             if (!_isMeleePrimaryAction ||
@@ -254,15 +254,15 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            int comboIndex =
-                _Core.CombatModule.CurrentMeleeComboIndex;
+            int skillIndex =
+                _Core.CombatModule.CurrentMeleeSkillIndex;
 
-            if (comboIndex < 0)
+            if (skillIndex < 0)
                 return;
 
-            if (_facingComboIndex != comboIndex)
+            if (_facingSkillIndex != skillIndex)
             {
-                _facingComboIndex = comboIndex;
+                _facingSkillIndex = skillIndex;
                 _hasMeleeFacingDirection = false;
                 _meleeFacingDirection = Vector3.zero;
             }
@@ -292,13 +292,13 @@ namespace Alpha.Player.Combat
 
         private void ResetMeleeFacing()
         {
-            _facingComboIndex = -1;
+            _facingSkillIndex = -1;
             _hasMeleeFacingDirection = false;
             _meleeFacingDirection = Vector3.zero;
         }
 
-        // MeleeWeapon이 실제 다음 콤보로 전환했을 때 해당 전신 애니메이션을 재생한다.
-        private void PlayCurrentMeleeCombo()
+        // MeleeWeapon이 실제 다음 Skill로 전환했을 때 해당 전신 애니메이션을 재생한다.
+        private void PlayCurrentMeleeSkill()
         {
             if (!_isMeleePrimaryAction ||
                 !(_Core.CombatModule.CurrentWeapon is MeleeWeapon))
@@ -306,20 +306,20 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            int comboIndex =
-                _Core.CombatModule.CurrentMeleeComboIndex;
-            string comboName =
-                _Core.CombatModule.CurrentMeleeComboName;
+            int skillIndex =
+                _Core.CombatModule.CurrentMeleeSkillIndex;
+            string animationKey =
+                _Core.CombatModule.CurrentMeleeAnimationKey;
 
-            if (comboIndex < 0 ||
-                string.IsNullOrWhiteSpace(comboName) ||
-                comboIndex == _playedComboIndex)
+            if (skillIndex < 0 ||
+                string.IsNullOrWhiteSpace(animationKey) ||
+                skillIndex == _playedSkillIndex)
             {
                 return;
             }
 
-            _Core.AnimationView.PlayMeleeCombo(comboName);
-            _playedComboIndex = comboIndex;
+            _Core.AnimationView.PlayMeleeSkill(animationKey);
+            _playedSkillIndex = skillIndex;
         }
 
     }

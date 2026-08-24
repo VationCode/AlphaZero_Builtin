@@ -7,10 +7,9 @@ namespace Alpha.Player.Actions
 {
     public enum EPlayerActionState
     {
-        Normal,
-        HitReaction,
-        Knockdown,
-        Dead
+        Normal = 0,
+        HitReaction = 1,
+        Dead = 2
     }
 
     // Player 전체 행동의 우선순위를 소유하고 Combat과 Locomotion의 실행을 허용하거나 차단한다.
@@ -22,12 +21,12 @@ namespace Alpha.Player.Actions
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
-        [Header("Knockdown Animation")]
-        [Tooltip("쓰러지는 애니메이션을 재생하는 시간입니다.")]
+        [Header("Hit Reaction Timing")]
+        [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _knockdownFallDuration = 1.1f;
 
-        [Tooltip("기상 애니메이션이 끝날 때까지 행동을 잠그는 시간입니다.")]
+        [Tooltip("StandUp 상태가 끝날 때까지 행동을 잠그는 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _standupDuration = 0.95f;
 
@@ -55,22 +54,16 @@ namespace Alpha.Player.Actions
             CurrentState == EPlayerActionState.Normal;
 
         public bool IsReacting =>
-            CurrentState == EPlayerActionState.HitReaction ||
-            CurrentState == EPlayerActionState.Knockdown;
+            CurrentState == EPlayerActionState.HitReaction;
 
         public bool IsDead => _isDead;
         public bool IsDeathFalling => _isDeathFalling;
 
-        public EHitReaction ActiveHitReaction =>
-            _hitReactionFlow.CurrentReaction;
-
-        public EHitReactionPhase HitReactionPhase =>
-            _hitReactionFlow.CurrentPhase;
+        public EHitReactionState HitReactionState =>
+            _hitReactionFlow.CurrentState;
 
         public event System.Action<EPlayerActionState> OnStateChanged;
-        public event System.Action<EHitReaction> OnHitReactionStarted;
-        public event System.Action<EHitReactionPhase> OnHitReactionPhaseChanged;
-        public event System.Action OnHitReactionCompleted;
+        public event System.Action<EHitReactionState> OnHitReactionStateChanged;
         public event System.Action<EHitReaction> OnDamageFeedbackRequested;
         public event System.Action OnDeathStarted;
         public event System.Action OnDeathDownStarted;
@@ -157,18 +150,9 @@ namespace Alpha.Player.Actions
 
             AcquireActionLock();
 
-            EHitReaction reaction =
-                _hitReactionFlow.CurrentReaction;
-
-            ChangeState(
-                reaction is EHitReaction.Knockdown or
-                    EHitReaction.Launch
-                    ? EPlayerActionState.Knockdown
-                    : EPlayerActionState.HitReaction);
-
-            OnHitReactionStarted?.Invoke(reaction);
-            OnHitReactionPhaseChanged?.Invoke(
-                _hitReactionFlow.CurrentPhase);
+            ChangeState(EPlayerActionState.HitReaction);
+            OnHitReactionStateChanged?.Invoke(
+                _hitReactionFlow.CurrentState);
             return true;
         }
 
@@ -206,28 +190,32 @@ namespace Alpha.Player.Actions
             if (!_hitReactionFlow.IsActive)
                 return;
 
-            EHitReactionPhase previousPhase =
-                _hitReactionFlow.CurrentPhase;
+            EHitReactionState previousState =
+                _hitReactionFlow.CurrentState;
 
             bool isReactionActive = _hitReactionFlow.Tick(
                 Time.deltaTime,
                 _core.LocomotionModule?.IsKnockbackActive == true);
 
-            if (previousPhase != _hitReactionFlow.CurrentPhase)
+            if (!isReactionActive)
             {
-                OnHitReactionPhaseChanged?.Invoke(
-                    _hitReactionFlow.CurrentPhase);
+                CompleteReaction();
+                return;
             }
 
-            if (!isReactionActive)
-                CompleteReaction();
+            if (previousState != _hitReactionFlow.CurrentState)
+            {
+                OnHitReactionStateChanged?.Invoke(
+                    _hitReactionFlow.CurrentState);
+            }
         }
 
         private void CompleteReaction()
         {
             ReleaseActionLock();
             ChangeState(EPlayerActionState.Normal);
-            OnHitReactionCompleted?.Invoke();
+            OnHitReactionStateChanged?.Invoke(
+                EHitReactionState.None);
         }
 
         // 우선 행동이 시작될 때 하위 Combat을 취소하고 Locomotion 입력을 잠근다.
