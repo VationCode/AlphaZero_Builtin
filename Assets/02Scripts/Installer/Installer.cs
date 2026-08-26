@@ -1,10 +1,13 @@
 using Alpha.AlphaCamera;
+using Alpha.Enemy;
+using Alpha.Gameplay;
 using Alpha.Mouse;
 using Alpha.Player;
 using Alpha.Player.Combat;
 using Alpha.Player.Equipment;
 using Alpha.Player.Inventory;
 using Alpha.UI;
+using Unity.Cinemachine;
 using UnityEngine;
 
 // Scene의 Entity·System·UI 의존성을 조립하고 초기화 순서를 관리한다.
@@ -18,6 +21,10 @@ public class Installer : MonoBehaviour
 
     [Header("Camera")]
     [SerializeField] private CameraCore _cameraCore;
+
+    [Header("Gameplay / Boss")]
+    [SerializeField] private GameplayPauseSystem _gameplayPauseSystem;
+    [SerializeField] private CrabBossEncounterFlow _crabBossEncounterFlow;
 
     [Header("Data")]
     [SerializeField] private ResourceLoadSystem _resourceLoader;
@@ -36,6 +43,19 @@ public class Installer : MonoBehaviour
     {
         _playerCore.Bind(_input, _cameraCore, _mouseSystem, _itemDatabase, _resourceLoader);
 
+        _gameplayPauseSystem?.Bind(_input);
+        _crabBossEncounterFlow?.Bind(
+            _playerCore,
+            _input);
+
+        if (_crabBossEncounterFlow != null && _uiManager != null)
+        {
+            _crabBossEncounterFlow.OnGameplayHudVisibilityRequested -=
+                _uiManager.SetGameplayHudVisible;
+            _crabBossEncounterFlow.OnGameplayHudVisibilityRequested +=
+                _uiManager.SetGameplayHudVisible;
+        }
+
         _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;
 
         _playerCore.CombatContext.OnStateChanged += _uiManager.StateUI.ChangeCombatState;
@@ -49,6 +69,9 @@ public class Installer : MonoBehaviour
         // 카메라가 준비된 경우 마우스와 기본 시점을 함께 설정한다.
         if (_cameraCore.Bind(_input))
         {
+            _crabBossEncounterFlow?.BindCamera(
+                _cameraCore.RenderCamera?.GetComponent<CinemachineBrain>());
+
             _uiManager.CrossHairUI?.Bind(
                 _cameraCore,
                 _playerCore.CombatModule);
@@ -181,6 +204,12 @@ public class Installer : MonoBehaviour
     {
         _uiManager?.InteractionUI?.Unbind();
         DisconnectViewRequests();
+
+        if (_crabBossEncounterFlow != null && _uiManager != null)
+        {
+            _crabBossEncounterFlow.OnGameplayHudVisibilityRequested -=
+                _uiManager.SetGameplayHudVisible;
+        }
 
         if (_playerCore?.InventoryFlow != null)
         {

@@ -10,14 +10,29 @@ namespace Alpha.Enemy.Animation
         [SerializeField]
         private Animator _animator;
 
+        [Header("Locomotion States")]
+        [Tooltip("Idle 상태에서 재생할 Base Layer 상태 경로입니다. 비워 두면 현재 애니메이션을 유지합니다.")]
+        [SerializeField]
+        private string _idleStatePath;
+
+        [Tooltip("Patrol과 ReturnToPatrol 상태에서 재생할 Base Layer 상태 경로입니다.")]
+        [SerializeField]
+        private string _patrolStatePath = "Base Layer.Patrol";
+
+        [Tooltip("Chase 상태에서 재생할 Base Layer 상태 경로입니다.")]
+        [SerializeField]
+        private string _chaseStatePath = "Base Layer.Chase";
+
+        [Tooltip("추적 범위를 벗어나 시작 위치로 복귀할 때 재생할 Base Layer 상태 경로입니다.")]
+        [SerializeField]
+        private string _returnStatePath = "Base Layer.Patrol";
+
         [Header("Debug")]
         [SerializeField]
         private bool _logCrossFadeRequests = true;
 
         private const int BaseLayer = 0;
 
-        private const string PatrolStatePath = "Base Layer.Patrol";
-        private const string ChaseStatePath = "Base Layer.Chase";
         private const string RangeWaitStatePath = "Base Layer.Aiming";
         private const string RangeAttackStatePath = "Base Layer.RangeAttack";
         private const string MeleeWaitStatePath = "Base Layer.MeleeWait";
@@ -30,12 +45,6 @@ namespace Alpha.Enemy.Animation
         private const string LyingDownStatePath = "Base Layer.Lying down";
         private const string StandUpStatePath = "Base Layer.StandUp";
         private const string DeadStatePath = "Base Layer.Death";
-
-        private static readonly int PatrolState =
-            Animator.StringToHash(PatrolStatePath);
-
-        private static readonly int ChaseState =
-            Animator.StringToHash(ChaseStatePath);
 
         private static readonly int RangeWaitState =
             Animator.StringToHash(RangeWaitStatePath);
@@ -75,6 +84,11 @@ namespace Alpha.Enemy.Animation
 
         private int _currentBaseState;
         private bool _hasCurrentBaseState;
+        private int _pendingBaseState;
+        private string _pendingBaseStatePath;
+        private float _pendingTransitionDuration;
+        private bool _pendingRestart;
+        private bool _hasPendingBaseState;
         private EnemyActionFlow _actionFlow;
         private EnemyLocomotionFlow _locomotionFlow;
         private EnemyCombatFlow _combatFlow;
@@ -86,7 +100,7 @@ namespace Alpha.Enemy.Animation
 
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
+            ResolveAnimator();
         }
 
         // Entity Flow의 상태 이벤트를 Animation 표현에 연결한다.
@@ -122,9 +136,6 @@ namespace Alpha.Enemy.Animation
         // 공격 타입에 맞는 쿨타임 대기 상태를 재생한다.
         public bool PlayAttackWait(EEnemyAttackType p_attackType)
         {
-            if (_animator == null)
-                return false;
-
             return p_attackType switch
             {
                 EEnemyAttackType.Melee => CrossFadeBase(MeleeWaitState, MeleeWaitStatePath),
@@ -137,9 +148,6 @@ namespace Alpha.Enemy.Animation
         // 쿨타임이 끝난 공격 타입의 실행 상태를 직접 재생한다.
         public bool PlayAttack(EEnemyAttackType p_attackType)
         {
-            if (_animator == null)
-                return false;
-
             return p_attackType switch
             {
                 EEnemyAttackType.Melee => CrossFadeBase(MeleeAttackState, MeleeAttackStatePath,
@@ -154,27 +162,39 @@ namespace Alpha.Enemy.Animation
         // 순찰 이동 상태를 직접 재생한다.
         public bool PlayPatrol()
         {
-            if (_animator == null)
-                return false;
-
-            return CrossFadeBase(PatrolState, PatrolStatePath);
+            return CrossFadeBase(_patrolStatePath);
         }
 
         // 추적 이동 상태를 직접 재생한다.
         public bool PlayChase()
         {
-            if (_animator == null)
-                return false;
+            return CrossFadeBase(_chaseStatePath);
+        }
 
-            return CrossFadeBase(ChaseState, ChaseStatePath);
+        // 추적 경계 복귀는 Patrol 여부와 독립적인 이동 표현을 사용한다.
+        public bool PlayReturn()
+        {
+            return CrossFadeBase(_returnStatePath);
+        }
+
+        // 이동을 멈춘 상태에 전용 경로가 있을 때만 Idle을 재생한다.
+        public bool PlayIdle()
+        {
+            return CrossFadeBase(_idleStatePath);
+        }
+
+        // Boss Intro처럼 외부 연출이 지정한 Base Layer 상태를 처음부터 재생한다.
+        public bool PlayCinematic(string p_statePath)
+        {
+            return CrossFadeBase(
+                p_statePath,
+                0f,
+                true);
         }
 
         // 공용 피격 행동 상태를 Enemy Animator 상태에 직접 연결한다.
         public bool PlayHitReaction(EHitReactionState p_state)
         {
-            if (_animator == null)
-                return false;
-
             return p_state switch
             {
                 EHitReactionState.LightHit =>
@@ -193,9 +213,6 @@ namespace Alpha.Enemy.Animation
 
         public bool PlayDeath()
         {
-            if (_animator == null)
-                return false;
-
             return CrossFadeBase(DeadState, DeadStatePath, 0.05f);
         }
 
@@ -297,9 +314,16 @@ namespace Alpha.Enemy.Animation
         {
             switch (p_state)
             {
+                case EEnemyLocomotionState.Idle:
+                    PlayIdle();
+                    break;
+
                 case EEnemyLocomotionState.Patrol:
-                case EEnemyLocomotionState.ReturnToPatrol:
                     PlayPatrol();
+                    break;
+
+                case EEnemyLocomotionState.ReturnToPatrol:
+                    PlayReturn();
                     break;
 
                 case EEnemyLocomotionState.Chase:
@@ -359,48 +383,84 @@ namespace Alpha.Enemy.Animation
         }
 
         // Base Layer 상태를 전환하고 같은 상태의 중복 재생을 막는다.
-        private bool CrossFadeBase(int p_stateHash, string p_statePath, float p_transitionDuration = 0.15f, bool p_restart = false)
+        private bool CrossFadeBase(
+            string p_statePath,
+            float p_transitionDuration = 0.15f,
+            bool p_restart = false)
         {
-            if (_animator == null)
+            if (string.IsNullOrWhiteSpace(p_statePath))
+                return false;
+
+            return CrossFadeBase(
+                Animator.StringToHash(p_statePath),
+                p_statePath,
+                p_transitionDuration,
+                p_restart);
+        }
+
+        private bool CrossFadeBase(
+            int p_stateHash,
+            string p_statePath,
+            float p_transitionDuration = 0.15f,
+            bool p_restart = false)
+        {
+            if (!ResolveAnimator())
             {
-                Debug.LogError($"[{name}] Enemy Animator가 없습니다. " + $"요청 상태: {p_statePath}", this);
+                Debug.LogError(
+                    $"[{name}] Enemy Animator가 없습니다. " +
+                    $"요청 상태: {p_statePath}",
+                    this);
                 return false;
             }
 
             RuntimeAnimatorController controller =
                 _animator.runtimeAnimatorController;
-            bool hasLayer = _animator.layerCount > BaseLayer;
-            bool hasState = hasLayer &&
-                            _animator.HasState(
-                                BaseLayer,
-                                p_stateHash);
-            int currentStateHash = hasLayer
-                ? _animator
-                    .GetCurrentAnimatorStateInfo(BaseLayer)
-                    .fullPathHash
-                : 0;
 
-            /*if (_logCrossFadeRequests)
-            {
-                Debug.Log(
-                    $"[{name}] Enemy Animation 요청: {p_statePath} | " +
-                    $"Animator={_animator.name}, " +
-                    $"Controller={(controller != null ? controller.name : "None")}, " +
-                    $"Initialized={_animator.isInitialized}, " +
-                    $"Active={_animator.gameObject.activeInHierarchy}, " +
-                    $"Enabled={_animator.enabled}, " +
-                    $"HasState={hasState}, " +
-                    $"CurrentHash={currentStateHash}, " +
-                    $"TargetHash={p_stateHash}",
-                    this);
-            }*/
-
-            if (controller == null ||
-                !_animator.isInitialized ||
-                !hasState)
+            if (controller == null)
             {
                 Debug.LogError(
                     $"[{name}] Enemy Animation 전환 실패: {p_statePath}",
+                    this);
+                return false;
+            }
+
+            // Awake 직후 Animator가 아직 준비되지 않았다면 최신 요청을 보관한다.
+            if (!_animator.isInitialized)
+            {
+                QueueBaseState(
+                    p_stateHash,
+                    p_statePath,
+                    p_transitionDuration,
+                    p_restart);
+                return false;
+            }
+
+            bool hasLayer = _animator.layerCount > BaseLayer;
+
+            if (!hasLayer)
+            {
+                _hasPendingBaseState = false;
+                Debug.LogError(
+                    $"[{name}] Enemy Animator Base Layer가 없습니다.",
+                    this);
+                return false;
+            }
+
+            _hasPendingBaseState = false;
+
+            bool hasState = _animator.HasState(
+                BaseLayer,
+                p_stateHash);
+
+            if (_logCrossFadeRequests)
+            {
+                //Debug.Log($"[{name}] Enemy Animation 요청: {p_statePath} | " + $"Controller={controller.name}, HasState={hasState}", this);
+            }
+
+            if (!hasState)
+            {
+                Debug.LogError(
+                    $"[{name}] Enemy Animation 상태가 없습니다: {p_statePath}",
                     this);
                 return false;
             }
@@ -425,6 +485,37 @@ namespace Alpha.Enemy.Animation
             return true;
         }
 
+        private bool ResolveAnimator()
+        {
+            _animator = GetComponent<Animator>();
+            return _animator != null;
+        }
+
+        private void QueueBaseState(
+            int p_stateHash,
+            string p_statePath,
+            float p_transitionDuration,
+            bool p_restart)
+        {
+            _pendingBaseState = p_stateHash;
+            _pendingBaseStatePath = p_statePath;
+            _pendingTransitionDuration = p_transitionDuration;
+            _pendingRestart = p_restart;
+            _hasPendingBaseState = true;
+        }
+
+        private void LateUpdate()
+        {
+            if (!_hasPendingBaseState)
+                return;
+
+            CrossFadeBase(
+                _pendingBaseState,
+                _pendingBaseStatePath,
+                _pendingTransitionDuration,
+                _pendingRestart);
+        }
+
         private void OnEnable()
         {
             SubscribeToAction();
@@ -441,6 +532,7 @@ namespace Alpha.Enemy.Animation
             // 다시 활성화될 때 현재 Flow 상태를 Animator에 확실히 반영한다.
             _currentBaseState = 0;
             _hasCurrentBaseState = false;
+            _hasPendingBaseState = false;
         }
 
     }

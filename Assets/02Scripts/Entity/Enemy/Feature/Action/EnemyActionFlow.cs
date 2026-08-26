@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Alpha.Combat;
 using UnityEngine;
 
@@ -35,6 +36,7 @@ namespace Alpha.Enemy
         private bool _logStateChanges = true;
 
         private readonly HitReactionFlow _hitReactionFlow = new();
+        private readonly HashSet<object> _externalActionBlockers = new();
 
         private EnemyCore _core;
         private bool _hasCurrentState;
@@ -47,10 +49,17 @@ namespace Alpha.Enemy
             _hitReactionFlow.CurrentState;
 
         public bool AllowsCombat =>
-            !_isDead && CurrentState == EEnemyActionState.Normal;
+            !_isDead &&
+            !IsExternallyBlocked &&
+            CurrentState == EEnemyActionState.Normal;
 
         public bool AllowsLocomotion =>
-            !_isDead && CurrentState == EEnemyActionState.Normal;
+            !_isDead &&
+            !IsExternallyBlocked &&
+            CurrentState == EEnemyActionState.Normal;
+
+        public bool IsExternallyBlocked =>
+            _externalActionBlockers.Count > 0;
 
         public event Action<EEnemyActionState> OnStateChanged;
         public event Action<EHitReactionState> OnHitReactionStateChanged;
@@ -59,16 +68,79 @@ namespace Alpha.Enemy
         {
             _core = p_core;
             _hitReactionFlow.Reset();
+            _externalActionBlockers.Clear();
             _hasCurrentState = false;
             _isDead = false;
 
             ChangeState(EEnemyActionState.Normal);
         }
 
+        // Boss Intro 등 외부 흐름이 Enemy의 AI·이동·공격을 중첩 차단한다.
+        public bool BeginExternalBlock(object p_owner)
+        {
+            if (p_owner == null ||
+                _core == null ||
+                !_externalActionBlockers.Add(p_owner))
+            {
+                return false;
+            }
+
+            if (_externalActionBlockers.Count > 1)
+                return true;
+
+            _core.TargetingFlow.ClearTarget();
+            _core.CombatFlow?.CancelCombat();
+            _core.LocomotionFlow?.Stop();
+            return true;
+        }
+
+        public bool EndExternalBlock(object p_owner)
+        {
+            if (p_owner == null ||
+                !_externalActionBlockers.Remove(p_owner))
+            {
+                return false;
+            }
+
+            if (_externalActionBlockers.Count == 0 &&
+                !_isDead &&
+                isActiveAndEnabled)
+            {
+                ChangeState(EEnemyActionState.Normal);
+            }
+
+            return true;
+        }
+
+        // 전투 구역 이탈로 Encounter를 재시작할 때 비사망 행동 상태를 초기화한다.
+        public bool ResetForEncounter()
+        {
+            if (_core == null || _isDead)
+                return false;
+
+            bool hadHitReaction = _hitReactionFlow.IsActive;
+
+            _hitReactionFlow.Reset();
+            _core.TargetingFlow.Reset();
+            _core.CombatFlow?.CancelCombat();
+            _core.LocomotionFlow?.Reset();
+            _hasCurrentState = false;
+            ChangeState(EEnemyActionState.Normal);
+
+            if (hadHitReaction)
+            {
+                OnHitReactionStateChanged?.Invoke(
+                    EHitReactionState.None);
+            }
+
+            return true;
+        }
+
         // 추적 경계 안에서 공격한 대상을 우선 타깃으로 전환한다.
         internal void HandleDamaged(DamageInfo p_damageInfo)
         {
             if (_isDead ||
+                IsExternallyBlocked ||
                 _core == null ||
                 !p_damageInfo.IsValid ||
                 _core.HealthModule == null ||
@@ -185,7 +257,9 @@ namespace Alpha.Enemy
 
         private void FixedUpdate()
         {
-            if (_isDead || _core == null)
+            if (_isDead ||
+                IsExternallyBlocked ||
+                _core == null)
                 return;
 
             float deltaTime = Time.fixedDeltaTime;
@@ -264,7 +338,9 @@ namespace Alpha.Enemy
 
         private void OnEnable()
         {
-            if (_core != null && !_isDead)
+            if (_core != null &&
+                !_isDead &&
+                !IsExternallyBlocked)
                 ChangeState(EEnemyActionState.Normal);
         }
 

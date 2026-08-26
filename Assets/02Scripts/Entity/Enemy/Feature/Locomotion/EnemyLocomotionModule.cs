@@ -48,6 +48,8 @@ namespace Alpha.Enemy
             _patrolModule?.PointB ?? AreaCenter;
         public bool HasPatrolPoints =>
             _patrolModule?.HasPatrolPoints == true;
+        public bool UsesPatrol =>
+            _patrolModule?.UsePatrol == true;
         public bool IsKnockbackActive =>
             _knockbackModule?.IsActive == true;
         public bool CanReceiveKnockback =>
@@ -73,6 +75,7 @@ namespace Alpha.Enemy
         public void TickPatrol(float p_deltaTime)
         {
             if (IsKnockbackActive ||
+                !UsesPatrol ||
                 _patrolModule == null ||
                 !_patrolModule.HasPatrolPoints)
             {

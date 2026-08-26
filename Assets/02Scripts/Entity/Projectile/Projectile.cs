@@ -122,6 +122,11 @@ namespace Alpha.Projectile
                 return;
 
             float deltaTime = Time.deltaTime;
+
+            // Cinematic 정지 중에는 투사체 수명과 위치를 그대로 유지한다.
+            if (deltaTime <= 0f)
+                return;
+
             _remainingLifetime -= deltaTime;
 
             if (_remainingLifetime <= 0f)
@@ -387,9 +392,7 @@ namespace Alpha.Projectile
                 return;
             }
 
-            Debug.Log(
-                $"[{nameof(Projectile)}:{name}] {p_message}",
-                this);
+            //Debug.Log($"[{nameof(Projectile)}:{name}] {p_message}", this);
         }
     }
 }

@@ -56,9 +56,12 @@ namespace Alpha.Player.Locomotion
             if (_core.LocomotionModule.TickKnockback(Time.deltaTime))
                 return;
 
+            // 상위 ActionFlow가 막은 동안 현재 State의 일반 행동도 갱신하지 않는다.
+            if (!_core.CanUseLocomotion)
+                return;
+
             // Mode 전환
-            if (_core.CanUseLocomotion &&
-                !_core.LocomotionModule.BlocksInput &&
+            if (!_core.LocomotionModule.BlocksInput &&
                 _currentStateFlow.CanChangeMode(
                     out ELocomotionMode nextMode,
                     out ELocoStateType entryState))

@@ -94,7 +94,8 @@ namespace Alpha.Enemy
 
         public bool IsValidTarget(Transform p_target)
         {
-            if (p_target == null ||
+            if (!isActiveAndEnabled ||
+                p_target == null ||
                 !p_target.gameObject.activeInHierarchy ||
                 _detectionArea == null ||
                 (_detectionArea.TargetMask.value &

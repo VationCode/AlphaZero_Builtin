@@ -118,9 +118,22 @@ MonoBehaviour:
   _leftHandIKTarget: {fileID: 231466525834666578}
   _baseDamage: 80
   _impactSettings:
-    _hitType: 2
+    _hitType: 1
+    _lightKnockback:
+      _distance: 0.5
+      _duration: 0.2
+    _heavyKnockback:
+      _distance: 1.5
+      _duration: 0.35
+    _knockdownKnockback:
+      _distance: 1
+      _duration: 0.2
+    _launchKnockback:
+      _distance: 1
+      _duration: 0.2
     _knockbackDistance: 1.5
     _knockbackDuration: 0.35
+    _knockbackSettingsVersion: 1
     _recoveryDuration: 0.45
   _fireInterval: 1.5
   _postAttackFacingDuration: 0.5

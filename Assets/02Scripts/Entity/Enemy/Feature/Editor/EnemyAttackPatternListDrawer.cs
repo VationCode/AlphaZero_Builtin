@@ -8,15 +8,19 @@ namespace Alpha.Enemy.Editor
     internal sealed class EnemyAttackPatternListDrawer
     {
         private const float ElementSpacing = 4f;
+        private const float PreviewToggleWidth = 64f;
 
         private readonly SerializedProperty _patterns;
+        private readonly SerializedProperty _patternVisibility;
         private readonly ReorderableList _list;
 
         public EnemyAttackPatternListDrawer(
             SerializedObject p_serializedObject,
-            SerializedProperty p_patterns)
+            SerializedProperty p_patterns,
+            SerializedProperty p_patternVisibility)
         {
             _patterns = p_patterns;
+            _patternVisibility = p_patternVisibility;
             _list = new ReorderableList(
                 p_serializedObject,
                 _patterns,
@@ -30,11 +34,14 @@ namespace Alpha.Enemy.Editor
             _list.drawElementCallback = DrawElement;
             _list.onCanRemoveCallback = CanRemove;
             _list.onRemoveCallback = Remove;
+            _list.onAddCallback = Add;
+            _list.onReorderCallbackWithDetails = ReorderVisibility;
         }
 
         public void Draw()
         {
             EnsureMinimumCount();
+            EnsureVisibilityCount();
             _list.DoLayoutList();
         }
 
@@ -65,11 +72,43 @@ namespace Alpha.Enemy.Editor
                 element,
                 true);
 
+            Rect propertyRect = p_rect;
+
+            if (HasPatternVisibility)
+            {
+                propertyRect.width -=
+                    PreviewToggleWidth + ElementSpacing;
+
+                Rect toggleRect = new(
+                    propertyRect.xMax + ElementSpacing,
+                    p_rect.y,
+                    PreviewToggleWidth,
+                    EditorGUIUtility.singleLineHeight);
+
+                DrawPreviewToggle(toggleRect, p_index);
+            }
+
             EditorGUI.PropertyField(
-                p_rect,
+                propertyRect,
                 element,
                 new GUIContent($"Pattern {p_index + 1}"),
                 true);
+        }
+
+        private void DrawPreviewToggle(Rect p_rect, int p_index)
+        {
+            SerializedProperty visibility =
+                _patternVisibility.GetArrayElementAtIndex(p_index);
+
+            GUIContent content = new(
+                "Preview",
+                "Scene View에 이 Attack Pattern의 범위를 표시합니다.");
+
+            visibility.boolValue = GUI.Toggle(
+                p_rect,
+                visibility.boolValue,
+                content,
+                EditorStyles.miniButton);
         }
 
         private bool CanRemove(ReorderableList p_list)
@@ -83,7 +122,54 @@ namespace Alpha.Enemy.Editor
             if (!CanRemove(p_list))
                 return;
 
+            int removeIndex = p_list.index;
+
+            if (HasPatternVisibility &&
+                removeIndex >= 0 &&
+                removeIndex < _patternVisibility.arraySize)
+            {
+                _patternVisibility.DeleteArrayElementAtIndex(
+                    removeIndex);
+            }
+
             ReorderableList.defaultBehaviours.DoRemoveButton(p_list);
+            EnsureVisibilityCount();
+        }
+
+        private void Add(ReorderableList p_list)
+        {
+            int previousCount = _patterns.arraySize;
+            ReorderableList.defaultBehaviours.DoAddButton(p_list);
+            EnsureVisibilityCount();
+
+            if (!HasPatternVisibility ||
+                _patterns.arraySize <= previousCount)
+            {
+                return;
+            }
+
+            _patternVisibility
+                .GetArrayElementAtIndex(_patterns.arraySize - 1)
+                .boolValue = true;
+        }
+
+        private void ReorderVisibility(
+            ReorderableList p_list,
+            int p_oldIndex,
+            int p_newIndex)
+        {
+            if (!HasPatternVisibility ||
+                p_oldIndex < 0 ||
+                p_oldIndex >= _patternVisibility.arraySize ||
+                p_newIndex < 0 ||
+                p_newIndex >= _patternVisibility.arraySize)
+            {
+                return;
+            }
+
+            _patternVisibility.MoveArrayElement(
+                p_oldIndex,
+                p_newIndex);
         }
 
         private void EnsureMinimumCount()
@@ -95,5 +181,27 @@ namespace Alpha.Enemy.Editor
                     _patterns.arraySize);
             }
         }
+
+        private void EnsureVisibilityCount()
+        {
+            if (!HasPatternVisibility)
+                return;
+
+            int previousCount = _patternVisibility.arraySize;
+            _patternVisibility.arraySize = _patterns.arraySize;
+
+            for (int index = previousCount;
+                 index < _patternVisibility.arraySize;
+                 index++)
+            {
+                _patternVisibility
+                    .GetArrayElementAtIndex(index)
+                    .boolValue = true;
+            }
+        }
+
+        private bool HasPatternVisibility =>
+            _patternVisibility != null &&
+            _patternVisibility.isArray;
     }
 }

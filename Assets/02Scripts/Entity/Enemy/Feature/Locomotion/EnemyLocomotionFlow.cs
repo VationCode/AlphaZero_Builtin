@@ -21,7 +21,7 @@ namespace Alpha.Enemy
         {
             _core = p_core;
             _hasCurrentState = false;
-            ChangeState(EEnemyLocomotionState.Patrol);
+            ChangeState(ResolveNoTargetState());
         }
 
         // 물리 넉백은 일반 이동 허용 여부와 관계없이 계속 갱신한다.
@@ -68,22 +68,23 @@ namespace Alpha.Enemy
                 return true;
             }
 
-            ChangeState(
-                p_target != null
-                    ? EEnemyLocomotionState.Chase
-                    : EEnemyLocomotionState.Patrol);
-
-            if (CurrentState == EEnemyLocomotionState.Chase)
+            if (p_target != null)
             {
+                ChangeState(EEnemyLocomotionState.Chase);
                 locomotion.MoveTo(
                     p_target.position,
                     p_deltaTime);
-            }
-            else
-            {
-                locomotion.TickPatrol(p_deltaTime);
+                return false;
             }
 
+            if (locomotion.UsesPatrol)
+            {
+                ChangeState(EEnemyLocomotionState.Patrol);
+                locomotion.TickPatrol(p_deltaTime);
+                return false;
+            }
+
+            ChangeState(EEnemyLocomotionState.Idle);
             return false;
         }
 
@@ -99,6 +100,13 @@ namespace Alpha.Enemy
             _core?.LocomotionModule?.Stop();
             CurrentState = EEnemyLocomotionState.Idle;
             _hasCurrentState = false;
+        }
+
+        private EEnemyLocomotionState ResolveNoTargetState()
+        {
+            return _core?.LocomotionModule?.UsesPatrol == true
+                ? EEnemyLocomotionState.Patrol
+                : EEnemyLocomotionState.Idle;
         }
 
         private void ChangeState(EEnemyLocomotionState p_nextState)

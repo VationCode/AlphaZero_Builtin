@@ -149,9 +149,22 @@ MonoBehaviour:
   _leftHandIKTarget: {fileID: 5077971494930581541}
   _baseDamage: 15
   _impactSettings:
-    _hitType: 1
+    _hitType: 0
+    _lightKnockback:
+      _distance: 1
+      _duration: 0.2
+    _heavyKnockback:
+      _distance: 1
+      _duration: 0.2
+    _knockdownKnockback:
+      _distance: 1
+      _duration: 0.2
+    _launchKnockback:
+      _distance: 1
+      _duration: 0.2
     _knockbackDistance: 1
     _knockbackDuration: 0.2
+    _knockbackSettingsVersion: 1
     _recoveryDuration: 0.2
   _fireInterval: 0.12
   _postAttackFacingDuration: 0.25
@@ -191,9 +204,9 @@ MonoBehaviour:
   _weapon: {fileID: -8608525187958284337}
   _audioView: {fileID: 7901648954064959377}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _muzzleLifetime: 0.5
   _tracerMode: 1
   _bulletTracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
-  _muzzleLifetime: 0.5
   _fireShakeName: Weak
 --- !u!114 &7901648954064959377
 MonoBehaviour:
@@ -205,8 +218,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   _audioSource: {fileID: 0}
   _fireClip: {fileID: 8300000, guid: 7a6dabd79ef7ceb45aa223100d2443a9, type: 3}
   _fireVolume: 1

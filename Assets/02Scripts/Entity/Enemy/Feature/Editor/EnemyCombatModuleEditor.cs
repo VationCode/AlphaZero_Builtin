@@ -1,3 +1,4 @@
+using Alpha.Enemy.View;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace Alpha.Enemy.Editor
     public sealed class EnemyCombatModuleEditor : UnityEditor.Editor
     {
         private SerializedProperty _owner;
+        private SerializedObject _previewSerializedObject;
         private EnemyAttackPatternListDrawer _patternListDrawer;
 
         private void OnEnable()
@@ -16,14 +18,35 @@ namespace Alpha.Enemy.Editor
             SerializedProperty attackPatterns =
                 serializedObject.FindProperty("_attackPatterns");
 
+            EnemyAttackAreaPreviewView previewView =
+                ((EnemyCombatModule)target)
+                .GetComponent<EnemyAttackAreaPreviewView>();
+
+            _previewSerializedObject = previewView != null
+                ? new SerializedObject(previewView)
+                : null;
+
+            SerializedProperty patternVisibility =
+                _previewSerializedObject?.FindProperty(
+                    "_patternVisibility");
+
             _patternListDrawer = new EnemyAttackPatternListDrawer(
                 serializedObject,
-                attackPatterns);
+                attackPatterns,
+                patternVisibility);
+
+            Undo.undoRedoPerformed += RepaintSceneView;
+        }
+
+        private void OnDisable()
+        {
+            Undo.undoRedoPerformed -= RepaintSceneView;
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            _previewSerializedObject?.Update();
             DrawScriptReference();
 
             EditorGUILayout.PropertyField(_owner);
@@ -32,7 +55,14 @@ namespace Alpha.Enemy.Editor
             _patternListDrawer.Draw();
             DrawPatternGuide();
 
-            serializedObject.ApplyModifiedProperties();
+            bool combatChanged =
+                serializedObject.ApplyModifiedProperties();
+
+            bool previewChanged =
+                _previewSerializedObject?.ApplyModifiedProperties() == true;
+
+            if (combatChanged || previewChanged)
+                RepaintSceneView();
         }
 
         private void DrawScriptReference()
@@ -54,6 +84,12 @@ namespace Alpha.Enemy.Editor
                 "거리·쿨타임 조건을 만족하는 패턴 중 " +
                 "Selection Weight 비율로 하나를 선택합니다.",
                 MessageType.Info);
+        }
+
+        // 패턴 값을 조절하는 동안 Scene View의 공격 범위를 즉시 갱신한다.
+        private static void RepaintSceneView()
+        {
+            SceneView.RepaintAll();
         }
     }
 }

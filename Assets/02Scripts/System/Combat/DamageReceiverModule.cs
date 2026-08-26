@@ -12,6 +12,7 @@ namespace Alpha.Combat
         private float _minTimeBetweenDamaged = 0.1f;
 
         private readonly Dictionary<int, int> _lastReceivedAttackIds = new();
+        private readonly HashSet<object> _invulnerabilityOwners = new();
 
         private Transform _owner;
         private Func<float, bool> _tryDecreaseHealth;
@@ -20,6 +21,9 @@ namespace Alpha.Combat
         public bool IsBound =>
             _owner != null &&
             _tryDecreaseHealth != null;
+
+        public bool IsExternallyInvulnerable =>
+            _invulnerabilityOwners.Count > 0;
 
         public event Action<DamageInfo> OnDamaged;
 
@@ -41,7 +45,20 @@ namespace Alpha.Combat
         {
             _owner = null;
             _tryDecreaseHealth = null;
+            _invulnerabilityOwners.Clear();
             ResetSession();
+        }
+
+        public bool BeginInvulnerability(object p_owner)
+        {
+            return p_owner != null &&
+                   _invulnerabilityOwners.Add(p_owner);
+        }
+
+        public bool EndInvulnerability(object p_owner)
+        {
+            return p_owner != null &&
+                   _invulnerabilityOwners.Remove(p_owner);
         }
 
         // 직접 공격과 Trigger 공격이 공유하는 피해 수신 진입점이다.
@@ -90,6 +107,7 @@ namespace Alpha.Combat
         }
 
         private bool IsInvulnerable =>
+            IsExternallyInvulnerable ||
             Time.time <
             _lastDamagedTime + _minTimeBetweenDamaged;
 

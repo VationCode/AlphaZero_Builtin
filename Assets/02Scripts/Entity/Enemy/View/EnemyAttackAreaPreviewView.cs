@@ -33,6 +33,10 @@ namespace Alpha.Enemy.View
         [SerializeField]
         private bool _showPatternLabel = true;
 
+        // Attack Patterns Inspector가 관리하는 패턴별 Scene Preview 상태다.
+        [SerializeField, HideInInspector]
+        private bool[] _patternVisibility = System.Array.Empty<bool>();
+
         [Header("Type Colors")]
         [SerializeField]
         private Color _meleeColor = new(1f, 0.2f, 0.15f, 1f);
@@ -75,6 +79,9 @@ namespace Alpha.Enemy.View
 
             for (int index = 0; index < combat.PatternCount; index++)
             {
+                if (!IsPatternVisible(index))
+                    continue;
+
                 EnemyAttackPatternSetting pattern =
                     combat.GetPattern(index);
 
@@ -109,6 +116,17 @@ namespace Alpha.Enemy.View
             }
 
             Gizmos.color = previousColor;
+        }
+
+        // 아직 표시 설정이 생성되지 않은 Pattern은 기본적으로 표시한다.
+        public bool IsPatternVisible(int p_patternIndex)
+        {
+            if (p_patternIndex < 0)
+                return false;
+
+            return _patternVisibility == null ||
+                   p_patternIndex >= _patternVisibility.Length ||
+                   _patternVisibility[p_patternIndex];
         }
 
         private void DrawAttackDistance(

@@ -49,7 +49,14 @@ namespace Alpha.Detection
                 up.Normalize();
             }
 
-            Rotation = Quaternion.LookRotation(forward, up);
+            Quaternion ownerRotation =
+                Quaternion.LookRotation(forward, up);
+
+            float yawOffset = p_settings?.YawOffset ?? 0f;
+
+            // 공격자 기준 Yaw를 적용해 판정 방향과 Local Offset을 함께 회전한다.
+            Rotation = ownerRotation *
+                       Quaternion.Euler(0f, yawOffset, 0f);
             Forward = Rotation * Vector3.forward;
             Up = Rotation * Vector3.up;
         }

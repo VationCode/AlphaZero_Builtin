@@ -1,6 +1,7 @@
 using Alpha.Combat;
 using Alpha.Player.Combat;
 using Alpha.Player.Locomotion;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Alpha.Player.Actions
@@ -31,6 +32,7 @@ namespace Alpha.Player.Actions
         private float _standupDuration = 0.95f;
 
         private readonly HitReactionFlow _hitReactionFlow = new();
+        private readonly HashSet<object> _externalActionBlockers = new();
 
         private PlayerCore _core;
         private float _deathFallRemainingTime;
@@ -46,12 +48,17 @@ namespace Alpha.Player.Actions
         // 상위 Action이 Normal이고 외부 UI가 막지 않을 때만 CombatFlow를 허용한다.
         public bool AllowsCombat =>
             CurrentState == EPlayerActionState.Normal &&
-            !_isCombatInputBlocked;
+            !_isCombatInputBlocked &&
+            !IsExternallyBlocked;
 
         // 상위 Action이 Normal일 때만 LocomotionFlow의 일반 입력 이동을 허용한다.
         // Root Motion처럼 Combat이 별도로 소유한 잠금은 LocomotionModule이 추가로 판단한다.
         public bool AllowsLocomotion =>
-            CurrentState == EPlayerActionState.Normal;
+            CurrentState == EPlayerActionState.Normal &&
+            !IsExternallyBlocked;
+
+        public bool IsExternallyBlocked =>
+            _externalActionBlockers.Count > 0;
 
         public bool IsReacting =>
             CurrentState == EPlayerActionState.HitReaction;
@@ -75,6 +82,7 @@ namespace Alpha.Player.Actions
             _deathFallRemainingTime = 0f;
             _isDeathFalling = false;
             _ownsActionLock = false;
+            _externalActionBlockers.Clear();
             _hasCurrentState = false;
             _isDead = false;
 
@@ -84,8 +92,49 @@ namespace Alpha.Player.Actions
         public void Unbind()
         {
             ReleaseActionLock(true);
+            ClearExternalActionBlocks();
             _core = null;
             _hasCurrentState = false;
+        }
+
+        // Cinematic 등 외부 흐름이 Player의 일반 행동 전체를 중첩 차단한다.
+        public bool BeginExternalBlock(object p_owner)
+        {
+            if (p_owner == null ||
+                _core == null ||
+                !_externalActionBlockers.Add(p_owner))
+            {
+                return false;
+            }
+
+            if (_externalActionBlockers.Count > 1)
+                return true;
+
+            _core.InventoryFlow?.RequestCloseInventory();
+            _core.LocomotionModule?.BeginInputLock();
+            CancelLowerPriorityActions();
+            _core.LocomotionModule?.CancelKnockback();
+
+            // 연출 중에는 직전 이동 입력이 남지 않도록 Player 표현도 Idle로 정리한다.
+            _core.AnimationView?.PlayGroundLocomotion(
+                Vector2.zero,
+                false,
+                false);
+            return true;
+        }
+
+        public bool EndExternalBlock(object p_owner)
+        {
+            if (p_owner == null ||
+                !_externalActionBlockers.Remove(p_owner))
+            {
+                return false;
+            }
+
+            if (_externalActionBlockers.Count == 0)
+                _core?.LocomotionModule?.EndInputLock();
+
+            return true;
         }
 
         // Inventory처럼 Player 외부 상태가 Combat 입력만 일시적으로 차단할 때 사용한다.
@@ -226,6 +275,14 @@ namespace Alpha.Player.Actions
 
             _ownsActionLock = true;
             _core.LocomotionModule?.BeginInputLock();
+            CancelLowerPriorityActions();
+        }
+
+        private void CancelLowerPriorityActions()
+        {
+            if (_core == null)
+                return;
+
             _core.CombatFlow?.TryChangeState(ECombatStateType.Idle);
             _core.CombatModule?.CancelWeaponAction();
 
@@ -250,6 +307,15 @@ namespace Alpha.Player.Actions
 
             _ownsActionLock = false;
             _core.LocomotionModule?.EndInputLock();
+        }
+
+        private void ClearExternalActionBlocks()
+        {
+            if (_externalActionBlockers.Count == 0)
+                return;
+
+            _externalActionBlockers.Clear();
+            _core?.LocomotionModule?.EndInputLock();
         }
 
         private void ChangeState(EPlayerActionState p_nextState)

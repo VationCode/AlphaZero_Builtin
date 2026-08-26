@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Input System Callback을 게임에서 사용하기 쉬운 현재 값과 1 Frame 입력으로 변환한다.
 public class AlphaInputSystem : MonoBehaviour
 {
+    private readonly HashSet<object> _gameplayInputBlockers = new();
     private InputSystem_Actions _action;
+    private bool _isGameplayInputEnabled = true;
     #region ==================== Player
     // Locomotion
     public Vector2 MoveInput => _moveInput;
@@ -114,6 +117,9 @@ public class AlphaInputSystem : MonoBehaviour
 
         // 활성화해야 동작
         _action.Enable();
+
+        if (!_isGameplayInputEnabled)
+            ApplyGameplayInputState();
     }
     // 직접 등록한 Callback과 입력 상태를 정리한 뒤 Input Action을 해제한다.
     private void OnDisable()
@@ -131,21 +137,87 @@ public class AlphaInputSystem : MonoBehaviour
 
         _action.Camera.Quarter.performed -= OnQuarter;
 
-        // 비활성화 중 이전 입력이 남지 않도록 지속 입력 상태를 초기화한다.
-        _moveInput = Vector2.zero;
-        _isSprint = false;
-        _isPrimaryAction = false;
-        _isSecondaryAction = false;
-        _isQuarter = false;
-
-        _swapFrame = -1;
-        _primaryActionPressedFrame = -1;
-        _secondaryActionPressedFrame = -1;
+        // 비활성화 중 이전 입력이 남지 않도록 입력 상태를 초기화한다.
+        ResetGameplayInputState();
 
         // 생성한 Input Action Wrapper의 생명주기를 함께 종료한다.
         _action.Disable();
         _action.Dispose();
         _action = null;
+    }
+
+    // Cinematic 등 여러 요청자가 Player·Camera·UI 입력을 중첩 차단한다.
+    public bool BeginGameplayInputBlock(object p_owner)
+    {
+        if (p_owner == null || !_gameplayInputBlockers.Add(p_owner))
+            return false;
+
+        if (_gameplayInputBlockers.Count == 1)
+            SetGameplayInputEnabled(false);
+
+        return true;
+    }
+
+    public bool EndGameplayInputBlock(object p_owner)
+    {
+        if (p_owner == null || !_gameplayInputBlockers.Remove(p_owner))
+            return false;
+
+        if (_gameplayInputBlockers.Count == 0)
+            SetGameplayInputEnabled(true);
+
+        return true;
+    }
+
+    // 게임 입력 전체의 실제 활성 상태를 Input Action Map에 반영한다.
+    public void SetGameplayInputEnabled(bool p_isEnabled)
+    {
+        if (_isGameplayInputEnabled == p_isEnabled)
+            return;
+
+        _isGameplayInputEnabled = p_isEnabled;
+        ResetGameplayInputState();
+        ApplyGameplayInputState();
+    }
+
+    private void ApplyGameplayInputState()
+    {
+        if (_action == null)
+            return;
+
+        if (_isGameplayInputEnabled)
+        {
+            _action.Player.Enable();
+            _action.Camera.Enable();
+            _action.UI.Enable();
+            return;
+        }
+
+        _action.Player.Disable();
+        _action.Camera.Disable();
+        _action.UI.Disable();
+    }
+
+    private void ResetGameplayInputState()
+    {
+        _moveInput = Vector2.zero;
+        _lookInput = Vector2.zero;
+        _mouseScroll = Vector2.zero;
+        _mousePos = Vector3.zero;
+
+        _isSprint = false;
+        _isPrimaryAction = false;
+        _isSecondaryAction = false;
+        _isQuarter = false;
+
+        _jumpFrame = -1;
+        _dashFrame = -1;
+        _flightFrame = -1;
+        _interactionFrame = -1;
+        _swapFrame = -1;
+        _primaryActionPressedFrame = -1;
+        _secondaryActionPressedFrame = -1;
+        _inventoryFrame = -1;
     }
 
     // 숫자키 표시 이름을 장비 슬롯 번호와 1 Frame 교체 입력으로 변환한다.

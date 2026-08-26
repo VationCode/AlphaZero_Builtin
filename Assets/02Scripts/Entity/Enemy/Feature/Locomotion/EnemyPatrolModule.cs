@@ -9,6 +9,10 @@ namespace Alpha.Enemy
         private const int GroundHitBufferCapacity = 16;
         private const int GizmoSegments = 48;
 
+        [Tooltip("타깃이 없을 때 Patrol 지점을 생성하고 이동할지 여부입니다.")]
+        [SerializeField]
+        private bool _usePatrol = true;
+
         [Header("Patrol Area")]
         [SerializeField, Min(0f)]
         private float _areaRadius = 10f;
@@ -42,6 +46,7 @@ namespace Alpha.Enemy
         private Vector3 _pointB;
         private bool _isMovingToA = true;
 
+        public bool UsePatrol => _usePatrol;
         public Vector3 AreaCenter => _areaCenter;
         public float AreaRadius => _areaRadius;
         public float MaxChaseDistanceFromPatrolArea =>
@@ -62,9 +67,10 @@ namespace Alpha.Enemy
                 ? _owner.position
                 : transform.position;
             _isMovingToA = true;
-            HasPatrolPoints = TryCreateInitialPoints();
+            HasPatrolPoints =
+                _usePatrol && TryCreateInitialPoints();
 
-            if (!HasPatrolPoints)
+            if (_usePatrol && !HasPatrolPoints)
             {
                 Debug.LogWarning(
                     $"[{name}] 순찰 영역에서 Ground 지점을 생성하지 못했습니다.",

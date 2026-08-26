@@ -22,6 +22,12 @@ namespace Alpha.Detection
         [SerializeField]
         private Vector3 _localOffset = new(0f, 0.9f, 0f);
 
+        [Tooltip(
+            "공격자의 정면을 기준으로 판정 영역과 Local Offset을 " +
+            "회전할 Y축 각도입니다.")]
+        [SerializeField, Range(-180f, 180f)]
+        private float _yawOffset;
+
         [SerializeField, Min(0.01f)]
         private float _width = 2f;
 
@@ -46,6 +52,7 @@ namespace Alpha.Detection
 
         public EDetectionAreaShape Shape => _shape;
         public Vector3 LocalOffset => _localOffset;
+        public float YawOffset => _yawOffset;
         public float Width => _width;
         public float Length => _length;
         public float Radius => _radius;
@@ -72,6 +79,7 @@ namespace Alpha.Detection
         // 직렬화된 잘못된 수치가 Physics 판정으로 전달되지 않게 보정한다.
         public void Validate()
         {
+            _yawOffset = Mathf.Clamp(_yawOffset, -180f, 180f);
             _width = Mathf.Max(0.01f, _width);
             _length = Mathf.Max(0.01f, _length);
             _radius = Mathf.Max(0.01f, _radius);

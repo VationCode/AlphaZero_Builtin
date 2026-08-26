@@ -31,22 +31,23 @@ MonoBehaviour:
         _distance: 1
         _duration: 0.2
       _knockdownKnockback:
-        _distance: 1
-        _duration: 0.2
+        _distance: 2
+        _duration: 1.5
       _launchKnockback:
         _distance: 1
         _duration: 0.2
       _knockbackDistance: 1
       _knockbackDuration: 0.2
       _knockbackSettingsVersion: 1
-      _recoveryDuration: 1.2
+      _recoveryDuration: 0.4
     _area:
-      _shape: 0
+      _shape: 1
       _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
       _width: 1.7
       _length: 1.7
-      _radius: 1
-      _angle: 360
+      _radius: 1.7
+      _angle: 90
       _height: 1.8
       _targetMask:
         serializedVersion: 2

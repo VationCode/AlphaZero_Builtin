@@ -345,6 +345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d2cfe18a79b4fcaa245753aa2ccfba2, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  _usePatrol: 1
   _areaRadius: 10
   _maxChaseDistanceFromPatrolArea: 6
   _minimumPointDistance: 2

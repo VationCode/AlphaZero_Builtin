@@ -50,6 +50,14 @@ namespace Alpha.Detection.Editor
                 null,
                 ref lineIndex);
 
+            DrawProperty(
+                p_position,
+                p_property.FindPropertyRelative("_yawOffset"),
+                new GUIContent(
+                    "Yaw Offset",
+                    "공격자 정면을 기준으로 판정 영역을 회전합니다."),
+                ref lineIndex);
+
             if (!shape.hasMultipleDifferentValues)
             {
                 EDetectionAreaShape selectedShape =
@@ -123,7 +131,7 @@ namespace Alpha.Detection.Editor
             SerializedProperty shape =
                 p_property.FindPropertyRelative("_shape");
 
-            int childLineCount = 5;
+            int childLineCount = 6;
 
             if (!shape.hasMultipleDifferentValues)
             {
