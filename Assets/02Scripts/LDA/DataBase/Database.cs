@@ -1,20 +1,9 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.InputSystem;
 
-// Loader와 Key 기반 Dictionary를 공유하는 Database의 공통 등록·조회 기능을 제공한다.
+// Key 기반 Database가 공유하는 등록·조회 기능을 제공한다.
 public abstract class Database<TKey, TValue> : IDatabase<TKey, TValue>
 {
-    protected readonly IDataLoader _Loader;
-
     protected readonly Dictionary<TKey, TValue> _Dict = new();
-
-    // 파생 Database가 사용할 데이터 Loader를 보관한다.
-    protected Database(IDataLoader p_loader)
-    {
-        _Loader = p_loader;
-    }
 
     // 초기화 중 Key와 데이터를 Dictionary에 등록한다.
     public void Add(TKey p_key, TValue p_value)

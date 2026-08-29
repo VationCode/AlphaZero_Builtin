@@ -9,10 +9,14 @@ namespace Alpha.Player.Combat
     // Player가 소유한 Skill별 공격 범위를 Scene에서 미리 보여준다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CombatModule))]
+    [RequireComponent(typeof(DetectionAreaGizmoView))]
     public sealed class PlayerMeleeAttackAreaPreviewView : MonoBehaviour
     {
         [SerializeField]
         private CombatModule _combatModule;
+
+        [SerializeField]
+        private DetectionAreaGizmoView _areaGizmoView;
 
         [FormerlySerializedAs("_previewComboIndex")]
         [SerializeField, Min(0)]
@@ -31,18 +35,24 @@ namespace Alpha.Player.Combat
         private void Reset()
         {
             _combatModule = GetComponent<CombatModule>();
+            _areaGizmoView = GetComponent<DetectionAreaGizmoView>();
         }
 
         private void OnValidate()
         {
             _combatModule ??= GetComponent<CombatModule>();
+            _areaGizmoView ??= GetComponent<DetectionAreaGizmoView>();
             _previewSkillIndex = Mathf.Max(0, _previewSkillIndex);
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (!_showPreview || !TryResolveCombatModule())
+            if (!_showPreview ||
+                !TryResolveCombatModule() ||
+                !TryResolveGizmoView())
+            {
                 return;
+            }
 
             int skillIndex = Application.isPlaying &&
                              _combatModule.CurrentMeleeSkillIndex >= 0
@@ -66,7 +76,13 @@ namespace Alpha.Player.Combat
                 origin,
                 settings.Area);
 
-            DetectionAreaGizmoDrawer.Draw(request, _areaColor);
+            _areaGizmoView.Draw(request, _areaColor);
+        }
+
+        private bool TryResolveGizmoView()
+        {
+            _areaGizmoView ??= GetComponent<DetectionAreaGizmoView>();
+            return _areaGizmoView != null;
         }
 
         private bool TryResolveCombatModule()

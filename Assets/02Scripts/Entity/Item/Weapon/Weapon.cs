@@ -12,18 +12,12 @@ namespace Alpha.Item.Weapon
         Secondary
     }
 
-    // Semi는 누른 순간, Auto는 누르고 있는 동안을 행동 입력으로 사용한다.
-    public enum EWeaponInputMode
-    {
-        Semi,
-        Auto
-    }
-
     // 모든 런타임 무기의 DTO 검증과 공통 초기화 생명주기를 제공한다.
     public abstract class Weapon : MonoBehaviour
     {
         public WeaponDTO Data { get; private set; }
         public bool IsInitialized { get; private set; }
+        public abstract EWeaponType WeaponType { get; }
 
         public EWeaponActionType ActiveActionType { get; private set; } = EWeaponActionType.None;
 
@@ -51,11 +45,16 @@ namespace Alpha.Item.Weapon
         protected virtual void OnEndAction(EWeaponActionType p_type) { }
         protected virtual void OnCancelAction(EWeaponActionType p_type) { }
 
-        // DTO 형식을 확인하고 런타임 무기를 한 번만 초기화한다.
+        // CSV의 Type과 Prefab의 Type 계약을 확인하고 한 번만 초기화한다.
         public bool TryInitialize(WeaponDTO p_data)
         {
-            if (p_data == null || !CanInitialize(p_data))
+            if (p_data == null ||
+                WeaponType == EWeaponType.None ||
+                p_data.WeaponType != WeaponType ||
+                !CanInitialize(p_data))
+            {
                 return false;
+            }
 
             if (IsInitialized)
                 return ReferenceEquals(Data, p_data);
@@ -104,17 +103,6 @@ namespace Alpha.Item.Weapon
                 p_isInputHeld,
                 p_isInputPressed,
                 p_deltaTime);
-        }
-
-        // 무기별 입력 방식 판정을 한 곳에서 공유한다.
-        protected static bool IsActionInput(
-            EWeaponInputMode p_inputMode,
-            bool p_isInputHeld,
-            bool p_isInputPressed)
-        {
-            return p_inputMode == EWeaponInputMode.Auto
-                ? p_isInputHeld
-                : p_isInputPressed;
         }
 
         // 정상적인 입력 해제로 현재 행동을 종료한다.

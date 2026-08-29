@@ -23,12 +23,15 @@ namespace Alpha.Player.Combat
         private PlayerCore _core;
         private WeaponSwapModule _weaponSwapModule;
         private RangeAimModule _rangeAimModule;
-        private RangeWeapon _activeRangeSecondaryWeapon;
+        private RangeAttackModule _activeRangeSecondaryModule;
 
         public Transform Attacker => _core?.PlayerTr;
 
         // 실제 전투에 적용된 활성 무기의 변경을 외부 표현 계층에 알린다.
         public event Action<WeaponDTO> OnWeaponChanged;
+
+        // 현재 원거리 무기의 발사 모드가 변경되면 UI 표현에 알린다.
+        public event Action<ERangeTriggerMode> OnRangeTriggerModeChanged;
 
         // Player의 공격으로 피해가 실제 적용된 경우에만 명중 표현에 알린다.
         public event Action<DamageInfo> OnHitConfirmed;
@@ -41,7 +44,8 @@ namespace Alpha.Player.Combat
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
-        public RangeWeapon CurrentRangeWeapon => CurrentWeapon as RangeWeapon;
+        public RangeAttackModule CurrentRangeAttackModule =>
+            CurrentWeapon as RangeAttackModule;
         public bool HasWeapon => CurrentWeapon != null;
         public int CurrentMeleeSkillIndex =>
             _meleeAttackModule?.CurrentSkillIndex ?? -1;
@@ -60,12 +64,12 @@ namespace Alpha.Player.Combat
         public bool HasActiveAction =>
             CurrentWeapon != null && CurrentWeapon.HasActiveAction;
 
-        public RangeWeapon ActiveRangeSecondaryWeapon =>
-            _activeRangeSecondaryWeapon;
+        public RangeAttackModule ActiveRangeSecondaryModule =>
+            _activeRangeSecondaryModule;
 
         public bool HasActiveRangeSecondary =>
-            _activeRangeSecondaryWeapon != null &&
-            _activeRangeSecondaryWeapon.IsSecondaryActive;
+            _activeRangeSecondaryModule != null &&
+            _activeRangeSecondaryModule.IsSecondaryActive;
 
         private void Awake()
         {
@@ -189,10 +193,11 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
-            RangeWeapon rangeWeapon = CurrentRangeWeapon;
+            RangeAttackModule rangeAttackModule =
+                CurrentRangeAttackModule;
 
-            if (rangeWeapon != null &&
-                !rangeWeapon.BindAttackSource(this))
+            if (rangeAttackModule != null &&
+                !rangeAttackModule.BindAttackSource(this))
             {
                 // 잘못 구성된 Range 무기는 장착 상태로 남기지 않는다.
                 _weaponSwapModule.Apply(null);
@@ -205,6 +210,25 @@ namespace Alpha.Player.Combat
         }
 
         #endregion ============================== /Weapon Swap
+
+        #region ============================== Range Trigger
+        // Flow의 입력 요청을 현재 대표 Range 공격 Module에 전달한다.
+        public bool TrySwitchRangeTriggerMode()
+        {
+            RangeAttackModule rangeAttackModule =
+                CurrentRangeAttackModule;
+
+            if (rangeAttackModule == null ||
+                !rangeAttackModule.TrySwitchTriggerMode())
+            {
+                return false;
+            }
+
+            OnRangeTriggerModeChanged?.Invoke(
+                rangeAttackModule.CurrentTriggerMode);
+            return true;
+        }
+        #endregion ============================== /Range Trigger
 
         #region ============================== CombatAction
         // 현재 무기의 Action을 선택하고 행동을 시작한다.
@@ -249,7 +273,6 @@ namespace Alpha.Player.Combat
         public bool TryGetAttackPose(
             Vector3 p_muzzleOrigin,
             float p_maxDistance,
-            float p_defaultAimDistance,
             out Vector3 p_attackOrigin,
             out Vector3 p_targetPoint)
         {
@@ -263,19 +286,18 @@ namespace Alpha.Player.Combat
             return _rangeAimModule.TryResolveAttackPose(
                 p_muzzleOrigin,
                 p_maxDistance,
-                p_defaultAimDistance,
                 out p_attackOrigin,
                 out p_targetPoint);
         }
 
-        // 현재 RangeWeapon의 총구 기준 전체 조준 방향을 반환한다.
+        // 현재 Range 공격 Module의 총구 기준 전체 조준 방향을 반환한다.
         public bool TryGetRangeAimDirection(
             out Vector3 p_direction)
         {
             p_direction = Vector3.zero;
 
-            return CurrentRangeWeapon != null &&
-                   CurrentRangeWeapon.TryGetAimDirection(
+            return CurrentRangeAttackModule != null &&
+                   CurrentRangeAttackModule.TryGetAimDirection(
                        out p_direction);
         }
 
@@ -307,34 +329,29 @@ namespace Alpha.Player.Combat
         #region ============================== Range Secondary
         public bool BeginRangeSecondary()
         {
-            RangeWeapon rangeWeapon = CurrentRangeWeapon;
+            RangeAttackModule rangeAttackModule =
+                CurrentRangeAttackModule;
 
-            if (rangeWeapon == null ||
-                _activeRangeSecondaryWeapon != null ||
-                !rangeWeapon.BeginSecondary())
+            if (rangeAttackModule == null ||
+                _activeRangeSecondaryModule != null ||
+                !rangeAttackModule.BeginSecondary())
             {
                 return false;
             }
 
-            _activeRangeSecondaryWeapon = rangeWeapon;
+            _activeRangeSecondaryModule = rangeAttackModule;
             return true;
         }
 
         public void TickRangeSecondary(float p_deltaTime)
         {
-            _activeRangeSecondaryWeapon?.TickSecondary(p_deltaTime);
-        }
-
-        public void EndRangeSecondary()
-        {
-            _activeRangeSecondaryWeapon?.EndSecondary();
-            _activeRangeSecondaryWeapon = null;
+            _activeRangeSecondaryModule?.TickSecondary(p_deltaTime);
         }
 
         public void CancelRangeSecondary()
         {
-            _activeRangeSecondaryWeapon?.CancelSecondary();
-            _activeRangeSecondaryWeapon = null;
+            _activeRangeSecondaryModule?.CancelSecondary();
+            _activeRangeSecondaryModule = null;
         }
         #endregion ============================== /Range Secondary
     }

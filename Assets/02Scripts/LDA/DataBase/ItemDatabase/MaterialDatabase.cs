@@ -1,20 +1,47 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
 // MaterialDatabase 데이터를 등록하고 조회한다.
 public class MaterialDatabase : Database<int, MaterialDTO>
 {
-    // 전달받은 값으로 초기 상태를 구성한다.
-    public MaterialDatabase(IDataLoader p_loader) : base(p_loader){}
+    private readonly ICsvDataLoader _loader;
 
-    // 초기 데이터와 내부 상태를 구성한다.
+    public MaterialDatabase(ICsvDataLoader p_loader)
+    {
+        _loader = p_loader ?? throw new ArgumentNullException(nameof(p_loader));
+    }
+
+    // Material CSV 전체를 검증한 뒤 ID Dictionary를 교체한다.
     public async Task InitializeAsync()
     {
-        MaterialWrapper itemTable = await _Loader.LoadAsync<MaterialWrapper>("Material");
+        CsvTable table = await _loader.LoadAsync("Material");
+        table.ValidateColumns(MaterialCsvMapper.Columns);
 
-        foreach (MaterialDTO material in itemTable.ItemList)
+        List<MaterialDTO> materials = new(table.Rows.Count);
+        HashSet<int> ids = new();
+
+        foreach (CsvRow row in table.Rows)
         {
-            Add(material.Id, material);
+            MaterialDTO material = MaterialCsvMapper.Map(row);
+
+            if (!ids.Add(material.Id))
+            {
+                throw row.CreateFormatException(
+                    nameof(ItemDTO.Id),
+                    $"중복된 Material ID입니다: {material.Id}");
+            }
+
+            materials.Add(material);
         }
+
+        if (materials.Count == 0)
+            throw new InvalidOperationException("Material CSV에 데이터 행이 없습니다.");
+
+        Clear();
+
+        foreach (MaterialDTO material in materials)
+            Add(material.Id, material);
     }
 }

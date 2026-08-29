@@ -1,0 +1,13 @@
+Id,Name,WeaponCategory,WeaponType,IconKey,PrefabKey,Price,IsStackable,MaxStackCount,Description
+100,기본환도,Melee,Sword,기본환도_Icon,기본환도_Prefab,500,FALSE,1,기본 환도
+101,별운검,Melee,Sword,별운검_Icon,별운검_Prefab,1000,FALSE,1,중급 환도
+200,기본월도,Melee,Polearm,기본월도_Icon,기본월도_Prefab,800,FALSE,1,기본 월도
+201,은월,Melee,Polearm,은월_Icon,은월_Prefab,1600,FALSE,1,중급 월도
+500,기본소총,Range,Rifle,기본소총_Icon,기본소총_Prefab,500,FALSE,1,기본 소총
+600,기본저격총,Range,SniperRifle,기본저격총_Icon,기본저격총_Prefab,1500,FALSE,1,기본 저격총
+700,기본광선총,Range,PenetrationRifle,기본광선총_Icon,기본광선총_Prefab,1500,FALSE,1,기본 광선총
+800,기본산탄총,Range,Shotgun,기본산탄총_Icon,기본산탄총_Prefab,1500,FALSE,1,기본 산탄총
+900,기본유탄발사기,Range,GrenadeLauncher,기본유탄발사기_Icon,기본유탄발사기_Prefab,1500,FALSE,1,기본 유탄발사기
+1000,SP00,Special,SpecialDevice,SP00_Icon,SP00_Prefab,600,FALSE,1,특수 무기00
+1001,SP01,Special,SpecialDevice,SP01_Icon,SP01_Prefab,600,FALSE,1,특수 무기01
+1002,SP02,Special,SpecialDevice,SP02_Icon,SP02_Prefab,600,FALSE,1,특수 무기02

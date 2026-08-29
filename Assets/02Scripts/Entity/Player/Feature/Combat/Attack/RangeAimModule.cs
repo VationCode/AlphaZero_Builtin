@@ -9,8 +9,8 @@ namespace Alpha.Player.Combat
         [SerializeField]
         private LayerMask _aimMask;
 
-        [Header("Scope Projectile")]
-        [Tooltip("Camera Near Plane에서 Projectile을 앞쪽으로 이동시킬 거리입니다.")]
+        [Header("Scope Attack")]
+        [Tooltip("Scope에서 Camera Near Plane 앞쪽을 공격 시작점으로 사용할 거리입니다.")]
         [SerializeField, Min(0f)]
         private float _scopeSpawnOffset = 0.05f;
 
@@ -28,7 +28,6 @@ namespace Alpha.Player.Combat
         public bool TryResolveAttackPose(
             Vector3 p_muzzleOrigin,
             float p_maxDistance,
-            float p_defaultAimDistance,
             out Vector3 p_attackOrigin,
             out Vector3 p_targetPoint)
         {
@@ -37,60 +36,36 @@ namespace Alpha.Player.Combat
 
             if (_core?.CameraCore?.RenderCamera == null ||
                 p_maxDistance <= 0f ||
-                p_defaultAimDistance <= 0f ||
                 !TryCreateViewRay(out Ray viewRay))
             {
                 return false;
             }
 
             bool isScope =
-                _core.CameraCore.Context.EffectiveViewType ==
-                ECameraViewType.Scope;
+                _core.CameraCore.Context.EffectiveViewType == ECameraViewType.Scope;
 
-            p_attackOrigin = isScope
-                ? viewRay.GetPoint(_scopeSpawnOffset)
-                : p_muzzleOrigin;
+            p_attackOrigin = 
+                isScope? viewRay.GetPoint(_scopeSpawnOffset) : p_muzzleOrigin;
 
             // Scope 중앙 발사점까지 총구가 막혔다면 엄폐물 관통을 방지한다.
-            if (isScope &&
-                Physics.Linecast(
-                    p_muzzleOrigin,
-                    p_attackOrigin,
-                    _aimMask,
-                    QueryTriggerInteraction.Ignore))
+            if (isScope && Physics.Linecast(p_muzzleOrigin, p_attackOrigin, _aimMask, QueryTriggerInteraction.Ignore))
             {
                 return false;
             }
 
             // Camera와 실제 발사점의 간격만큼 조준 Ray의 검사 거리를 보정한다.
-            float originOffset =
-                Vector3.Distance(
-                    viewRay.origin,
-                    p_attackOrigin);
+            float originOffset = Vector3.Distance(viewRay.origin, p_attackOrigin);
 
-            float viewRayDistance =
-                p_maxDistance +
-                originOffset;
+            float viewRayDistance = p_maxDistance + originOffset;
 
-            float defaultTargetDistance = Mathf.Min(
-                p_defaultAimDistance + originOffset,
-                viewRayDistance);
+            p_targetPoint = viewRay.GetPoint(viewRayDistance);
 
-            p_targetPoint =
-                viewRay.GetPoint(defaultTargetDistance);
-
-            if (Physics.Raycast(
-                    viewRay,
-                    out RaycastHit hit,
-                    viewRayDistance,
-                    _aimMask,
-                    QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(viewRay, out RaycastHit hit, viewRayDistance, _aimMask, QueryTriggerInteraction.Ignore))
             {
                 p_targetPoint = hit.point;
             }
 
-            return (p_targetPoint - p_attackOrigin)
-                .sqrMagnitude > 0.0001f;
+            return (p_targetPoint - p_attackOrigin).sqrMagnitude > 0.0001f;
         }
 
         private bool TryCreateViewRay(out Ray p_viewRay)
@@ -110,15 +85,13 @@ namespace Alpha.Player.Combat
                     return false;
                 }
 
-                p_viewRay = renderCamera.ScreenPointToRay(
-                    _core.Input.MouseInputPos);
+                p_viewRay = renderCamera.ScreenPointToRay(_core.Input.MouseInputPos);
 
                 return true;
             }
 
             // TPS, Aim, Scope에서는 화면 중앙을 조준점으로 사용한다.
-            p_viewRay = renderCamera.ViewportPointToRay(
-                new Vector3(0.5f, 0.5f));
+            p_viewRay = renderCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f));
 
             return true;
         }

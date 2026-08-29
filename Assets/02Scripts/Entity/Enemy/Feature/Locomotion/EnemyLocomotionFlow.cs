@@ -12,8 +12,8 @@ namespace Alpha.Enemy
         public EEnemyLocomotionState CurrentState { get; private set; } =
             EEnemyLocomotionState.Idle;
 
-        public bool IsReturningToPatrol =>
-            CurrentState == EEnemyLocomotionState.ReturnToPatrol;
+        public bool IsReturningToArea =>
+            CurrentState == EEnemyLocomotionState.ReturnToArea;
 
         public event Action<EEnemyLocomotionState> OnStateChanged;
 
@@ -42,22 +42,22 @@ namespace Alpha.Enemy
             if (locomotion == null)
                 return false;
 
-            if (IsReturningToPatrol &&
-                !locomotion.IsInsidePatrolArea(_core.transform.position))
+            if (IsReturningToArea &&
+                !locomotion.IsInsideReturnArea(_core.transform.position))
             {
                 locomotion.MoveTo(
-                    locomotion.AreaCenter,
+                    locomotion.ReturnCenter,
                     p_deltaTime);
                 return false;
             }
 
             if (p_target != null &&
-                locomotion.IsOutsideChaseBoundary(_core.transform.position))
+                locomotion.IsOutsideChaseArea(_core.transform.position))
             {
                 _core.TargetingFlow.ClearTarget();
-                ChangeState(EEnemyLocomotionState.ReturnToPatrol);
+                ChangeState(EEnemyLocomotionState.ReturnToArea);
                 locomotion.MoveTo(
-                    locomotion.AreaCenter,
+                    locomotion.ReturnCenter,
                     p_deltaTime);
                 return false;
             }

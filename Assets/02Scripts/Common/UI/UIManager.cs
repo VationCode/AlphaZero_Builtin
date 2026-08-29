@@ -6,6 +6,7 @@ namespace Alpha.UI
     public class UIManager : MonoBehaviour
     {
         public CrossHairUI CrossHairUI;
+        public RangeChargeGaugeView RangeChargeGaugeView;
         public StateUI StateUI;
         public InteractionView InteractionUI;
 

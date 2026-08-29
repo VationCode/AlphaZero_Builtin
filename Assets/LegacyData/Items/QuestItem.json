@@ -1,0 +1,68 @@
+{
+
+    "ItemList": [
+        {
+            "Id": 5000,
+
+            "Name": "QuestItem00",
+
+            "ItemType": 4,
+
+            "IconKey": "QuestItem00_Icon",
+
+            "PrefabKey": "QuestItem00_Prefab",
+
+            "Price": -1,
+
+            "IsStackable": true,
+
+            "MaxStackCount": 99,
+
+            "Description": "퀘스트아이템00",
+
+            "MaterialType": 0
+        },
+        {
+            "Id": 5001,
+
+            "Name": "QuestItem01",
+
+            "ItemType": 4,
+
+            "IconKey": "QuestItem01_Icon",
+
+            "PrefabKey": "QuestItem01_Prefab",
+
+            "Price": -1,
+
+            "IsStackable": true,
+
+            "MaxStackCount": 99,
+
+            "Description": "퀘스트아이템01",
+
+            "MaterialType": 1
+        },
+        {
+            "Id": 5002,
+
+            "Name": "QuestItem02",
+
+            "ItemType": 4,
+
+            "IconKey": "QuestItem02_Icon",
+
+            "PrefabKey": "QuestItem02_Prefab",
+
+            "Price": -1,
+
+            "IsStackable": true,
+
+            "MaxStackCount": 99,
+
+            "Description": "퀘스트아이템02",
+
+            "MaterialType": 2
+        }
+    ]
+}

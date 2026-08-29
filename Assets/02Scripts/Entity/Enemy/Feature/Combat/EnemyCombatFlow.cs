@@ -20,8 +20,9 @@ namespace Alpha.Enemy
         public bool IsBusy => CurrentState != EEnemyCombatState.Idle;
 
         public event Action<EEnemyCombatState> OnStateChanged;
-        public event Action<EEnemyAttackType> OnAttackWaitStarted;
-        public event Action<EEnemyAttackType> OnAttackStarted;
+        // View가 같은 공격 타입의 복수 애니메이션을 구분할 수 있도록 인덱스를 함께 전달한다.
+        public event Action<EEnemyAttackType, int> OnAttackWaitStarted;
+        public event Action<EEnemyAttackType, int> OnAttackStarted;
 
         public void Bind(EnemyCore p_core)
         {
@@ -141,7 +142,9 @@ namespace Alpha.Enemy
                 return;
             }
 
-            OnAttackStarted?.Invoke(pattern.AttackType);
+            OnAttackStarted?.Invoke(
+                pattern.AttackType,
+                pattern.AnimationIndex);
             ChangeState(EEnemyCombatState.Attack);
             TickAttack(p_target, p_deltaTime);
         }
@@ -297,7 +300,9 @@ namespace Alpha.Enemy
                 return false;
 
             _preparedPatternIndex = p_patternIndex;
-            OnAttackWaitStarted?.Invoke(pattern.AttackType);
+            OnAttackWaitStarted?.Invoke(
+                pattern.AttackType,
+                pattern.AnimationIndex);
             return true;
         }
 

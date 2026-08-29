@@ -1,10 +1,11 @@
+using Alpha.AI;
 using UnityEngine;
 
 namespace Alpha.Enemy
 {
     // 일반 이동·회전을 실행하고 순찰·넉백 기능은 전용 Module에 위임한다.
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(EnemyPatrolModule))]
+    [RequireComponent(typeof(ChaseModule))]
     [RequireComponent(typeof(EnemyKnockbackModule))]
     public sealed class EnemyLocomotionModule : MonoBehaviour
     {
@@ -16,7 +17,10 @@ namespace Alpha.Enemy
         private Rigidbody _rigidbody;
 
         [SerializeField]
-        private EnemyPatrolModule _patrolModule;
+        private PatrolModule _patrolModule;
+
+        [SerializeField]
+        private ChaseModule _chaseModule;
 
         [SerializeField]
         private EnemyKnockbackModule _knockbackModule;
@@ -34,20 +38,10 @@ namespace Alpha.Enemy
         private Transform _owner;
         private bool _hasLoggedMissingRigidbody;
 
-        public Vector3 AreaCenter =>
-            _patrolModule != null
-                ? _patrolModule.AreaCenter
+        public Vector3 ReturnCenter =>
+            _chaseModule != null
+                ? _chaseModule.Center
                 : transform.position;
-        public float AreaRadius =>
-            _patrolModule?.AreaRadius ?? 0f;
-        public float MaxChaseDistanceFromPatrolArea =>
-            _patrolModule?.MaxChaseDistanceFromPatrolArea ?? 0f;
-        public Vector3 PointA =>
-            _patrolModule?.PointA ?? AreaCenter;
-        public Vector3 PointB =>
-            _patrolModule?.PointB ?? AreaCenter;
-        public bool HasPatrolPoints =>
-            _patrolModule?.HasPatrolPoints == true;
         public bool UsesPatrol =>
             _patrolModule?.UsePatrol == true;
         public bool IsKnockbackActive =>
@@ -60,7 +54,8 @@ namespace Alpha.Enemy
         public void Bind(Transform p_owner)
         {
             _owner = p_owner;
-            _patrolModule ??= GetComponent<EnemyPatrolModule>();
+            _patrolModule ??= GetComponent<PatrolModule>();
+            _chaseModule ??= GetComponent<ChaseModule>();
             _knockbackModule ??= GetComponent<EnemyKnockbackModule>();
             _rigidbody ??= p_owner != null
                 ? p_owner.GetComponent<Rigidbody>()
@@ -68,6 +63,7 @@ namespace Alpha.Enemy
 
             ValidateRigidbody();
             _patrolModule?.Bind(p_owner);
+            _chaseModule?.Bind(p_owner);
             _knockbackModule?.Bind(p_owner, _rigidbody);
         }
 
@@ -191,18 +187,18 @@ namespace Alpha.Enemy
             return _knockbackModule?.Tick(p_deltaTime) == true;
         }
 
-        // 현재 위치가 Patrol Area와 추가 추적 허용 범위를 벗어났는지 반환한다.
-        public bool IsOutsideChaseBoundary(Vector3 p_position)
+        // 대상 또는 소유자가 최대 추적 영역을 벗어났는지 반환한다.
+        public bool IsOutsideChaseArea(Vector3 p_position)
         {
-            return _patrolModule == null ||
-                   _patrolModule.IsOutsideChaseBoundary(p_position);
+            return _chaseModule == null ||
+                   !_chaseModule.Contains(p_position);
         }
 
-        // ReturnToPatrol 상태가 순찰 영역 복귀 완료 여부를 판단할 때 사용한다.
-        public bool IsInsidePatrolArea(Vector3 p_position)
+        // 복귀 상태가 추적 중심으로 충분히 돌아왔는지 판단할 때 사용한다.
+        public bool IsInsideReturnArea(Vector3 p_position)
         {
-            return _patrolModule == null ||
-                   _patrolModule.IsInsidePatrolArea(p_position);
+            return _chaseModule == null ||
+                   _chaseModule.IsInsideReturnArea(p_position);
         }
 
         private bool RotateDirection(
@@ -293,7 +289,8 @@ namespace Alpha.Enemy
             if (_rigidbody == null && _owner != null)
                 _rigidbody = _owner.GetComponent<Rigidbody>();
 
-            _patrolModule ??= GetComponent<EnemyPatrolModule>();
+            _patrolModule ??= GetComponent<PatrolModule>();
+            _chaseModule ??= GetComponent<ChaseModule>();
             _knockbackModule ??= GetComponent<EnemyKnockbackModule>();
         }
     }

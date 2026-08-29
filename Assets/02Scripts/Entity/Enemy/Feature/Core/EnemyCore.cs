@@ -1,4 +1,5 @@
 using Alpha.Combat;
+using Alpha.Detection;
 using Alpha.Living;
 using Alpha.Enemy.Audio;
 using Alpha.Enemy.Animation;
@@ -19,8 +20,13 @@ namespace Alpha.Enemy
         [SerializeField]
         private EnemyLocomotionModule _locomotionModule;
 
+        [FormerlySerializedAs("_targetSearchModule")]
+        [FormerlySerializedAs("_targetModule")]
         [SerializeField]
-        private EnemyDetectionModule _targetModule;
+        private AreaDetectionModule _targetDetectionModule;
+
+        [SerializeField, Min(0.05f)]
+        private float _targetSearchInterval = 0.2f;
 
         [SerializeField]
         private EnemyCombatModule _combatModule;
@@ -49,7 +55,10 @@ namespace Alpha.Enemy
         public EnemyHealthModule HealthModule => _healthModule;
         public DamageReceiverModule DamageReceiver => _damageReceiver;
         public EnemyLocomotionModule LocomotionModule => _locomotionModule;
-        public EnemyDetectionModule TargetModule => _targetModule;
+        public AreaDetectionModule TargetDetectionModule =>
+            _targetDetectionModule;
+        public float TargetSearchInterval =>
+            Mathf.Max(0.05f, _targetSearchInterval);
         public EnemyCombatModule CombatModule => _combatModule;
         public EnemyCombatFlow CombatFlow => _combatFlow;
         public EnemyActionFlow ActionFlow => _actionFlow;
@@ -61,7 +70,8 @@ namespace Alpha.Enemy
             _healthModule ??= GetComponentInChildren<EnemyHealthModule>(true);
             _damageReceiver ??= GetComponentInChildren<DamageReceiverModule>(true);
             _locomotionModule ??= GetComponentInChildren<EnemyLocomotionModule>(true);
-            _targetModule ??= GetComponentInChildren<EnemyDetectionModule>(true);
+            _targetDetectionModule ??=
+                GetComponentInChildren<AreaDetectionModule>(true);
             _combatModule ??= GetComponentInChildren<EnemyCombatModule>(true);
             _combatFlow ??= GetComponentInChildren<EnemyCombatFlow>(true);
             _actionFlow ??= GetComponentInChildren<EnemyActionFlow>(true);
@@ -89,7 +99,7 @@ namespace Alpha.Enemy
                 LocomotionFlow,
                 _combatFlow);
             LocomotionFlow.Bind(this);
-            _targetModule?.Bind(transform);
+            _targetDetectionModule?.Bind(transform);
             _combatModule?.Bind(transform);
             _combatFlow?.Bind(this);
             TargetingFlow.Bind(this);

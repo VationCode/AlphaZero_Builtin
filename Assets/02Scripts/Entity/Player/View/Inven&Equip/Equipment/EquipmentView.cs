@@ -2,6 +2,7 @@ using Alpha.Player.Slot;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.Player.Equipment
 {
@@ -9,10 +10,11 @@ namespace Alpha.Player.Equipment
     [Serializable]
     public struct WeaponSlotBinding
     {
-        [SerializeField] private EWeaponType _weaponType;
+        [FormerlySerializedAs("_weaponType")]
+        [SerializeField] private EWeaponCategory _weaponCategory;
         [SerializeField] private EquipmentSlotView _view;
 
-        public EWeaponType WeaponType => _weaponType;
+        public EWeaponCategory WeaponCategory => _weaponCategory;
         public EquipmentSlotView View => _view;
     }
 
@@ -97,7 +99,9 @@ namespace Alpha.Player.Equipment
             {
                 foreach (WeaponSlotBinding binding in _weaponSlotBindings)
                 {
-                    if (_context.TryGetWeaponSlot(binding.WeaponType, out WeaponEquipmentSlot slot))
+                    if (_context.TryGetWeaponSlot(
+                            binding.WeaponCategory,
+                            out WeaponEquipmentSlot slot))
                     {
                         Register(slot, binding.View);
                     }

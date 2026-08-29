@@ -91,7 +91,7 @@ namespace Alpha.Enemy
                 p_owner,
                 p_pattern.RushArea);
 
-            int hitCount = DetectionAreaSystem.Query(
+            int hitCount = DetectionAreaSystem.CollectHits(
                 request,
                 _overlapBuffer,
                 _hitBuffer);

@@ -185,8 +185,7 @@ namespace Alpha.Player.Animation
                 return;
             }
 
-            _actionFlow.OnHitReactionStateChanged +=
-                HandleHitReactionStateChanged;
+            _actionFlow.OnHitReactionStateChanged += HandleHitReactionStateChanged;
             _actionFlow.OnDeathStarted += HandleDeathStarted;
             _actionFlow.OnDeathDownStarted += HandleDeathDownStarted;
             _isActionSubscribed = true;
@@ -200,8 +199,7 @@ namespace Alpha.Player.Animation
             }
             else
             {
-                HandleHitReactionStateChanged(
-                    _actionFlow.HitReactionState);
+                HandleHitReactionStateChanged(_actionFlow.HitReactionState);
             }
         }
 
@@ -212,8 +210,7 @@ namespace Alpha.Player.Animation
 
             if (_actionFlow != null)
             {
-                _actionFlow.OnHitReactionStateChanged -=
-                    HandleHitReactionStateChanged;
+                _actionFlow.OnHitReactionStateChanged -= HandleHitReactionStateChanged;
                 _actionFlow.OnDeathStarted -= HandleDeathStarted;
                 _actionFlow.OnDeathDownStarted -= HandleDeathDownStarted;
             }
@@ -221,8 +218,7 @@ namespace Alpha.Player.Animation
             _isActionSubscribed = false;
         }
 
-        private void HandleHitReactionStateChanged(
-            EHitReactionState p_state)
+        private void HandleHitReactionStateChanged(EHitReactionState p_state)
         {
             if (p_state == EHitReactionState.None)
             {
@@ -273,7 +269,7 @@ namespace Alpha.Player.Animation
                     PlayGroundLocomotion(
                         Vector2.zero,
                         false,
-                        _combatContext?.UsesAimFacing == true);
+                        _combatContext?.IsCombatStanceActive == true);
                     break;
             }
         }
@@ -553,16 +549,20 @@ namespace Alpha.Player.Animation
 
         #region ============================== WeaponOvrrideController
         // 무기 종류에 맞는 AnimatorOverrideController를 적용하고 상체 Layer를 복구한다.
-        public void ApplyWeaponOverrideController(EWeaponType p_weaponType)
+        public void ApplyWeaponOverrideController(
+            EWeaponCategory p_weaponCategory)
         {
             if (_anim == null)
                 return;
 
-            RuntimeAnimatorController nextController = GetWeaponOverrideController(p_weaponType);
+            RuntimeAnimatorController nextController =
+                GetWeaponOverrideController(p_weaponCategory);
 
             if (nextController == null)
             {
-                Debug.LogError($"등록된 AnimatorOverrideController가 없습니다: {p_weaponType}", this);
+                Debug.LogError(
+                    $"등록된 AnimatorOverrideController가 없습니다: {p_weaponCategory}",
+                    this);
 
                 return;
             }
@@ -635,21 +635,22 @@ namespace Alpha.Player.Animation
         }
 
         // 무기 종류에 대응하는 Override Controller를 반환한다.
-        private RuntimeAnimatorController GetWeaponOverrideController(EWeaponType p_weaponType)
+        private RuntimeAnimatorController GetWeaponOverrideController(
+            EWeaponCategory p_weaponCategory)
         {
             // 장비가 없으면 전용 비무장 Controller 또는 최초 Controller를 사용한다.
-            switch (p_weaponType)
+            switch (p_weaponCategory)
             {
-                case EWeaponType.Melee:
+                case EWeaponCategory.Melee:
                     return null;
 
-                case EWeaponType.Range:
+                case EWeaponCategory.Range:
                     return _rangeOverrideController;
 
-                case EWeaponType.Special:
+                case EWeaponCategory.Special:
                     return _specialOverrideController;
 
-                case EWeaponType.None:
+                case EWeaponCategory.None:
                     return _unarmedOverrideController != null
                         ? _unarmedOverrideController
                         : _initialController;
@@ -711,18 +712,13 @@ namespace Alpha.Player.Animation
 
             if (!_anim.HasState(_meleeFullBodyLayerIndex, stateHash))
             {
-                Debug.LogWarning(
-                    $"Melee Animator 상태를 찾을 수 없습니다: {stateName}",
-                    this);
+                Debug.LogWarning($"Melee Animator 상태를 찾을 수 없습니다: {stateName}", this);
                 return false;
             }
 
             BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);
 
-            _anim.CrossFadeInFixedTime(
-                stateHash,
-                0.05f,
-                _meleeFullBodyLayerIndex);
+            _anim.CrossFadeInFixedTime(stateHash, 0.05f, _meleeFullBodyLayerIndex);
             return true;
         }
 
@@ -734,10 +730,7 @@ namespace Alpha.Player.Animation
                 return;
 
             BlendMeleeLayerWeight(1f, _meleeLayerEnterDuration);
-            _anim.CrossFadeInFixedTime(
-                MeleeGuardState,
-                0.05f,
-                _meleeFullBodyLayerIndex);
+            _anim.CrossFadeInFixedTime(MeleeGuardState, 0.05f, _meleeFullBodyLayerIndex);
         }
 
         // 근접 공격 표현을 끝내고 이동 애니메이션을 다시 노출한다.
@@ -749,25 +742,21 @@ namespace Alpha.Player.Animation
             BlendMeleeLayerWeight(0f, _meleeLayerExitDuration);
         }
 
-        private void BlendMeleeLayerWeight(
-            float p_targetWeight,
-            float p_duration)
+        private void BlendMeleeLayerWeight(float p_targetWeight, float p_duration)
         {
             float currentWeight =
                 _anim.GetLayerWeight(_meleeFullBodyLayerIndex);
 
             _meleeLayerTargetWeight = Mathf.Clamp01(p_targetWeight);
 
-            if (p_duration <= 0f ||
-                Mathf.Approximately(currentWeight, _meleeLayerTargetWeight))
+            if (p_duration <= 0f || Mathf.Approximately(currentWeight, _meleeLayerTargetWeight))
             {
                 SetMeleeLayerWeightImmediate(_meleeLayerTargetWeight);
                 return;
             }
 
             _meleeLayerBlendSpeed =
-                Mathf.Abs(_meleeLayerTargetWeight - currentWeight) /
-                p_duration;
+                Mathf.Abs(_meleeLayerTargetWeight - currentWeight) / p_duration;
         }
 
         private void UpdateMeleeLayerBlend()
@@ -787,13 +776,9 @@ namespace Alpha.Player.Animation
                 _meleeLayerTargetWeight,
                 _meleeLayerBlendSpeed * Time.deltaTime);
 
-            _anim.SetLayerWeight(
-                _meleeFullBodyLayerIndex,
-                nextWeight);
+            _anim.SetLayerWeight(_meleeFullBodyLayerIndex, nextWeight);
 
-            if (Mathf.Approximately(
-                    nextWeight,
-                    _meleeLayerTargetWeight))
+            if (Mathf.Approximately(nextWeight, _meleeLayerTargetWeight))
             {
                 _meleeLayerBlendSpeed = 0f;
             }
@@ -804,9 +789,7 @@ namespace Alpha.Player.Animation
             _meleeLayerTargetWeight = Mathf.Clamp01(p_weight);
             _meleeLayerBlendSpeed = 0f;
 
-            _anim.SetLayerWeight(
-                _meleeFullBodyLayerIndex,
-                _meleeLayerTargetWeight);
+            _anim.SetLayerWeight(_meleeFullBodyLayerIndex, _meleeLayerTargetWeight);
         }
         #endregion ============================== /Combat
     }

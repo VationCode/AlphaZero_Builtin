@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace Alpha.Item.Weapon.Melee
 {
+    // MeleeWeapon Prefab에서 선택할 수 있는 근접 무기 타입이다.
+    public enum EMeleeWeaponType
+    {
+        None = (int)EWeaponType.None,
+        Sword = (int)EWeaponType.Sword,
+        Polearm = (int)EWeaponType.Polearm
+    }
+
     // MeleeWeapon이 Entity 소유 공격 로직에 위임하기 위한 계약이다.
     public interface IMeleeWeaponActionController
     {
@@ -30,8 +38,12 @@ namespace Alpha.Item.Weapon.Melee
     }
 
     // 근접 무기의 고유 공격력과 모션 교체 정보를 제공한다.
-    public abstract class MeleeWeapon : Weapon
+    public class MeleeWeapon : Weapon
     {
+        [Header("Identity")]
+        [SerializeField]
+        private EMeleeWeaponType _weaponType = EMeleeWeaponType.None;
+
         [Header("Attack")]
         [SerializeField, Min(0f)]
         private float _baseDamage = 20f;
@@ -45,6 +57,8 @@ namespace Alpha.Item.Weapon.Melee
         private AnimatorOverrideController _animatorOverrideController;
 
         public float BaseDamage => _baseDamage;
+        public sealed override EWeaponType WeaponType =>
+            (EWeaponType)_weaponType;
         public MeleeComboDefinition ComboDefinition => _comboDefinition;
         public AnimatorOverrideController AnimatorOverrideController =>
             _animatorOverrideController;
@@ -56,7 +70,7 @@ namespace Alpha.Item.Weapon.Melee
 
         protected sealed override bool CanInitialize(WeaponDTO p_data)
         {
-            return p_data is MeleeWeaponDTO;
+            return p_data?.WeaponCategory == EWeaponCategory.Melee;
         }
 
         // Melee 공격의 실행 주체가 되는 Entity Module을 연결한다.

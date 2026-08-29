@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Alpha.Player.Inventory
 {
     // 슬롯에 아이템을 적재하는 세부 Module
@@ -17,7 +19,7 @@ namespace Alpha.Player.Inventory
             p_targetSlot = null;
 
             if (p_item == null ||
-                !_context.TryGetSlotList(p_item.ItemType, out var slotList))
+                !TryGetStorageSlotList(p_item, out var slotList))
             {
                 return false;
             }
@@ -51,8 +53,8 @@ namespace Alpha.Player.Inventory
             if (p_item == null || p_count <= 0)
                 return 0;
 
-            // 픽업 아이템 타입에 맞는 SlotList 호출
-            if (!_context.TryGetSlotList(p_item.ItemType, out var slotList))
+            // 분류형 아이템은 Category 슬롯, QuestItem은 ItemType 슬롯을 사용한다.
+            if (!TryGetStorageSlotList(p_item, out var slotList))
             {
                 return 0;
             }
@@ -87,6 +89,72 @@ namespace Alpha.Player.Inventory
             }
 
             return p_count - remainingCount;
+        }
+
+        // 아이템에 맞는 실제 저장 대상 슬롯 목록을 선택한다.
+        private bool TryGetStorageSlotList(
+            ItemDTO p_item,
+            out IReadOnlyList<InventorySlot> p_slotList)
+        {
+            if (p_item is WeaponDTO weapon)
+            {
+                if (_context.TryGetWeaponSlotList(
+                        weapon.WeaponCategory,
+                        out var weaponSlotList))
+                {
+                    p_slotList = weaponSlotList;
+                    return true;
+                }
+
+                p_slotList = null;
+                return false;
+            }
+
+            if (p_item is ArmorDTO armor)
+            {
+                if (_context.TryGetArmorSlotList(
+                        armor.ArmorType,
+                        out var armorSlotList))
+                {
+                    p_slotList = armorSlotList;
+                    return true;
+                }
+
+                p_slotList = null;
+                return false;
+            }
+
+            if (p_item is ConsumableDTO consumable)
+            {
+                if (_context.TryGetConsumableSlotList(
+                        consumable.ConsumableType,
+                        out var consumableSlotList))
+                {
+                    p_slotList = consumableSlotList;
+                    return true;
+                }
+
+                p_slotList = null;
+                return false;
+            }
+
+            if (p_item is MaterialDTO material)
+            {
+                if (_context.TryGetMaterialSlotList(
+                        material.MaterialType,
+                        out var materialSlotList))
+                {
+                    p_slotList = materialSlotList;
+                    return true;
+                }
+
+                p_slotList = null;
+                return false;
+            }
+
+            return _context.TryGetSlotList(
+                p_item.ItemType,
+                out p_slotList);
         }
     }
 }

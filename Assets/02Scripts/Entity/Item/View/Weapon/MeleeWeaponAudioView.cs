@@ -21,7 +21,7 @@ namespace Alpha.Item.Weapon.View
         private void Awake()
         {
             _weapon ??= GetComponent<MeleeWeapon>();
-            _audioSource ??= GetComponent<AudioSource>();
+            _audioSource ??= GetComponentInChildren<AudioSource>(true);
 
             if (_audioSource == null)
                 _audioSource = gameObject.AddComponent<AudioSource>();

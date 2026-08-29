@@ -32,7 +32,7 @@ namespace Alpha.Player.Locomotion
                 _Core.AnimationView.PlayGroundLocomotion(
                     Vector2.zero,
                     false,
-                    false);
+                    _Core.CombatContext.IsCombatStanceActive);
                 return;
             }
 
@@ -70,23 +70,32 @@ namespace Alpha.Player.Locomotion
             bool isSprint = _Input.IsSprint;
             Vector2 moveInput = _Input.MoveInput;
 
-            // 조준 또는 Range 공격 중이면 이동과 별도의 바라볼 방향을 구한다.
+            bool isCombatStance =
+                _Core.CombatContext.IsCombatStanceActive;
+
+            // Range 조준 또는 공격 중이면 이동과 별도의 바라볼 방향을 구한다.
             bool isAimFacing =
                 TryResolveAimFacingDirection(out Vector3 facingDirection);
+
+            float rangeMoveSpeedMultiplier = isAimFacing
+                ? _Core.CombatModule.CurrentRangeAttackModule?
+                    .AttackTuning?.MoveSpeedMultiplier ?? 1f
+                : 1f;
 
             _Core.LocomotionModule.MoveGround(
                 moveInput,
                 cameraTransform,
                 isSprint,
-                isAimFacing,
-                facingDirection);
+                isCombatStance,
+                facingDirection,
+                rangeMoveSpeedMultiplier);
 
             // 실제 이동 속도를 Player 로컬 축으로 변환해 애니메이션에 전달한다.
             Vector2 animationMoveInput = ResolveAnimationMoveInput(moveInput);
             _Core.AnimationView.PlayGroundLocomotion(
                 animationMoveInput,
                 isSprint,
-                isAimFacing);
+                isCombatStance);
         }
 
         // 상태 종료 시 임시 값과 동작을 정리한다.
@@ -134,30 +143,16 @@ namespace Alpha.Player.Locomotion
                 return false;
             }
 
-            bool reuseLastFireDirection =
-                context.IsRangeFacingHeld &&
-                !context.IsAiming &&
-                !context.IsRangePrimaryActive &&
-                !context.IsRangeAttacking;
-
-            Vector3 aimDirection =
-                context.AimDirection;
-
-            // 사격 후 유지 중에는 카메라를 다시 추적하지 않고 마지막 발사 방향을 사용한다.
-            if (!reuseLastFireDirection &&
-                !_Core.CombatModule.TryGetRangeAimDirection(
-                    out aimDirection))
+            // 전투 태세가 유지되는 동안에도 현재 Camera 중앙 에임을 매 프레임 추적한다.
+            if (!_Core.CombatModule.TryGetRangeAimDirection(
+                    out Vector3 aimDirection))
             {
                 ClearRangeAimPresentation();
                 return false;
             }
 
-            if (!reuseLastFireDirection)
-            {
-                context.SetAimDirection(aimDirection);
-                _Core.RigView?.SetAimDirection(
-                    aimDirection);
-            }
+            context.SetAimDirection(aimDirection);
+            _Core.RigView?.SetAimDirection(aimDirection);
 
             if (!context.HasAimDirection)
                 return false;

@@ -160,8 +160,8 @@ namespace Alpha.Enemy.Audio
             }
 
             _actionFlow.OnStateChanged += PlayActionState;
-            _combatFlow.OnAttackWaitStarted += PlayAttackWait;
-            _combatFlow.OnAttackStarted += PlayAttack;
+            _combatFlow.OnAttackWaitStarted += HandleAttackWaitStarted;
+            _combatFlow.OnAttackStarted += HandleAttackStarted;
             _damageReceiver.OnDamaged += HandleDamaged;
             _healthModule.OnDeath += PlayDeath;
             _isSubscribed = true;
@@ -177,8 +177,8 @@ namespace Alpha.Enemy.Audio
 
             if (_combatFlow != null)
             {
-                _combatFlow.OnAttackWaitStarted -= PlayAttackWait;
-                _combatFlow.OnAttackStarted -= PlayAttack;
+                _combatFlow.OnAttackWaitStarted -= HandleAttackWaitStarted;
+                _combatFlow.OnAttackStarted -= HandleAttackStarted;
             }
 
             if (_damageReceiver != null)
@@ -247,6 +247,21 @@ namespace Alpha.Enemy.Audio
                     setting.AttackClips,
                     setting.AttackVolume);
             }
+        }
+
+        private void HandleAttackWaitStarted(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
+        {
+            // Audio는 AnimationIndex와 무관하게 공격 타입 설정을 사용한다.
+            PlayAttackWait(p_attackType);
+        }
+
+        private void HandleAttackStarted(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
+        {
+            PlayAttack(p_attackType);
         }
 
         private void HandleDamaged(DamageInfo p_damageInfo)

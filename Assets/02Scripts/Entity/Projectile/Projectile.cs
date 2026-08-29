@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Alpha.Projectile
 {
-    // 발사 후 이동, 충돌, 피해 전달, 사거리·수명 종료를 관리한다.
+    // 발사 후 이동, 충돌, 피해 전달, 발사점 기준 사거리 종료를 관리한다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(SphereCollider))]
     public class Projectile : MonoBehaviour
@@ -44,20 +44,22 @@ namespace Alpha.Projectile
         private readonly HashSet<IDamageable> _damagedTargets = new();
 
         private Transform _attacker;
+        private Vector3 _launchOrigin;
         private Vector3 _velocity;
         private Vector3 _gravity;
 
         private float _damage;
         private AttackImpactInfo _attackImpact;
         private float _activeCollisionRadius;
-        private float _remainingDistance;
-        private float _remainingLifetime;
+        private float _maximumDistance;
 
         private LayerMask _activeHitMask;
 
         private bool _isActive;
 
         public float GravityScale => _gravityScale;
+        public static QueryTriggerInteraction CollisionTriggerInteraction =>
+            TargetTriggerInteraction;
         public float CollisionRadius =>
             CalculateCollisionRadius();
         public ProjectileImpactSettings ImpactSettings =>
@@ -80,13 +82,13 @@ namespace Alpha.Projectile
             }
 
             _attacker = p_request.Attacker;
+            _launchOrigin = p_request.Origin;
             _velocity = p_request.Direction * p_launchSettings.Speed;
             _gravity = Physics.gravity * _gravityScale;
             _damage = p_request.Damage;
             _attackImpact = p_request.Impact;
             _activeCollisionRadius = CollisionRadius;
-            _remainingDistance = p_request.MaxDistance;
-            _remainingLifetime = p_launchSettings.Lifetime;
+            _maximumDistance = p_request.MaxDistance;
             _activeHitMask = p_launchSettings.HitMask;
 
             // Collider는 SphereCast 형상 데이터로만 사용해 자기 자신과의 중복 물리 판정을 막는다.
@@ -102,7 +104,7 @@ namespace Alpha.Projectile
             LogLifecycle(
                 $"Launch | Attacker={_attacker.name}, " +
                 $"Damage={_damage}, Speed={p_launchSettings.Speed}, " +
-                $"MaxDistance={_remainingDistance}, Lifetime={_remainingLifetime}, " +
+                $"MaxDistance={_maximumDistance}, " +
                 $"GravityScale={_gravityScale}, HitMask={_activeHitMask.value}, " +
                 $"Origin={transform.position}, Direction={p_request.Direction}");
 
@@ -127,27 +129,15 @@ namespace Alpha.Projectile
             if (deltaTime <= 0f)
                 return;
 
-            _remainingLifetime -= deltaTime;
-
-            if (_remainingLifetime <= 0f)
-            {
-                Release("Lifetime");
-                return;
-            }
-
             Vector3 displacement =
-                _velocity * deltaTime +
-                0.5f * _gravity *
-                deltaTime * deltaTime;
+                CalculateDisplacement(
+                    _velocity,
+                    _gravity,
+                    deltaTime);
 
             float requestedDistance = displacement.magnitude;
 
-            float moveDistance = Mathf.Min(
-                requestedDistance,
-                _remainingDistance);
-
-            if (moveDistance <= 0f ||
-                requestedDistance <= 0.0001f)
+            if (requestedDistance <= 0.0001f)
             {
                 Release("NoMovement");
                 return;
@@ -155,6 +145,25 @@ namespace Alpha.Projectile
 
             Vector3 moveDirection =
                 displacement / requestedDistance;
+
+            float distanceToBoundary =
+                CalculateDistanceToRangeBoundary(
+                    transform.position,
+                    _launchOrigin,
+                    moveDirection,
+                    _maximumDistance);
+
+            if (distanceToBoundary <= 0f)
+            {
+                Release("MaximumDistance");
+                return;
+            }
+
+            float moveDistance = Mathf.Min(
+                requestedDistance,
+                distanceToBoundary);
+            bool reachesMaximumDistance =
+                moveDistance >= distanceToBoundary - 0.0001f;
 
             Ray moveRay = new(
                 GetCollisionCenter(),
@@ -174,9 +183,7 @@ namespace Alpha.Projectile
             transform.position +=
                 moveDirection * moveDistance;
 
-            _remainingDistance -= moveDistance;
-
-            if (_remainingDistance <= 0f)
+            if (reachesMaximumDistance)
             {
                 Release("MaximumDistance");
                 return;
@@ -217,12 +224,79 @@ namespace Alpha.Projectile
                 TargetTriggerInteraction);
         }
 
+        // 실제 비행과 조준 미리보기가 같은 등가속도 이동식을 사용한다.
+        public static Vector3 CalculateDisplacement(
+            Vector3 p_velocity,
+            Vector3 p_gravity,
+            float p_deltaTime)
+        {
+            return p_velocity * p_deltaTime +
+                   0.5f * p_gravity *
+                   p_deltaTime * p_deltaTime;
+        }
+
+        // 현재 이동 방향이 발사점 기준 MaxDistance 경계까지 갈 수 있는 거리를 계산한다.
+        public static float CalculateDistanceToRangeBoundary(
+            Vector3 p_position,
+            Vector3 p_launchOrigin,
+            Vector3 p_moveDirection,
+            float p_maxDistance)
+        {
+            if (p_maxDistance <= 0f ||
+                p_moveDirection.sqrMagnitude <= 0.0001f)
+            {
+                return 0f;
+            }
+
+            Vector3 direction = p_moveDirection.normalized;
+            Vector3 originOffset = p_position - p_launchOrigin;
+            float squaredRadius = p_maxDistance * p_maxDistance;
+            float boundaryOffset =
+                originOffset.sqrMagnitude - squaredRadius;
+
+            if (boundaryOffset >= -0.0001f)
+                return 0f;
+
+            float projection = Vector3.Dot(
+                originOffset,
+                direction);
+            float discriminant =
+                projection * projection - boundaryOffset;
+
+            if (discriminant <= 0f)
+                return 0f;
+
+            return Mathf.Max(
+                0f,
+                -projection + Mathf.Sqrt(discriminant));
+        }
+
+        // 생성 전 예측에서도 Projectile Collider의 실제 중심을 사용할 수 있게 한다.
+        public Vector3 CalculateCollisionCenter(
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation)
+        {
+            if (_collisionShape == null)
+                return p_rootPosition;
+
+            Vector3 rootLocalCenter =
+                transform.InverseTransformPoint(
+                    _collisionShape.transform.TransformPoint(
+                        _collisionShape.center));
+
+            Vector3 scaledCenter = Vector3.Scale(
+                rootLocalCenter,
+                transform.localScale);
+
+            return p_rootPosition +
+                   p_rootRotation * scaledCenter;
+        }
+
         private Vector3 GetCollisionCenter()
         {
-            return _collisionShape != null
-                ? _collisionShape.transform.TransformPoint(
-                    _collisionShape.center)
-                : transform.position;
+            return CalculateCollisionCenter(
+                transform.position,
+                transform.rotation);
         }
 
         private float CalculateCollisionRadius()
@@ -275,7 +349,8 @@ namespace Alpha.Projectile
                 $"Layer={layerName}({p_hit.collider.gameObject.layer}), " +
                 $"Damageable={damageable?.GetType().Name ?? "None"}, " +
                 $"DamageApplied={damagedTargetCount > 0}, " +
-                $"Point={p_hit.point}, RemainingDistance={_remainingDistance}");
+                $"Point={p_hit.point}, " +
+                $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, p_hit.point)}");
 
             // 지형이나 피해 불가능 대상에 명중해도 투사체는 종료한다.
             Release("Impact");
@@ -373,8 +448,8 @@ namespace Alpha.Projectile
             LogLifecycle(
                 $"Release | Reason={p_reason}, " +
                 $"Position={transform.position}, " +
-                $"RemainingDistance={_remainingDistance}, " +
-                $"RemainingLifetime={_remainingLifetime}");
+                $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, transform.position)}, " +
+                $"MaxDistance={_maximumDistance}");
 
             _isActive = false;
             Destroy(gameObject);

@@ -1,0 +1,237 @@
+{
+
+    "MeleeList": [
+        {
+            "Id": 100,
+
+            "Name": "기본환도",
+
+            "ItemType": 0,
+
+            "IconKey": "기본환도_Icon",
+
+            "PrefabKey": "기본환도_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 환도"
+        },
+        {
+            "Id": 101,
+
+            "Name": " 별운검",
+
+            "ItemType": 0,
+
+            "IconKey": "별운검_Icon",
+
+            "PrefabKey": "별운검_Prefab",
+
+            "Price": 1000,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 환도"
+        },
+        {
+            "Id": 200,
+
+            "Name": "기본월도",
+
+            "ItemType": 0,
+
+            "IconKey": "기본월도_Icon",
+
+            "PrefabKey": "기본월도_Prefab",
+
+            "Price": 800,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 월도"
+        },
+        {
+            "Id": 201,
+
+            "Name": "은월",
+
+            "ItemType": 0,
+
+            "IconKey": "은월_Icon",
+
+            "PrefabKey": "은월_Prefab",
+
+            "Price": 1600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "중급 월도"
+        }
+    ],
+    "RangeList": [
+        {
+            "Id": 500,
+
+            "Name": "기본소총",
+
+            "ItemType": 0,
+
+            "IconKey": "기본소총_Icon",
+
+            "PrefabKey": "기본소총_Prefab",
+
+            "Price": 500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 소총"
+        },
+        {
+            "Id": 600,
+
+            "Name": "기본저격총",
+
+            "ItemType": 0,
+
+            "IconKey": "기본저격총_Icon",
+
+            "PrefabKey": "기본저격총_Prefab",
+
+            "Price": 1500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 저격총"
+        },
+        {
+            "Id": 700,
+
+            "Name": "기본광선총",
+
+            "ItemType": 0,
+
+            "IconKey": "기본광선총_Icon",
+
+            "PrefabKey": "기본광선총_Prefab",
+
+            "Price": 1500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 광선총"
+        },
+        {
+            "Id": 800,
+
+            "Name": "기본산탄총",
+
+            "ItemType": 0,
+
+            "IconKey": "기본산탄총_Icon",
+
+            "PrefabKey": "기본산탄총_Prefab",
+
+            "Price": 1500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 산탄총"
+        },
+        {
+            "Id": 900,
+
+            "Name": "기본유탄발사기",
+
+            "ItemType": 0,
+
+            "IconKey": "기본유탄발사기_Icon",
+
+            "PrefabKey": "기본유탄발사기_Prefab",
+
+            "Price": 1500,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "기본 유탄발사기"
+        }
+    ],
+    "SpecialList": [
+        {
+            "Id": 1000,
+
+            "Name": "SP00",
+
+            "ItemType": 0,
+
+            "IconKey": "SP00_Icon",
+
+            "PrefabKey": "SP00_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "특수 무기00"
+        },
+        {
+            "Id": 1001,
+
+            "Name": "SP01",
+
+            "ItemType": 0,
+
+            "IconKey": "SP01_Icon",
+
+            "PrefabKey": "SP01_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "특수 무기01"
+        },
+        {
+            "Id": 1002,
+
+            "Name": "SP02",
+
+            "ItemType": 0,
+
+            "IconKey": "SP02_Icon",
+
+            "PrefabKey": "SP02_Prefab",
+
+            "Price": 600,
+
+            "IsStackable": false,
+
+            "MaxStackCount": 1,
+
+            "Description": "특수 무기02"
+        }
+    ]
+}

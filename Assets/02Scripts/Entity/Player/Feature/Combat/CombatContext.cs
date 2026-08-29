@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace Alpha.Player.Combat
 {
+    // 공통 전투 태세의 비활성·근접·원거리 표현 방식을 구분한다.
+    public enum ECombatStanceType
+    {
+        Inactive = 0,
+        Melee = 1,
+        Range = 2
+    }
+
     // Player의 무기 교체와 조준 상태를 보관한다.
     public class CombatContext
     {
@@ -25,7 +33,13 @@ namespace Alpha.Player.Combat
         public bool IsBusy => CurrentState != ECombatStateType.Idle;
         public bool IsRangePrimaryActive { get; private set; }
         public bool IsRangeAttacking { get; private set; }
-        public bool IsRangeFacingHeld { get; private set; }
+        public ECombatStanceType CombatStanceType { get; private set; }
+            = ECombatStanceType.Inactive;
+        public bool IsCombatStanceActive =>
+            CombatStanceType != ECombatStanceType.Inactive;
+        public Vector3 RangeCombatDirection { get; private set; }
+        public bool IsRangeCombatActive =>
+            CombatStanceType == ECombatStanceType.Range;
         public bool IsAiming { get; private set; }
         // 탄환 방향과 상체 Pitch가 공유하는 실제 Range 전체 조준 방향이다.
         public Vector3 AimDirection { get; private set; }
@@ -33,7 +47,7 @@ namespace Alpha.Player.Combat
             IsAiming ||
             IsRangePrimaryActive ||
             IsRangeAttacking ||
-            IsRangeFacingHeld;
+            IsRangeCombatActive;
         public bool HasAimDirection => AimDirection.sqrMagnitude > 0.0001f;
 
         public event Action<ECombatStateType> OnStateChanged;
@@ -48,9 +62,25 @@ namespace Alpha.Player.Combat
             IsRangeAttacking = p_isRangeAttacking;
         }
 
-        internal void SetRangeFacingHeld(bool p_isRangeFacingHeld)
+        internal void EnterCombatStance(
+            ECombatStanceType p_stanceType,
+            Vector3 p_rangeDirection)
         {
-            IsRangeFacingHeld = p_isRangeFacingHeld;
+            if (p_stanceType == ECombatStanceType.Inactive)
+                return;
+
+            CombatStanceType = p_stanceType;
+            RangeCombatDirection =
+                p_stanceType == ECombatStanceType.Range &&
+                p_rangeDirection.sqrMagnitude > 0.0001f
+                    ? p_rangeDirection.normalized
+                    : Vector3.zero;
+        }
+
+        internal void ExitCombatStance()
+        {
+            CombatStanceType = ECombatStanceType.Inactive;
+            RangeCombatDirection = Vector3.zero;
         }
 
         // SetAiming 상태 값을 갱신한다.

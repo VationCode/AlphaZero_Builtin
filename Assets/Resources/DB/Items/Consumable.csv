@@ -1,0 +1,4 @@
+﻿Id,Name,ConsumableType,HealAmount,IconKey,PrefabKey,Price,IsStackable,MaxStackCount,Description
+3000,Heal00,Heal,200,Heal00_Icon,Heal00_Prefab,100,true,99,기본 힐포션
+3100,Mana00,Mana,200,Mana00_Icon,Mana00_Prefab,100,true,99,기본 마나포션
+3200,Pack00,Pack,200,Pack00_Icon,Pack00_Prefab,100,true,99,기본 팩

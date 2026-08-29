@@ -108,12 +108,7 @@ namespace Alpha.Detection.Editor
                 ref lineIndex);
             DrawProperty(
                 p_position,
-                p_property.FindPropertyRelative("_targetMask"),
-                null,
-                ref lineIndex);
-            DrawProperty(
-                p_position,
-                p_property.FindPropertyRelative("_triggerInteraction"),
+                p_property.FindPropertyRelative("_targetLayers"),
                 null,
                 ref lineIndex);
 
@@ -131,7 +126,7 @@ namespace Alpha.Detection.Editor
             SerializedProperty shape =
                 p_property.FindPropertyRelative("_shape");
 
-            int childLineCount = 6;
+            int childLineCount = 5;
 
             if (!shape.hasMultipleDifferentValues)
             {

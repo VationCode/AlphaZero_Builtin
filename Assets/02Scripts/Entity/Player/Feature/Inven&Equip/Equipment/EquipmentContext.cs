@@ -6,7 +6,7 @@ namespace Alpha.Player.Equipment
     // 현재 장착 상태 보관 및 조회
     public class EquipmentContext
     {
-        private readonly Dictionary<EWeaponType, WeaponEquipmentSlot> _weaponSlotDict = new();
+        private readonly Dictionary<EWeaponCategory, WeaponEquipmentSlot> _weaponSlotDict = new();
 
         private readonly Dictionary<EArmorType, ArmorEquipmentSlot> _armorSlotDict = new();
 
@@ -19,9 +19,9 @@ namespace Alpha.Player.Equipment
         // 전달받은 값으로 초기 상태를 구성한다.
         public EquipmentContext()
         {
-            Register(new WeaponEquipmentSlot(EWeaponType.Melee));
-            Register(new WeaponEquipmentSlot(EWeaponType.Range));
-            Register(new WeaponEquipmentSlot(EWeaponType.Special));
+            Register(new WeaponEquipmentSlot(EWeaponCategory.Melee));
+            Register(new WeaponEquipmentSlot(EWeaponCategory.Range));
+            Register(new WeaponEquipmentSlot(EWeaponCategory.Special));
 
             Register(new ArmorEquipmentSlot(EArmorType.Helmet));
             Register(new ArmorEquipmentSlot(EArmorType.Chest));
@@ -30,9 +30,11 @@ namespace Alpha.Player.Equipment
         }
 
         // TryGetWeaponSlot 조건을 검사하고 성공 여부와 결과를 반환한다.
-        public bool TryGetWeaponSlot(EWeaponType p_weaponType, out WeaponEquipmentSlot p_slot)
+        public bool TryGetWeaponSlot(
+            EWeaponCategory p_weaponCategory,
+            out WeaponEquipmentSlot p_slot)
         {
-            return _weaponSlotDict.TryGetValue(p_weaponType, out p_slot);
+            return _weaponSlotDict.TryGetValue(p_weaponCategory, out p_slot);
         }
 
         // TryGetArmorSlot 조건을 검사하고 성공 여부와 결과를 반환한다.
@@ -44,7 +46,7 @@ namespace Alpha.Player.Equipment
         // 등록
         private void Register(WeaponEquipmentSlot p_slot)
         {
-            _weaponSlotDict.Add(p_slot.WeaponType, p_slot);
+            _weaponSlotDict.Add(p_slot.WeaponCategory, p_slot);
             RegisterSlot(p_slot);
         }
 

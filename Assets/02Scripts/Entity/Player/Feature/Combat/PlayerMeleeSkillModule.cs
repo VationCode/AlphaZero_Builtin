@@ -133,7 +133,7 @@ namespace Alpha.Player.Combat
                 _attacker,
                 p_settings.Area);
 
-            int hitCount = DetectionAreaSystem.Query(
+            int hitCount = DetectionAreaSystem.CollectHits(
                 request,
                 _overlapBuffer,
                 _hitBuffer);

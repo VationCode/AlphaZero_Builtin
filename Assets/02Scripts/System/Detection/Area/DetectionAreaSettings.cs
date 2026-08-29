@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.Detection
 {
@@ -11,9 +12,9 @@ namespace Alpha.Detection
         Radial = 2
     }
 
-    // Entity 종류와 관계없이 공간 탐지에 필요한 형태와 Physics 조건을 보관한다.
+    // Entity 종류와 관계없이 영역 형태와 Physics 검색 조건을 보관한다.
     [Serializable]
-    public class DetectionAreaSettings
+    public sealed class DetectionAreaSettings
     {
         [SerializeField]
         private EDetectionAreaShape _shape =
@@ -23,7 +24,7 @@ namespace Alpha.Detection
         private Vector3 _localOffset = new(0f, 0.9f, 0f);
 
         [Tooltip(
-            "공격자의 정면을 기준으로 판정 영역과 Local Offset을 " +
+            "기준 방향에서 판정 영역과 Local Offset을 " +
             "회전할 Y축 각도입니다.")]
         [SerializeField, Range(-180f, 180f)]
         private float _yawOffset;
@@ -43,12 +44,9 @@ namespace Alpha.Detection
         [SerializeField, Min(0.01f)]
         private float _height = 1.8f;
 
+        [FormerlySerializedAs("_targetMask")]
         [SerializeField]
-        private LayerMask _targetMask = ~0;
-
-        [SerializeField]
-        private QueryTriggerInteraction _triggerInteraction =
-            QueryTriggerInteraction.Ignore;
+        private LayerMask _targetLayers = ~0;
 
         public EDetectionAreaShape Shape => _shape;
         public Vector3 LocalOffset => _localOffset;
@@ -58,9 +56,11 @@ namespace Alpha.Detection
         public float Radius => _radius;
         public float Angle => _angle;
         public float Height => _height;
-        public LayerMask TargetMask => _targetMask;
-        public QueryTriggerInteraction TriggerInteraction =>
-            _triggerInteraction;
+        public LayerMask TargetLayers => _targetLayers;
+
+        // 기준 위치에서 현재 영역이 수평으로 도달할 수 있는 최대 거리다.
+        public float MaximumHorizontalReach =>
+            CalculateMaximumHorizontalReach();
 
         public bool IsValid => _shape switch
         {
@@ -76,7 +76,7 @@ namespace Alpha.Detection
             _ => false
         };
 
-        // 직렬화된 잘못된 수치가 Physics 판정으로 전달되지 않게 보정한다.
+        // 모든 Shape 값을 보정해 형태 변경 후에도 안전한 설정을 유지한다.
         public void Validate()
         {
             _yawOffset = Mathf.Clamp(_yawOffset, -180f, 180f);
@@ -85,6 +85,66 @@ namespace Alpha.Detection
             _radius = Mathf.Max(0.01f, _radius);
             _angle = Mathf.Clamp(_angle, 0.1f, 360f);
             _height = Mathf.Max(0.01f, _height);
+        }
+
+        private float CalculateMaximumHorizontalReach()
+        {
+            if (!IsValid)
+                return 0f;
+
+            Vector2 offset = new(
+                _localOffset.x,
+                _localOffset.z);
+
+            switch (_shape)
+            {
+                case EDetectionAreaShape.ForwardBox:
+                {
+                    float maximumX =
+                        Mathf.Abs(offset.x) + _width * 0.5f;
+
+                    float maximumZ = Mathf.Max(
+                        Mathf.Abs(offset.y),
+                        Mathf.Abs(offset.y + _length));
+
+                    return new Vector2(
+                        maximumX,
+                        maximumZ).magnitude;
+                }
+
+                case EDetectionAreaShape.ForwardSector:
+                {
+                    if (_angle >= 360f)
+                        return offset.magnitude + _radius;
+
+                    float offsetAngle = Mathf.Atan2(
+                        offset.x,
+                        offset.y) * Mathf.Rad2Deg;
+
+                    float halfAngle = _angle * 0.5f;
+                    float farthestAngle = Mathf.Clamp(
+                        offsetAngle,
+                        -halfAngle,
+                        halfAngle);
+
+                    float angleRadians =
+                        farthestAngle * Mathf.Deg2Rad;
+
+                    Vector2 farthestDirection = new(
+                        Mathf.Sin(angleRadians),
+                        Mathf.Cos(angleRadians));
+
+                    return (offset +
+                            farthestDirection * _radius)
+                        .magnitude;
+                }
+
+                case EDetectionAreaShape.Radial:
+                    return offset.magnitude + _radius;
+
+                default:
+                    return 0f;
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 namespace Alpha.Player.Inventory
 {
@@ -37,7 +36,9 @@ namespace Alpha.Player.Inventory
             // 아이템 분류별 설정 수량만큼 기본 슬롯을 생성한다.
             CreateWeaponSlots();
             CreateArmorSlots();
-            CreateCommonSlots();
+            CreateConsumableSlots();
+            CreateMaterialSlots();
+            CreateQuestItemSlots();
 
             return true;
         }
@@ -61,16 +62,16 @@ namespace Alpha.Player.Inventory
         // 아이템 종류와 세부 그룹에 맞는 슬롯 구현체를 생성한다.
         private InventorySlot CreateSlot(EItemType p_itemType, int p_groupIndex)
         {
-            // 무기·방어구는 세부 타입별 슬롯, 나머지는 공용 슬롯을 사용한다.
+            // 분류형 아이템은 세부 Category 슬롯, QuestItem은 공용 슬롯을 사용한다.
             switch (p_itemType)
             {
                 case EItemType.Weapon:
-                    if (!Enum.IsDefined(typeof(EWeaponType), p_groupIndex))
+                    if (!Enum.IsDefined(typeof(EWeaponCategory), p_groupIndex))
                     {
                         return null;
                     }
 
-                    return new WeaponInventorySlot(_nextSlotIndex++, (EWeaponType)p_groupIndex);
+                    return new WeaponInventorySlot(_nextSlotIndex++, (EWeaponCategory)p_groupIndex);
 
                 case EItemType.Armor:
                     if (!Enum.IsDefined(typeof(EArmorType), p_groupIndex))
@@ -81,10 +82,23 @@ namespace Alpha.Player.Inventory
                     return new ArmorInventorySlot(_nextSlotIndex++, (EArmorType)p_groupIndex);
 
                 case EItemType.Consumable:
-                case EItemType.Material:
-                case EItemType.QuestItem:
+                    if (!Enum.IsDefined(typeof(EConsumableType), p_groupIndex))
+                    {
+                        return null;
+                    }
 
-                    // Common 타입은 ScrollView가 하나이므로 0만 사용한다.
+                    return new ConsumableInventorySlot(_nextSlotIndex++, (EConsumableType)p_groupIndex);
+
+                case EItemType.Material:
+                    if (!Enum.IsDefined(typeof(EMaterialType), p_groupIndex))
+                    {
+                        return null;
+                    }
+
+                    return new MaterialInventorySlot(_nextSlotIndex++, (EMaterialType)p_groupIndex);
+
+                case EItemType.QuestItem:
+                    // QuestItem은 ScrollView가 하나이므로 0만 사용한다.
                     if (p_groupIndex != 0)
                         return null;
 
@@ -98,22 +112,22 @@ namespace Alpha.Player.Inventory
         // 초기 셋팅
         private void CreateWeaponSlots()
         {
-            AddWeaponSlots(EWeaponType.Melee, _weaponSlotCount);
-            AddWeaponSlots(EWeaponType.Range, _weaponSlotCount);
-            AddWeaponSlots(EWeaponType.Special, _weaponSlotCount);
+            AddWeaponSlots(EWeaponCategory.Melee, _weaponSlotCount);
+            AddWeaponSlots(EWeaponCategory.Range, _weaponSlotCount);
+            AddWeaponSlots(EWeaponCategory.Special, _weaponSlotCount);
         }
 
         // AddWeaponSlots 대상을 가능한 범위만큼 추가한다.
-        private void AddWeaponSlots(EWeaponType p_weaponType, int p_count)
+        private void AddWeaponSlots(EWeaponCategory p_weaponCategory, int p_count)
         {
             for (int i = 0; i < p_count; i++)
             {
-                InventorySlot slot = new WeaponInventorySlot(_nextSlotIndex++, p_weaponType);
+                InventorySlot slot = new WeaponInventorySlot(_nextSlotIndex++, p_weaponCategory);
                 _context.AddSlot(EItemType.Weapon, slot);   // 타입 별로 그룹화되어 InventoryContext에 추가된다.
             }
         }
 
-        // CreateArmorSlots 객체 또는 데이터를 생성한다.
+        // 방어구 부위별 기본 슬롯을 생성한다.
         private void CreateArmorSlots()
         {
             AddArmorSlots(EArmorType.Helmet, _armorSlotCount);
@@ -122,7 +136,7 @@ namespace Alpha.Player.Inventory
             AddArmorSlots(EArmorType.Boots, _armorSlotCount);
         }
 
-        // AddArmorSlots 대상을 가능한 범위만큼 추가한다.
+        // 지정 방어구 부위에 슬롯을 추가한다.
         private void AddArmorSlots(EArmorType p_armorType, int p_count)
         {
             for (int i = 0; i < p_count; i++)
@@ -132,21 +146,53 @@ namespace Alpha.Player.Inventory
             }
         }
 
-        // CreateCommonSlots 객체 또는 데이터를 생성한다.
-        private void CreateCommonSlots()
+        // 소비 아이템 종류별 기본 슬롯을 생성한다.
+        private void CreateConsumableSlots()
         {
-            AddCommonSlots(EItemType.Consumable, _commonSlotCount);
-            AddCommonSlots(EItemType.Material, _commonSlotCount);
-            AddCommonSlots(EItemType.QuestItem, _commonSlotCount);
+            AddConsumableSlots(EConsumableType.Heal, _commonSlotCount);
+            AddConsumableSlots(EConsumableType.Mana, _commonSlotCount);
+            AddConsumableSlots(EConsumableType.Pack, _commonSlotCount);
         }
 
-        // AddCommonSlots 대상을 가능한 범위만큼 추가한다.
-        private void AddCommonSlots(EItemType p_itemType, int p_count)
+        private void AddConsumableSlots(EConsumableType p_consumableType, int p_count)
         {
             for (int i = 0; i < p_count; i++)
             {
-                InventorySlot slot = new CommonInventorySlot(_nextSlotIndex++, p_itemType);
-                _context.AddSlot(p_itemType, slot);
+                InventorySlot slot = 
+                    new ConsumableInventorySlot(_nextSlotIndex++, p_consumableType);
+
+                _context.AddSlot(EItemType.Consumable, slot);
+            }
+        }
+
+        // 재료 아이템 종류별 기본 슬롯을 생성한다.
+        private void CreateMaterialSlots()
+        {
+            AddMaterialSlots(EMaterialType.Mineral, _commonSlotCount);
+            AddMaterialSlots(EMaterialType.Organic, _commonSlotCount);
+            AddMaterialSlots(EMaterialType.Essence, _commonSlotCount);
+        }
+
+        private void AddMaterialSlots(EMaterialType p_materialType, int p_count)
+        {
+            for (int i = 0; i < p_count; i++)
+            {
+                InventorySlot slot = 
+                    new MaterialInventorySlot(_nextSlotIndex++, p_materialType);
+
+                _context.AddSlot(EItemType.Material, slot);
+            }
+        }
+
+        // 세부 분류가 없는 QuestItem 공용 슬롯을 생성한다.
+        private void CreateQuestItemSlots()
+        {
+            for (int i = 0; i < _commonSlotCount; i++)
+            {
+                InventorySlot slot = 
+                    new CommonInventorySlot(_nextSlotIndex++, EItemType.QuestItem);
+
+                _context.AddSlot(EItemType.QuestItem, slot);
             }
         }
     }

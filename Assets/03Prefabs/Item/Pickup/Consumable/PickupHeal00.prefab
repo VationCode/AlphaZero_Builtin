@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5b19fc030b310b498e2ed3c8c4c2b0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemId: 2000
+  _itemId: 3000
   _count: 1
   _itemType: 2
 --- !u!1 &2716143243994958131

@@ -67,9 +67,7 @@ namespace Alpha.Player.Audio
         }
 
         // 상태가 실제로 확정된 시점에 대응하는 이동 효과음을 한 번 재생한다.
-        private void HandleStateChanged(
-            ELocomotionMode p_mode,
-            ELocoStateType p_state)
+        private void HandleStateChanged(ELocomotionMode p_mode, ELocoStateType p_state)
         {
             switch (p_state)
             {
@@ -124,24 +122,18 @@ namespace Alpha.Player.Audio
 
             if (index == _lastFootstepIndex)
             {
-                index = (index + Random.Range(
-                    1,
-                    _footstepClips.Length)) % _footstepClips.Length;
+                index = (index + Random.Range(1, _footstepClips.Length)) % _footstepClips.Length;
             }
 
             return index;
         }
 
-        private void PlayOneShot(
-            AudioClip p_clip,
-            float p_volume)
+        private void PlayOneShot(AudioClip p_clip, float p_volume)
         {
             if (_audioSource == null || p_clip == null)
                 return;
 
-            _audioSource.PlayOneShot(
-                p_clip,
-                p_volume);
+            _audioSource.PlayOneShot(p_clip, p_volume);
         }
     }
 }

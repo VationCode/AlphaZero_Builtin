@@ -38,7 +38,7 @@ namespace Alpha.Enemy
                 p_owner,
                 p_pattern.MeleeArea);
 
-            int hitCount = DetectionAreaSystem.Query(
+            int hitCount = DetectionAreaSystem.CollectHits(
                 request,
                 _overlapBuffer,
                 _hitBuffer);

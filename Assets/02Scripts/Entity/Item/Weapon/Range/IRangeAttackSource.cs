@@ -12,7 +12,6 @@ namespace Alpha.Item.Weapon.Range
         bool TryGetAttackPose(
             Vector3 p_muzzleOrigin,
             float p_maxDistance,
-            float p_defaultAimDistance,
             out Vector3 p_attackOrigin,
             out Vector3 p_targetPoint);
     }

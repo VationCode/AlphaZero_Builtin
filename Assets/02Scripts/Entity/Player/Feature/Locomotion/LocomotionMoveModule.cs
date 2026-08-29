@@ -137,9 +137,7 @@ namespace Alpha.Player.Locomotion
             ApplyMovement(velocity, p_deltaPosition);
         }
 
-        private void ApplyMovement(
-            Vector3 p_velocity,
-            Vector3 p_deltaPosition)
+        private void ApplyMovement(Vector3 p_velocity, Vector3 p_deltaPosition)
         {
             Velocity = p_velocity;
             _context.Velocity = p_velocity;

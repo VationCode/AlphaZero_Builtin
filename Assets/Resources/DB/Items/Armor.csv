@@ -1,0 +1,13 @@
+﻿Id,Name,ArmorType,IconKey,PrefabKey,Price,IsStackable,MaxStackCount,Description
+2000,Helmet00,Helmet,Helmet00_Icon,Helmet00_Prefab,500,false,1,기본 헬멧
+2001,Helmet01,Helmet,Helmet01_Icon,Helmet01_Prefab,500,false,1,중급 헬멧
+2002,Helmet02,Helmet,Helmet02_Icon,Helmet02_Prefab,500,false,1,고급 헬멧
+2100,Chest00,Chest,Chest00_Icon,Chest00_Prefab,500,false,1,기본 갑옷
+2101,Chest01,Chest,Chest01_Icon,Chest01_Prefab,500,false,1,중급 갑옷
+2102,Chest02,Chest,Chest02_Icon,Chest02_Prefab,500,false,1,고급 갑옷
+2200,Gloves00,Gloves,Gloves00_Icon,Gloves00_Prefab,600,false,1,기본 장갑
+2201,Gloves01,Gloves,Gloves01_Icon,Gloves01_Prefab,600,false,1,중급 장갑
+2202,Gloves02,Gloves,Gloves02_Icon,Gloves02_Prefab,600,false,1,고급 장갑
+2300,Boots00,Boots,Boots00_Icon,Boots00_Prefab,600,false,1,기본 신발
+2301,Boots01,Boots,Boots01_Icon,Boots01_Prefab,600,false,1,중급 신발
+2302,Boots02,Boots,Boots02_Icon,Boots02_Prefab,600,false,1,고급 신발

@@ -12,7 +12,7 @@ namespace Alpha.Player.Combat
         private bool _isMeleePrimaryAction;
         private bool _isMeleeSecondaryAction;
         private bool _isRangePrimaryAction;
-        private RangeWeapon _activeRangeWeapon;
+        private RangeAttackModule _activeRangeAttackModule;
         private int _playedSkillIndex = -1;
         private int _facingSkillIndex = -1;
         private bool _hasMeleeFacingDirection;
@@ -39,11 +39,11 @@ namespace Alpha.Player.Combat
 
             bool isRangePrimaryRequest =
                 actionType == EWeaponActionType.Primary &&
-                _Core.CombatModule.CurrentWeapon is RangeWeapon;
+                _Core.CombatModule.CurrentWeapon is RangeAttackModule;
 
-            RangeWeapon requestedRangeWeapon =
+            RangeAttackModule requestedRangeAttackModule =
                 isRangePrimaryRequest
-                    ? _Core.CombatModule.CurrentRangeWeapon
+                    ? _Core.CombatModule.CurrentRangeAttackModule
                     : null;
 
             // 첫 발사 프레임부터 마지막 발사 방향을 Domain과 View가 공유한다.
@@ -72,7 +72,7 @@ namespace Alpha.Player.Combat
             {
                 if (isRangePrimaryRequest &&
                     !_Context.IsAiming &&
-                    !_Flow.TryRestoreRangeFacingHold())
+                    !_Flow.TryRestoreRangeCombatDirection())
                 {
                     _Context.ClearAimDirection();
                     _Core.RigView?.ClearAimDirection();
@@ -85,16 +85,16 @@ namespace Alpha.Player.Combat
             _isRangePrimaryAction =
                 isRangePrimaryRequest;
 
-            _activeRangeWeapon =
-                requestedRangeWeapon;
+            _activeRangeAttackModule =
+                requestedRangeAttackModule;
 
             _Context.SetRangePrimaryActive(
                 _isRangePrimaryAction);
 
             _Context.SetRangeAttacking(
                 _isRangePrimaryAction &&
-                _activeRangeWeapon != null &&
-                _activeRangeWeapon.DidFireDuringPrimaryAction);
+                _activeRangeAttackModule != null &&
+                _activeRangeAttackModule.DidFireDuringPrimaryAction);
 
             // TPS를 포함한 모든 Camera View에서 Range 공격 중 상체 Rig를 활성화한다.
             _Flow.RefreshRangeAimRigPresentation();
@@ -122,6 +122,9 @@ namespace Alpha.Player.Combat
                 _Core.LocomotionModule.BeginInputLock();
                 _Core.AnimationView?.PlayMeleeGuard();
             }
+
+            // 좌·우 무기 행동의 실제 시작이 성공한 경우에만 공통 전투 태세를 갱신한다.
+            _Flow.BeginCombatStance();
 
             _playedSkillIndex = -1;
             ResetMeleeFacing();
@@ -173,14 +176,14 @@ namespace Alpha.Player.Combat
             // 쿨다운 대기가 끝나 실제 첫 발이 나간 시점부터 공격 중으로 전환한다.
             if (_isRangePrimaryAction &&
                 !_Context.IsRangeAttacking &&
-                _activeRangeWeapon != null &&
-                _activeRangeWeapon.DidFireDuringPrimaryAction)
+                _activeRangeAttackModule != null &&
+                _activeRangeAttackModule.DidFireDuringPrimaryAction)
             {
                 _Context.SetRangeAttacking(true);
                 _Context.SetAimDirection(
-                    _activeRangeWeapon.LastFireDirection);
+                    _activeRangeAttackModule.LastFireDirection);
                 _Core.RigView?.SetAimDirection(
-                    _activeRangeWeapon.LastFireDirection);
+                    _activeRangeAttackModule.LastFireDirection);
             }
 
             PlayCurrentMeleeSkill();
@@ -203,30 +206,14 @@ namespace Alpha.Player.Combat
 
             if (_isRangePrimaryAction)
             {
-                bool didFire =
-                    _activeRangeWeapon != null &&
-                    _activeRangeWeapon.DidFireDuringPrimaryAction;
-
                 _Context.SetRangePrimaryActive(false);
                 _Context.SetRangeAttacking(false);
 
-                if (!_Context.IsAiming)
+                if (!_Context.IsAiming &&
+                    !_Flow.TryRestoreRangeCombatDirection())
                 {
-                    if (didFire)
-                    {
-                        _Context.SetAimDirection(
-                            _activeRangeWeapon.LastFireDirection);
-                        _Core.RigView?.SetAimDirection(
-                            _activeRangeWeapon.LastFireDirection);
-
-                        _Flow.BeginRangeFacingHold(
-                            _activeRangeWeapon.PostAttackFacingDuration);
-                    }
-                    else if (!_Flow.TryRestoreRangeFacingHold())
-                    {
-                        _Context.ClearAimDirection();
-                        _Core.RigView?.ClearAimDirection();
-                    }
+                    _Context.ClearAimDirection();
+                    _Core.RigView?.ClearAimDirection();
                 }
 
                 _Flow.RefreshRangeAimRigPresentation();
@@ -240,7 +227,7 @@ namespace Alpha.Player.Combat
             _isMeleePrimaryAction = false;
             _isMeleeSecondaryAction = false;
             _isRangePrimaryAction = false;
-            _activeRangeWeapon = null;
+            _activeRangeAttackModule = null;
             _playedSkillIndex = -1;
             ResetMeleeFacing();
         }

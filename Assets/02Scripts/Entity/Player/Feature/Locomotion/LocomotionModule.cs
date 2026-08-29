@@ -108,22 +108,22 @@ namespace Alpha.Player.Locomotion
         #region ======================================== Movement
         // Ground 이동의 계산, 회전, 실제 이동 순서를 조합한다.
         // p_facingDirection : 회전할 방향 결정(Input, Aim, Mouse 방향)
-        public void MoveGround(Vector2 p_moveInput, Transform p_cameraTransform, 
-                               bool p_isSprint, bool p_isCombat, 
-                               Vector3 p_facingDirection)
+        public void MoveGround(Vector2 p_moveInput, Transform p_cameraTransform,
+                               bool p_isSprint, bool p_isCombat,
+                               Vector3 p_facingDirection,
+                               float p_moveSpeedMultiplier = 1f)
         {
             // 이동 방향
-            Vector3 moveDirection = _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
+            Vector3 moveDirection = 
+                _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
 
             // 속력
-            float moveSpeed = _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint, p_isCombat);
+            float moveSpeed =
+                _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint,p_isCombat) * Mathf.Clamp01(p_moveSpeedMultiplier);
 
             // 속도
-            Vector3 moveVelocity = _moveModule.GetMoveVelocity(
-                moveDirection,
-                moveSpeed,
-                GroundVerticalVelocity,
-                ELocomotionMode.Ground);
+            Vector3 moveVelocity = 
+                _moveModule.GetMoveVelocity(moveDirection, moveSpeed, GroundVerticalVelocity, ELocomotionMode.Ground);
 
             // 별도의 바라볼 방향이 없으면 이동 방향을 사용한다.
             Vector3 rotationDirection = p_facingDirection.sqrMagnitude > 0.0001f? p_facingDirection : moveDirection;
@@ -136,29 +136,16 @@ namespace Alpha.Player.Locomotion
         }
 
         // 전투 행동 시작 시 Player를 지정된 지상 방향으로 회전시킨다.
-        public void FaceGroundDirection(
-            Vector3 p_direction,
-            Transform p_cameraTransform,
-            bool p_isInstant)
+        public void FaceGroundDirection(Vector3 p_direction, Transform p_cameraTransform, bool p_isInstant)
         {
-            _rotationModule.ApplyRotation(
-                p_direction,
-                p_cameraTransform,
-                false,
-                true,
-                p_isInstant);
+            _rotationModule.ApplyRotation(p_direction, p_cameraTransform, false, true, p_isInstant);
         }
 
         // 이동 입력을 카메라 기준의 지상 월드 방향으로 변환한다.
-        public bool TryGetGroundInputDirection(
-            Vector2 p_moveInput,
-            Transform p_cameraTransform,
-            out Vector3 p_direction)
+        public bool TryGetGroundInputDirection(Vector2 p_moveInput, Transform p_cameraTransform, out Vector3 p_direction)
         {
-            p_direction = _moveModule.GetMoveDirection(
-                p_moveInput,
-                p_cameraTransform,
-                ELocomotionMode.Ground);
+            p_direction = 
+                _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
 
             return p_direction.sqrMagnitude >= 0.0001f;
         }
@@ -178,9 +165,7 @@ namespace Alpha.Player.Locomotion
         // Animator 이동량을 활성화된 Root Motion Module에 전달한다.
         public void ApplyRootMotion(Vector3 p_deltaPosition)
         {
-            _rootMotionModule.Apply(
-                p_deltaPosition,
-                GroundVerticalVelocity);
+            _rootMotionModule.Apply(p_deltaPosition, GroundVerticalVelocity);
         }
 
         // Root Motion을 사용하지 않는 행동이 이동 입력을 잠근다.
@@ -196,36 +181,29 @@ namespace Alpha.Player.Locomotion
         }
 
         // 공격 방향과 거리/시간을 CharacterController의 수평 속도로 변환한다.
-        public bool TryApplyKnockback(
-            in KnockbackInfo p_knockbackInfo)
+        public bool TryApplyKnockback(in KnockbackInfo p_knockbackInfo)
         {
-            if (!CanReceiveKnockback ||
-                !p_knockbackInfo.IsValid)
+            if (!CanReceiveKnockback || !p_knockbackInfo.IsValid)
             {
                 return false;
             }
 
-            Vector3 direction = Vector3.ProjectOnPlane(
-                p_knockbackInfo.Direction,
-                Vector3.up);
+            Vector3 direction = 
+                Vector3.ProjectOnPlane(p_knockbackInfo.Direction, Vector3.up);
 
             if (direction.sqrMagnitude <= DirectionEpsilon)
             {
-                direction = Vector3.ProjectOnPlane(
-                    _controller.transform.position -
-                    p_knockbackInfo.Attacker.position,
-                    Vector3.up);
+                direction = 
+                    Vector3.ProjectOnPlane(_controller.transform.position - p_knockbackInfo.Attacker.position, Vector3.up);
             }
 
             if (direction.sqrMagnitude <= DirectionEpsilon)
                 return false;
 
-            _knockbackVelocity =
-                direction.normalized *
-                (p_knockbackInfo.Distance /
-                 p_knockbackInfo.Duration);
-            _knockbackRemainingTime =
-                p_knockbackInfo.Duration;
+            _knockbackVelocity = direction.normalized * (p_knockbackInfo.Distance / p_knockbackInfo.Duration);
+
+            _knockbackRemainingTime = p_knockbackInfo.Duration;
+            
             _isKnockbackActive = true;
 
             return true;
@@ -246,9 +224,7 @@ namespace Alpha.Player.Locomotion
             }
 
             float deltaTime = Mathf.Max(0f, p_deltaTime);
-            float activeTime = Mathf.Min(
-                _knockbackRemainingTime,
-                deltaTime);
+            float activeTime = Mathf.Min(_knockbackRemainingTime, deltaTime);
 
             Vector3 deltaPosition =
                 _knockbackVelocity * activeTime;

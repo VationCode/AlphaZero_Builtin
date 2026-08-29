@@ -1,0 +1,4 @@
+﻿Id,Name,IconKey,PrefabKey,Price,IsStackable,MaxStackCount,Description
+5000,QuestItem00,QuestItem00_Icon,QuestItem00_Prefab,-1,true,99,퀘스트아이템00
+5001,QuestItem01,QuestItem01_Icon,QuestItem01_Prefab,-1,true,99,퀘스트아이템01
+5002,QuestItem02,QuestItem02_Icon,QuestItem02_Prefab,-1,true,99,퀘스트아이템02

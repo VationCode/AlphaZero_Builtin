@@ -1,0 +1,4 @@
+﻿Id,Name,MaterialType,IconKey,PrefabKey,Price,IsStackable,MaxStackCount,Description
+4000,Mineral00,Mineral,Mineral00_Icon,Mineral00_Prefab,100,true,99,에너지 결정
+4100,Organic00,Organic,Organic00_Icon,Organic00_Prefab,100,true,99,생체 소재
+4200,Essence00,Essence,Essence00_Icon,Essence00_Prefab,100,true,99,에너지 코어

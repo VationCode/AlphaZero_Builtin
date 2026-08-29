@@ -1,9 +1,17 @@
 using Alpha.Combat;
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.Item.Weapon.Melee
 {
+    // 다음 Combo Skill을 예약하는 입력 방식을 구분한다.
+    public enum EMeleeComboInputMode
+    {
+        PressEachStep = 0,
+        HoldToChain = 1
+    }
+
     // Combo 안에서 사용할 Skill과 다음 Skill 입력 가능 시점을 연결한다.
     [Serializable]
     public sealed class MeleeComboStep
@@ -46,8 +54,10 @@ namespace Alpha.Item.Weapon.Melee
         [SerializeField]
         private string _comboId;
 
+        [FormerlySerializedAs("_inputMode")]
         [SerializeField]
-        private EWeaponInputMode _inputMode = EWeaponInputMode.Auto;
+        private EMeleeComboInputMode _comboInputMode =
+            EMeleeComboInputMode.HoldToChain;
 
         [Tooltip("Skill 연계가 끊긴 뒤 다음 순서를 기억하는 시간입니다.")]
         [SerializeField, Min(0f)]
@@ -61,7 +71,7 @@ namespace Alpha.Item.Weapon.Melee
         private MeleeComboStep[] _steps;
 
         public string ComboId => _comboId?.Trim();
-        public EWeaponInputMode InputMode => _inputMode;
+        public EMeleeComboInputMode ComboInputMode => _comboInputMode;
         public float GraceDuration => _graceDuration;
         public bool Loop => _loop;
         public int Count => _steps?.Length ?? 0;

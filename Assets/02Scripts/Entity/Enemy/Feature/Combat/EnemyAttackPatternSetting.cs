@@ -33,8 +33,11 @@ namespace Alpha.Enemy
         [SerializeField, Min(0.01f)]
         private float _selectionWeight = 1f;
 
+        [Tooltip(
+            "EnemyAnimationView의 공격 애니메이션 설정과 연결할 인덱스입니다. " +
+            "-1이면 해당 공격 타입의 기본 애니메이션을 사용합니다.")]
         [SerializeField, Min(-1)]
-        private int _animationIndex;
+        private int _animationIndex = -1;
 
         // 공격 선택과 Animation 시작 후 실제 피해·발사·돌진이 실행되기까지의 선딜레이다.
         [Tooltip(
@@ -49,7 +52,7 @@ namespace Alpha.Enemy
             "실제 공격 실행 후 현재 공격이 종료되기까지의 후딜레이(초)입니다. " +
             "이 시간 동안에는 다른 공격 패턴도 시작할 수 없습니다.")]
         [SerializeField, Min(0f)]
-        private float _recoveryDuration = 0.5f;
+        private float _attackDelay = 0.5f;
 
         [SerializeField]
         private DamageProfile _damageProfile = new();
@@ -83,13 +86,13 @@ namespace Alpha.Enemy
         public float MinimumDistance => _minimumDistance;
         public float MaximumDistance =>
             _attackType == EEnemyAttackType.Melee
-                ? CalculateMeleeAreaMaximumDistance()
+                ? _meleeArea?.MaximumHorizontalReach ?? 0f
                 : _maximumDistance;
         public float Cooldown => _cooldown;
         public float SelectionWeight => _selectionWeight;
         public int AnimationIndex => _animationIndex;
         public float WindupDuration => _windupDuration;
-        public float RecoveryDuration => _recoveryDuration;
+        public float RecoveryDuration => _attackDelay;
         public DamageProfile DamageProfile => _damageProfile;
         public DetectionAreaSettings MeleeArea => _meleeArea;
         public Transform ProjectileSpawnPoint => _projectileSpawnPoint;
@@ -142,7 +145,7 @@ namespace Alpha.Enemy
             _selectionWeight = Mathf.Max(0.01f, _selectionWeight);
             _animationIndex = Mathf.Max(-1, _animationIndex);
             _windupDuration = Mathf.Max(0f, _windupDuration);
-            _recoveryDuration = Mathf.Max(0f, _recoveryDuration);
+            _attackDelay = Mathf.Max(0f, _attackDelay);
 
             _damageProfile ??= new DamageProfile();
             _meleeArea ??= new DetectionAreaSettings();
@@ -156,7 +159,7 @@ namespace Alpha.Enemy
             if (_attackType == EEnemyAttackType.Melee)
             {
                 _maximumDistance =
-                    CalculateMeleeAreaMaximumDistance();
+                    _meleeArea.MaximumHorizontalReach;
             }
 
             _projectileLaunchSettings.Validate();
@@ -166,66 +169,5 @@ namespace Alpha.Enemy
             _rushDuration = Mathf.Max(0.01f, _rushDuration);
         }
 
-        // Owner 중심에서 Melee Area가 수평으로 도달할 수 있는 최장 거리를 계산한다.
-        private float CalculateMeleeAreaMaximumDistance()
-        {
-            if (_meleeArea == null || !_meleeArea.IsValid)
-                return 0f;
-
-            Vector2 offset = new(
-                _meleeArea.LocalOffset.x,
-                _meleeArea.LocalOffset.z);
-
-            switch (_meleeArea.Shape)
-            {
-                case EDetectionAreaShape.ForwardBox:
-                {
-                    float maximumX =
-                        Mathf.Abs(offset.x) +
-                        _meleeArea.Width * 0.5f;
-
-                    float maximumZ = Mathf.Max(
-                        Mathf.Abs(offset.y),
-                        Mathf.Abs(offset.y + _meleeArea.Length));
-
-                    return new Vector2(
-                        maximumX,
-                        maximumZ).magnitude;
-                }
-
-                case EDetectionAreaShape.ForwardSector:
-                {
-                    if (_meleeArea.Angle >= 360f)
-                        return offset.magnitude + _meleeArea.Radius;
-
-                    float offsetAngle = Mathf.Atan2(
-                        offset.x,
-                        offset.y) * Mathf.Rad2Deg;
-
-                    float halfAngle = _meleeArea.Angle * 0.5f;
-                    float farthestAngle = Mathf.Clamp(
-                        offsetAngle,
-                        -halfAngle,
-                        halfAngle);
-
-                    float angleRadians =
-                        farthestAngle * Mathf.Deg2Rad;
-
-                    Vector2 farthestDirection = new(
-                        Mathf.Sin(angleRadians),
-                        Mathf.Cos(angleRadians));
-
-                    return (offset +
-                            farthestDirection * _meleeArea.Radius)
-                        .magnitude;
-                }
-
-                case EDetectionAreaShape.Radial:
-                    return offset.magnitude + _meleeArea.Radius;
-
-                default:
-                    return 0f;
-            }
-        }
     }
 }

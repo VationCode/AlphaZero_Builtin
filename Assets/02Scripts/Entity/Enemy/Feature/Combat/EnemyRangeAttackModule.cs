@@ -40,17 +40,14 @@ namespace Alpha.Enemy
 
             ProjectileLaunchSettings launchSettings =
                 p_pattern.ProjectileLaunchSettings;
-            float projectileTravelDistance =
-                launchSettings.Speed * launchSettings.Lifetime;
 
             RangeAttackRequest request = new(
                 p_owner,
                 origin,
                 origin,
-                targetPoint,
                 direction,
                 p_pattern.DamageProfile.Damage,
-                projectileTravelDistance,
+                p_pattern.MaximumDistance,
                 p_pattern.DamageProfile.Impact);
 
             ProjectileEntity projectile = UnityEngine.Object.Instantiate(

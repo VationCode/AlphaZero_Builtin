@@ -6,6 +6,6 @@ namespace Alpha.Enemy
         Idle = 0,
         Patrol = 1,
         Chase = 2,
-        ReturnToPatrol = 3
+        ReturnToArea = 3
     }
 }

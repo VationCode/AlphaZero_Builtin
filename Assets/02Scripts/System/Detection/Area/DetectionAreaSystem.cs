@@ -1,56 +1,62 @@
-using Alpha.Utility;
 using UnityEngine;
 
 namespace Alpha.Detection
 {
-    // 형태에 맞는 Physics 검색을 실행하고 Entity 계약과 무관한 Collider 결과를 반환한다.
+    // 영역 형태에 맞는 Physics 검색을 실행하고 감지 결과를 호출자 버퍼에 수집한다.
     public static class DetectionAreaSystem
     {
         private const float ShapeEpsilon = 0.0001f;
 
-        // 추가 계약이 필요 없는 호출자는 Collider 결과를 그대로 사용할 수 있다.
-        public static int Query(
-            in DetectionAreaRequest p_request,
-            Collider[] p_colliderBuffer)
-        {
-            return CollectCandidates(
-                p_request,
-                p_colliderBuffer);
-        }
+        // 일반 Collider와 Trigger 피격 영역을 동일한 감지 대상으로 취급한다.
+        private const QueryTriggerInteraction TargetTriggerInteraction =
+            QueryTriggerInteraction.Collide;
 
-        public static int Query(
-            in DetectionAreaRequest p_request,
-            Collider[] p_overlapBuffer,
-            DetectionAreaHit[] p_hitBuffer)
+        // 형태 검사를 통과한 결과를 Hit 버퍼에 채우고 실제 저장된 개수를 반환한다.
+        public static int CollectHits(in DetectionAreaRequest p_request, Collider[] p_overlapBuffer, DetectionAreaHit[] p_hitBuffer)
         {
-            if (p_hitBuffer == null || p_hitBuffer.Length == 0)
+            if (!p_request.IsValid ||
+                p_overlapBuffer == null ||
+                p_overlapBuffer.Length == 0 ||
+                p_hitBuffer == null ||
+                p_hitBuffer.Length == 0)
+            {
                 return 0;
+            }
 
-            int candidateCount = CollectCandidates(
-                p_request,
-                p_overlapBuffer);
+            int overlapCount = Overlap(p_request, p_overlapBuffer);
 
-            int hitCount = Mathf.Min(
-                candidateCount,
-                p_hitBuffer.Length);
+            int hitCount = 0;
 
-            for (int index = 0; index < hitCount; index++)
+            for (int index = 0; index < overlapCount; index++)
             {
                 Collider candidate = p_overlapBuffer[index];
+
+                if (candidate == null || IsSelf(candidate.transform, p_request.Owner))
+                {
+                    continue;
+                }
+
                 Vector3 hitPoint =
-                    ColliderPointUtility.GetClosestPoint(
+                    GetClosestPoint(
                         candidate,
                         p_request.AreaOrigin);
+
+                if (!PassesShapeFilter(p_request, hitPoint))
+                    continue;
+
                 Vector3 direction =
                     hitPoint - p_request.AreaOrigin;
 
                 if (direction.sqrMagnitude <= ShapeEpsilon)
                     direction = p_request.Forward;
 
-                p_hitBuffer[index] = new DetectionAreaHit(
-                    candidate,
-                    hitPoint,
-                    direction);
+                p_hitBuffer[hitCount] =
+                    new DetectionAreaHit(candidate, hitPoint, direction);
+
+                hitCount++;
+
+                if (hitCount >= p_hitBuffer.Length)
+                    break;
             }
 
             if (hitCount < p_hitBuffer.Length)
@@ -59,55 +65,7 @@ namespace Alpha.Detection
             return hitCount;
         }
 
-        // 실제 형태를 통과한 Collider만 앞쪽부터 다시 채운다.
-        private static int CollectCandidates(
-            in DetectionAreaRequest p_request,
-            Collider[] p_overlapBuffer)
-        {
-            if (!p_request.IsValid ||
-                p_overlapBuffer == null ||
-                p_overlapBuffer.Length == 0)
-            {
-                return 0;
-            }
-
-            int overlapCount = Overlap(
-                p_request,
-                p_overlapBuffer);
-
-            int resultCount = 0;
-
-            for (int index = 0; index < overlapCount; index++)
-            {
-                Collider candidate = p_overlapBuffer[index];
-
-                if (candidate == null ||
-                    IsSelf(candidate.transform, p_request.Owner))
-                {
-                    continue;
-                }
-
-                Vector3 hitPoint =
-                    ColliderPointUtility.GetClosestPoint(
-                        candidate,
-                        p_request.AreaOrigin);
-
-                if (!PassesShapeFilter(p_request, hitPoint))
-                    continue;
-
-                p_overlapBuffer[resultCount] = candidate;
-                resultCount++;
-            }
-
-            if (resultCount < p_overlapBuffer.Length)
-                p_overlapBuffer[resultCount] = null;
-
-            return resultCount;
-        }
-
-        private static int Overlap(
-            in DetectionAreaRequest p_request,
-            Collider[] p_overlapBuffer)
+        private static int Overlap(in DetectionAreaRequest p_request, Collider[] p_overlapBuffer)
         {
             DetectionAreaSettings settings = p_request.Settings;
             Vector3 areaOrigin = p_request.AreaOrigin;
@@ -116,22 +74,19 @@ namespace Alpha.Detection
             {
                 case EDetectionAreaShape.ForwardBox:
                 {
-                    Vector3 center = areaOrigin +
-                                     p_request.Forward *
-                                     (settings.Length * 0.5f);
+                    Vector3 center =
+                            areaOrigin + p_request.Forward * (settings.Length * 0.5f);
 
-                    Vector3 halfExtents = new(
-                        settings.Width * 0.5f,
-                        settings.Height * 0.5f,
-                        settings.Length * 0.5f);
+                    Vector3 halfExtents =
+                            new(settings.Width * 0.5f, settings.Height * 0.5f, settings.Length * 0.5f);
 
                     return Physics.OverlapBoxNonAlloc(
                         center,
                         halfExtents,
                         p_overlapBuffer,
                         p_request.Rotation,
-                        settings.TargetMask,
-                        settings.TriggerInteraction);
+                        settings.TargetLayers,
+                        TargetTriggerInteraction);
                 }
 
                 case EDetectionAreaShape.ForwardSector:
@@ -148,8 +103,8 @@ namespace Alpha.Detection
                         halfExtents,
                         p_overlapBuffer,
                         p_request.Rotation,
-                        settings.TargetMask,
-                        settings.TriggerInteraction);
+                        settings.TargetLayers,
+                        TargetTriggerInteraction);
                 }
 
                 default:
@@ -157,9 +112,7 @@ namespace Alpha.Detection
             }
         }
 
-        private static bool PassesShapeFilter(
-            in DetectionAreaRequest p_request,
-            Vector3 p_hitPoint)
+        private static bool PassesShapeFilter(in DetectionAreaRequest p_request, Vector3 p_hitPoint)
         {
             DetectionAreaSettings settings = p_request.Settings;
 
@@ -169,12 +122,9 @@ namespace Alpha.Detection
             Vector3 relative =
                 p_hitPoint - p_request.AreaOrigin;
 
-            float verticalDistance = Vector3.Dot(
-                relative,
-                p_request.Up);
+            float verticalDistance = Vector3.Dot(relative, p_request.Up);
 
-            if (Mathf.Abs(verticalDistance) >
-                settings.Height * 0.5f + ShapeEpsilon)
+            if (Mathf.Abs(verticalDistance) > settings.Height * 0.5f + ShapeEpsilon)
             {
                 return false;
             }
@@ -198,17 +148,12 @@ namespace Alpha.Detection
                 return true;
             }
 
-            float minimumDot = Mathf.Cos(
-                settings.Angle * 0.5f * Mathf.Deg2Rad);
+            float minimumDot = Mathf.Cos(settings.Angle * 0.5f * Mathf.Deg2Rad);
 
-            return Vector3.Dot(
-                       p_request.Forward,
-                       planarDirection.normalized) >= minimumDot;
+            return Vector3.Dot(p_request.Forward, planarDirection.normalized) >= minimumDot;
         }
 
-        private static bool IsSelf(
-            Transform p_candidate,
-            Transform p_owner)
+        private static bool IsSelf(Transform p_candidate, Transform p_owner)
         {
             if (p_candidate == null || p_owner == null)
                 return false;
@@ -216,6 +161,29 @@ namespace Alpha.Detection
             return p_candidate == p_owner ||
                    p_candidate.IsChildOf(p_owner) ||
                    p_owner.IsChildOf(p_candidate);
+        }
+
+        // 지원하지 않는 Collider는 Bounds를 사용해 안전한 대표 지점을 구한다.
+        private static Vector3 GetClosestPoint(
+            Collider p_collider,
+            Vector3 p_position)
+        {
+            if (p_collider == null)
+                return p_position;
+
+            if (SupportsClosestPoint(p_collider))
+                return p_collider.ClosestPoint(p_position);
+
+            return p_collider.bounds.ClosestPoint(p_position);
+        }
+
+        private static bool SupportsClosestPoint(Collider p_collider)
+        {
+            return p_collider is BoxCollider ||
+                   p_collider is SphereCollider ||
+                   p_collider is CapsuleCollider ||
+                   p_collider is MeshCollider meshCollider &&
+                   meshCollider.convex;
         }
     }
 }

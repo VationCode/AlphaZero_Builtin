@@ -2,35 +2,29 @@ using UnityEngine;
 
 namespace Alpha.Item.Weapon.Range
 {
-    // 공격 실행 후 View가 사용할 즉시 판정 결과다.
+    // 한 탄도의 즉시 판정 경로를 View에 전달하는 값 객체다.
     public readonly struct RangeAttackResult
     {
-        public bool HasImmediateEndPoint { get; }
+        public Vector3 StartPoint { get; }
         public Vector3 EndPoint { get; }
+        public bool HasCollision { get; }
+        public Vector3 CollisionNormal { get; }
 
-        private RangeAttackResult(
-            bool p_hasImmediateEndPoint,
-            Vector3 p_endPoint)
+        public bool HasVisiblePath =>
+            (EndPoint - StartPoint).sqrMagnitude > 0.0001f;
+
+        public RangeAttackResult(
+            Vector3 p_startPoint,
+            Vector3 p_endPoint,
+            bool p_hasCollision,
+            Vector3 p_collisionNormal)
         {
-            HasImmediateEndPoint =
-                p_hasImmediateEndPoint;
-
+            StartPoint = p_startPoint;
             EndPoint = p_endPoint;
-        }
-
-        public static RangeAttackResult Immediate(
-            Vector3 p_endPoint)
-        {
-            return new RangeAttackResult(
-                true,
-                p_endPoint);
-        }
-
-        public static RangeAttackResult Deferred()
-        {
-            return new RangeAttackResult(
-                false,
-                Vector3.zero);
+            HasCollision = p_hasCollision;
+            CollisionNormal = p_collisionNormal.sqrMagnitude > 0.0001f
+                ? p_collisionNormal.normalized
+                : Vector3.up;
         }
     }
 }

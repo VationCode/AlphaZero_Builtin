@@ -49,6 +49,10 @@ public class AlphaInputSystem : MonoBehaviour
         _secondaryActionPressedFrame == Time.frameCount;
     private int _secondaryActionPressedFrame = -1;
 
+    public bool IsTriggerModeSwitchInput =>
+        _triggerModeSwitchFrame == Time.frameCount;
+    private int _triggerModeSwitchFrame = -1;
+
     // Camera Test
     public bool IsQuarter => _isQuarter;
     private bool _isQuarter;
@@ -99,6 +103,7 @@ public class AlphaInputSystem : MonoBehaviour
 
         _action.Player.SecondaryAction.performed += OnSecondaryActionPerformed;
         _action.Player.SecondaryAction.canceled += OnSecondaryActionCanceled;
+        _action.Player.TriggerMode.performed += OnTriggerModeSwitch;
 
         // Camera
         _action.Camera.Look.performed += i => _lookInput = i.ReadValue<Vector2>();
@@ -134,6 +139,7 @@ public class AlphaInputSystem : MonoBehaviour
         _action.Player.PrimaryAction.canceled -= OnPrimaryActionCanceled;
         _action.Player.SecondaryAction.performed -= OnSecondaryActionPerformed;
         _action.Player.SecondaryAction.canceled -= OnSecondaryActionCanceled;
+        _action.Player.TriggerMode.performed -= OnTriggerModeSwitch;
 
         _action.Camera.Quarter.performed -= OnQuarter;
 
@@ -217,6 +223,7 @@ public class AlphaInputSystem : MonoBehaviour
         _swapFrame = -1;
         _primaryActionPressedFrame = -1;
         _secondaryActionPressedFrame = -1;
+        _triggerModeSwitchFrame = -1;
         _inventoryFrame = -1;
     }
 
@@ -256,6 +263,12 @@ public class AlphaInputSystem : MonoBehaviour
     {
         _isSecondaryAction = false;
     }
+
+    private void OnTriggerModeSwitch(InputAction.CallbackContext p_context)
+    {
+        _triggerModeSwitchFrame = Time.frameCount;
+    }
+
     // Quarter Camera 시험 입력마다 활성 상태를 전환한다.
     private void OnQuarter(InputAction.CallbackContext p_context)
     {

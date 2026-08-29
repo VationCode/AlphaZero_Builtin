@@ -4,6 +4,7 @@ using Alpha.Item.Weapon.Range;
 using Alpha.Player.Equipment;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.Player.Combat
 {
@@ -19,13 +20,18 @@ namespace Alpha.Player.Combat
     // 실제 공격·무기 교체 처리는 대표 CombatModule과 현재 Weapon에 맡긴다.
     public class CombatFlow : MonoBehaviour
     {
+        [Header("Combat Stance")]
+        [Tooltip("마지막 무기 행동 후 공통 전투 태세 유지 시간입니다. 0이면 무제한으로 유지합니다.")]
+        [FormerlySerializedAs("_rangeCombatDuration")]
+        [SerializeField, Min(0f)]
+        private float _combatDuration = 3f;
+
         private PlayerCore _core;
         private readonly Dictionary<ECombatStateType, CombatStateBase> _stateDict = new();
 
         private ECameraViewType _secondaryReturnView;
         private bool _hasSecondaryReturnView;
-        private float _rangeFacingHoldRemaining;
-        private Vector3 _rangeFacingHoldDirection;
+        private float _combatElapsedTime;
 
         public CombatStateBase CurrentState { get; private set; }
 
@@ -62,9 +68,29 @@ namespace Alpha.Player.Combat
             if (_core == null)
                 return;
 
-            TickFlow();
+            UpdateRangeTriggerMode();
             UpdateRangeSecondary();
-            UpdateRangeFacingHold(Time.deltaTime);
+            TickFlow();
+            UpdateCombatStance();
+        }
+
+        // 발사 모드 변경 입력을 해석하고 현재 Range 공격 Module에 위임한다.
+        private void UpdateRangeTriggerMode()
+        {
+            AlphaInputSystem input = _core.Input;
+            RangeAttackModule rangeAttackModule =
+                _core.CombatModule.CurrentRangeAttackModule;
+
+            if (input == null ||
+                !input.IsTriggerModeSwitchInput ||
+                !_core.CanUseCombat ||
+                CurrentState?.Type == ECombatStateType.WeaponSwap ||
+                rangeAttackModule == null)
+            {
+                return;
+            }
+
+            _core.CombatModule.TrySwitchRangeTriggerMode();
         }
 
         // State 타입 중복 없이 Flow Dictionary에 등록한다.
@@ -95,6 +121,7 @@ namespace Alpha.Player.Combat
             CancelRangeSecondary();
             CurrentState?.ExitState();
             CurrentState = null;
+            EndCombatStance();
         }
 
         // 이전 State 종료 → Context 갱신 → 새 State 진입 순서로 전환한다.
@@ -106,12 +133,20 @@ namespace Alpha.Player.Combat
             if (ReferenceEquals(CurrentState, nextState))
                 return false;
 
+            bool isWeaponSwap =
+                p_nextState == ECombatStateType.WeaponSwap;
+
             // 무기 교체가 현재 Range Secondary보다 먼저 기존 표현을 정리한다.
-            if (p_nextState == ECombatStateType.WeaponSwap)
+            if (isWeaponSwap)
                 CancelRangeSecondary();
 
             // 같은 State로의 중복 전환은 막고 기존 State를 먼저 종료한다.
             CurrentState?.ExitState();
+
+            // WeaponAction 종료가 공통 전투 태세를 갱신한 뒤 교체 상태에서 정리한다.
+            if (isWeaponSwap)
+                EndCombatStance();
+
             CurrentState = nextState;
 
             _core.CombatContext.SetCurrentState(nextState.Type);
@@ -129,14 +164,15 @@ namespace Alpha.Player.Combat
             if (_core == null)
                 return false;
 
-            if (p_slotIndex < (int)EWeaponType.Melee ||
-                p_slotIndex > (int)EWeaponType.Special)
+            if (p_slotIndex < (int)EWeaponCategory.Melee ||
+                p_slotIndex > (int)EWeaponCategory.Special)
                 return false;
 
-            EWeaponType weaponType = (EWeaponType)p_slotIndex;
+            EWeaponCategory weaponCategory =
+                (EWeaponCategory)p_slotIndex;
 
             if (!_core.EquipmentContext.TryGetWeaponSlot(
-                    weaponType,
+                    weaponCategory,
                     out WeaponEquipmentSlot weaponSlot) ||
                 weaponSlot.IsEmpty)
                 return false;
@@ -195,7 +231,7 @@ namespace Alpha.Player.Combat
 
             // 현재 사용 중인 무기의 장비 슬롯을 확인한다.
             if (!_core.EquipmentContext.TryGetWeaponSlot(
-                    currentWeapon.Data.WeaponType,
+                    currentWeapon.Data.WeaponCategory,
                     out WeaponEquipmentSlot currentSlot))
             {
                 return;
@@ -228,79 +264,127 @@ namespace Alpha.Player.Combat
                    locomotionState == ELocoStateType.Move;
         }
 
-        // 실제 사격이 끝난 뒤 마지막 발사 방향을 지정된 시간만큼 유지한다.
-        internal void BeginRangeFacingHold(float p_duration)
+        // 실제 좌·우 무기 행동이 시작되면 현재 무기 유형의 공통 전투 태세를 활성화한다.
+        internal void BeginCombatStance()
         {
             CombatContext context = _core?.CombatContext;
+            CombatModule module = _core?.CombatModule;
 
-            if (context == null ||
-                !context.HasAimDirection ||
-                p_duration <= 0f)
+            if (context == null || module?.CurrentWeapon == null)
             {
-                EndRangeFacingHold();
                 return;
             }
 
-            _rangeFacingHoldRemaining = p_duration;
-            _rangeFacingHoldDirection =
-                context.AimDirection.normalized;
-            context.SetRangeFacingHeld(true);
+            bool isRange = module.CurrentRangeAttackModule != null;
+            Vector3 rangeDirection = Vector3.zero;
+
+            if (isRange)
+            {
+                if (!module.TryGetRangeAimDirection(out rangeDirection))
+                {
+                    rangeDirection = context.HasAimDirection
+                        ? context.AimDirection
+                        : context.RangeCombatDirection;
+                }
+
+                if (rangeDirection.sqrMagnitude > 0.0001f)
+                {
+                    context.SetAimDirection(rangeDirection);
+                    _core.RigView?.SetAimDirection(rangeDirection);
+                }
+            }
+
+            context.EnterCombatStance(
+                isRange
+                    ? ECombatStanceType.Range
+                    : ECombatStanceType.Melee,
+                rangeDirection);
+            _combatElapsedTime = 0f;
+            RefreshRangeAimRigPresentation();
         }
 
-        // 발사되지 않은 입력 행동이 끝나면 기존 사격 후 유지 방향을 복원한다.
-        internal bool TryRestoreRangeFacingHold()
+        // 전투 태세 중에는 현재 Camera 조준 방향을 우선하고, 계산 실패 시 마지막 사격 방향을 복원한다.
+        internal bool TryRestoreRangeCombatDirection()
         {
             CombatContext context = _core?.CombatContext;
 
-            if (context == null ||
-                !context.IsRangeFacingHeld ||
-                _rangeFacingHoldDirection.sqrMagnitude <= 0.0001f)
+            if (context == null || !context.IsRangeCombatActive)
             {
                 return false;
             }
 
-            context.SetAimDirection(
-                _rangeFacingHoldDirection);
-            _core.RigView?.SetAimDirection(
-                _rangeFacingHoldDirection);
+            Vector3 aimDirection;
+
+            if (!_core.CombatModule.TryGetRangeAimDirection(out aimDirection))
+            {
+                aimDirection = context.RangeCombatDirection;
+            }
+
+            if (aimDirection.sqrMagnitude <= 0.0001f)
+                return false;
+
+            context.SetAimDirection(aimDirection);
+            _core.RigView?.SetAimDirection(aimDirection);
 
             return true;
         }
 
-        private void UpdateRangeFacingHold(float p_deltaTime)
+        // 전투 불가 조건 또는 Inspector에서 설정한 유지 시간이 지나면 공통 전투 태세를 종료한다.
+        private void UpdateCombatStance()
         {
             CombatContext context = _core?.CombatContext;
+            CombatModule module = _core?.CombatModule;
 
-            if (context == null || !context.IsRangeFacingHeld)
-                return;
-
-            if (context.IsRangeAttacking ||
-                !_core.CanUseCombat ||
-                _core.CombatModule.CurrentRangeWeapon == null ||
-                CurrentState?.Type == ECombatStateType.WeaponSwap ||
-                !CanUseRangeAttack())
+            if (context == null ||
+                module == null ||
+                !context.IsCombatStanceActive)
             {
-                EndRangeFacingHold();
                 return;
             }
 
-            _rangeFacingHoldRemaining -= Mathf.Max(0f, p_deltaTime);
+            if (!_core.CanUseCombat ||
+                !module.HasWeapon ||
+                CurrentState?.Type == ECombatStateType.WeaponSwap ||
+                (context.IsRangeCombatActive &&
+                 (module.CurrentRangeAttackModule == null ||
+                  !CanUseRangeAttack())))
+            {
+                EndCombatStance();
+                return;
+            }
 
-            if (_rangeFacingHoldRemaining <= 0f)
-                EndRangeFacingHold();
+            // 좌·우 행동 또는 Range Secondary가 유지되는 동안에는 유지 시간을 소모하지 않는다.
+            if (_combatDuration <= 0f ||
+                CurrentState?.Type == ECombatStateType.WeaponAction ||
+                module.HasActiveAction ||
+                module.HasActiveRangeSecondary ||
+                context.IsAiming ||
+                context.IsRangePrimaryActive ||
+                context.IsRangeAttacking)
+            {
+                return;
+            }
+
+            _combatElapsedTime += Time.deltaTime;
+
+            if (_combatElapsedTime >= _combatDuration)
+                EndCombatStance();
         }
 
-        private void EndRangeFacingHold()
+        private void EndCombatStance()
         {
-            _rangeFacingHoldRemaining = 0f;
-            _rangeFacingHoldDirection = Vector3.zero;
-
             CombatContext context = _core?.CombatContext;
 
             if (context == null)
                 return;
 
-            context.SetRangeFacingHeld(false);
+            bool wasRangeCombat = context.IsRangeCombatActive;
+
+            context.ExitCombatStance();
+            _combatElapsedTime = 0f;
+
+            if (!wasRangeCombat)
+                return;
 
             if (context.IsAiming ||
                 context.IsRangePrimaryActive ||
@@ -309,6 +393,7 @@ namespace Alpha.Player.Combat
 
             context.ClearAimDirection();
             _core.RigView?.ClearAimDirection();
+            RefreshRangeAimRigPresentation();
         }
 
         // Idle에서 들어온 무기 행동 요청을 검증하고 State가 소비할 값으로 저장한다.
@@ -323,8 +408,11 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
+            RangeAttackModule currentRangeAttackModule =
+                _core.CombatModule.CurrentRangeAttackModule;
+
             if (p_actionType == EWeaponActionType.Primary &&
-                _core.CombatModule.CurrentRangeWeapon != null &&
+                currentRangeAttackModule != null &&
                 !CanUseRangeAttack())
             {
                 return false;
@@ -332,7 +420,7 @@ namespace Alpha.Player.Combat
 
             // Range Secondary는 Primary와 동시에 유지되므로 별도 흐름이 처리한다.
             if (p_actionType == EWeaponActionType.Secondary &&
-                _core.CombatModule.CurrentRangeWeapon != null)
+                currentRangeAttackModule != null)
             {
                 return false;
             }
@@ -356,20 +444,23 @@ namespace Alpha.Player.Combat
         private void UpdateRangeSecondary()
         {
             CombatModule module = _core.CombatModule;
-            RangeWeapon currentRangeWeapon = module.CurrentRangeWeapon;
+            RangeAttackModule currentRangeAttackModule =
+                module.CurrentRangeAttackModule;
 
             bool canUseSecondary =
                 _core.Input != null &&
                 _core.CanUseCombat &&
                 CurrentState?.Type != ECombatStateType.WeaponSwap &&
-                currentRangeWeapon != null &&
-                (currentRangeWeapon.SecondaryType != ERangeSecondaryType.Charging ||
+                currentRangeAttackModule != null &&
+                currentRangeAttackModule.HasSecondaryAction &&
+                (!currentRangeAttackModule.IsChargeEnabled ||
                  CanUseRangeAttack());
 
             if (module.HasActiveRangeSecondary)
             {
                 if (!canUseSecondary ||
-                    currentRangeWeapon != module.ActiveRangeSecondaryWeapon)
+                    currentRangeAttackModule !=
+                    module.ActiveRangeSecondaryModule)
                 {
                     CancelRangeSecondary();
                     return;
@@ -377,7 +468,8 @@ namespace Alpha.Player.Combat
 
                 if (!_core.Input.IsSecondaryAction)
                 {
-                    EndRangeSecondary();
+                    // 우클릭 해제는 발사하지 않고 차징과 조준 표현만 취소한다.
+                    CancelRangeSecondary();
                     return;
                 }
 
@@ -392,15 +484,19 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            BeginRangeSecondaryPresentation(currentRangeWeapon);
+            BeginCombatStance();
+            BeginRangeSecondaryPresentation(currentRangeAttackModule);
         }
 
-        private void BeginRangeSecondaryPresentation(RangeWeapon p_rangeWeapon)
+        private void BeginRangeSecondaryPresentation(
+            RangeAttackModule p_rangeAttackModule)
         {
             SetRangeAiming(true);
 
             if (_core.CameraCore == null ||
-                !TryResolveSecondaryView(p_rangeWeapon.SecondaryView, out ECameraViewType targetView))
+                !TryResolveAimView(
+                    p_rangeAttackModule.AimView,
+                    out ECameraViewType targetView))
             {
                 return;
             }
@@ -419,14 +515,7 @@ namespace Alpha.Player.Combat
             _core.CameraCore.RequestView(targetView);
         }
 
-        // 정상 해제는 Charging 결과를 실행한 뒤 Player 표현을 복구한다.
-        private void EndRangeSecondary()
-        {
-            _core.CombatModule.EndRangeSecondary();
-            EndRangeSecondaryPresentation();
-        }
-
-        // 전투 차단과 무기 교체에서는 Charging 결과 없이 정리한다.
+        // 우클릭 해제, 전투 차단, 무기 교체 시 차징 결과 없이 정리한다.
         private void CancelRangeSecondary()
         {
             if (_core == null || _core.CombatModule == null)
@@ -450,17 +539,17 @@ namespace Alpha.Player.Combat
 
         // CombatContext를 단일 조준 상태로 사용하고 View는 표현만 갱신한다.
         // Item의 View 설정을 실제 Camera Entity의 ViewType으로 변환한다.
-        private static bool TryResolveSecondaryView(
-            ERangeSecondaryView p_secondaryView,
+        private static bool TryResolveAimView(
+            ERangeAimView p_aimView,
             out ECameraViewType p_cameraView)
         {
-            switch (p_secondaryView)
+            switch (p_aimView)
             {
-                case ERangeSecondaryView.Aim:
+                case ERangeAimView.Aim:
                     p_cameraView = ECameraViewType.Aim;
                     return true;
 
-                case ERangeSecondaryView.Scope:
+                case ERangeAimView.Scope:
                     p_cameraView = ECameraViewType.Scope;
                     return true;
 
@@ -477,10 +566,13 @@ namespace Alpha.Player.Combat
             if (context.IsAiming != p_isAiming)
                 context.SetAiming(p_isAiming);
 
-            if (!p_isAiming &&
-                !context.IsRangePrimaryActive &&
-                !context.IsRangeAttacking &&
-                !context.IsRangeFacingHeld)
+            if (!p_isAiming && context.IsRangeCombatActive)
+            {
+                TryRestoreRangeCombatDirection();
+            }
+            else if (!p_isAiming &&
+                     !context.IsRangePrimaryActive &&
+                     !context.IsRangeAttacking)
             {
                 context.ClearAimDirection();
                 _core.RigView?.ClearAimDirection();
@@ -501,13 +593,20 @@ namespace Alpha.Player.Combat
             CombatContext context = _core.CombatContext;
 
             bool shouldActivate =
-                _core.CombatModule.CurrentRangeWeapon != null &&
+                _core.CombatModule.CurrentRangeAttackModule != null &&
                 (context.IsAiming ||
                  context.IsRangePrimaryActive ||
-                 context.IsRangeAttacking);
+                 context.IsRangeAttacking ||
+                 context.IsRangeCombatActive);
 
             _core.RigView?.SetAiming(shouldActivate);
         }
+
         #endregion ============================== /Range Secondary
+
+        private void OnValidate()
+        {
+            _combatDuration = Mathf.Max(0f, _combatDuration);
+        }
     }
 }

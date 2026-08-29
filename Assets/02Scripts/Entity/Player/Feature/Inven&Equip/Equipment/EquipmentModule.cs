@@ -63,7 +63,9 @@ namespace Alpha.Player.Equipment
             switch (p_item)
             {
                 case WeaponDTO weapon:
-                    if (_context.TryGetWeaponSlot(weapon.WeaponType, out WeaponEquipmentSlot weaponSlot))
+                    if (_context.TryGetWeaponSlot(
+                            weapon.WeaponCategory,
+                            out WeaponEquipmentSlot weaponSlot))
                     {
                         p_slot = weaponSlot;
                         return true;

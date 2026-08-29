@@ -65,6 +65,8 @@ public class Installer : MonoBehaviour
     private async void Start()
     {
         _uiManager.InteractionUI?.Bind(_playerCore.ItemPickupFlow);
+        _uiManager.RangeChargeGaugeView?.Bind(
+            _playerCore.CombatModule);
 
         // 카메라가 준비된 경우 마우스와 기본 시점을 함께 설정한다.
         if (_cameraCore.Bind(_input))
@@ -203,6 +205,7 @@ public class Installer : MonoBehaviour
     private void OnDestroy()
     {
         _uiManager?.InteractionUI?.Unbind();
+        _uiManager?.RangeChargeGaugeView?.Unbind();
         DisconnectViewRequests();
 
         if (_crabBossEncounterFlow != null && _uiManager != null)

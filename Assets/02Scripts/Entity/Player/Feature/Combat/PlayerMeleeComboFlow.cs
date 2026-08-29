@@ -72,7 +72,7 @@ namespace Alpha.Player.Combat
                 nextSkillIndex = _activeCombo.Loop ? 0 : -1;
 
             bool wantsNextSkill = IsActionInput(
-                _activeCombo.InputMode,
+                _activeCombo.ComboInputMode,
                 p_isInputHeld,
                 p_isInputPressed);
 
@@ -177,11 +177,11 @@ namespace Alpha.Player.Combat
         }
 
         private static bool IsActionInput(
-            EWeaponInputMode p_inputMode,
+            EMeleeComboInputMode p_inputMode,
             bool p_isInputHeld,
             bool p_isInputPressed)
         {
-            return p_inputMode == EWeaponInputMode.Auto
+            return p_inputMode == EMeleeComboInputMode.HoldToChain
                 ? p_isInputHeld
                 : p_isInputPressed;
         }

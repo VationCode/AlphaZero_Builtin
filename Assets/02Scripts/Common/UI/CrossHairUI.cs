@@ -60,7 +60,7 @@ public class CrossHairUI : MonoBehaviour
     public void HandleWeaponChanged(WeaponDTO p_weapon)
     {
         _isWeaponVisible =
-            p_weapon?.WeaponType != EWeaponType.Melee;
+            p_weapon?.WeaponCategory != EWeaponCategory.Melee;
 
         if (_cameraCore != null)
         {

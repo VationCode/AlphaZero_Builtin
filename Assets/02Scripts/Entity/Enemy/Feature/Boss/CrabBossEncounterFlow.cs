@@ -3,6 +3,7 @@ using Alpha.Enemy.View;
 using Alpha.Player;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Alpha.Enemy
 {
@@ -35,11 +36,12 @@ namespace Alpha.Enemy
         private bool _isResetRequested;
         private bool _isPlayerBlocked;
         private bool _isBossBlocked;
-        private bool _previousBossDetectionEnabled;
-        private bool _hasBossDetectionState;
+        private bool _previousBossTargetSearchEnabled;
+        private bool _hasBossTargetSearchState;
         private bool _ownsBossInvulnerability;
         private bool _ownsGameplayInputBlock;
         private bool _isHudHidden;
+        private InputAction _introSkipAction;
 
         public ECrabBossEncounterState CurrentState { get; private set; } =
             ECrabBossEncounterState.Dormant;
@@ -53,6 +55,7 @@ namespace Alpha.Enemy
         {
             _boss ??= GetComponentInChildren<EnemyCore>(true);
             _intro ??= GetComponentInChildren<CrabBossIntroView>(true);
+            CreateIntroSkipAction();
         }
 
         // Installer가 Scene 공용 의존성만 Encounter에 전달한다.
@@ -103,7 +106,10 @@ namespace Alpha.Enemy
             ChangeState(ECrabBossEncounterState.Intro);
 
             if (_intro.TryPlay(HandleIntroFinished))
+            {
+                _introSkipAction?.Enable();
                 return true;
+            }
 
             ReleaseIntroContext();
             ChangeState(ECrabBossEncounterState.Dormant);
@@ -140,7 +146,7 @@ namespace Alpha.Enemy
 
         private void AcquireIntroContext()
         {
-            DisableBossDetection();
+            DisableBossTargetSearch();
 
             _isPlayerBlocked =
                 _player?.ActionFlow?.BeginExternalBlock(this) == true;
@@ -156,7 +162,7 @@ namespace Alpha.Enemy
 
         private void ReleaseIntroContext()
         {
-            RestoreBossDetection();
+            RestoreBossTargetSearch();
             ReleasePlayerBlock();
 
             if (_ownsGameplayInputBlock)
@@ -172,27 +178,33 @@ namespace Alpha.Enemy
             }
         }
 
-        private void DisableBossDetection()
+        private void DisableBossTargetSearch()
         {
-            if (_hasBossDetectionState || _boss?.TargetModule == null)
+            if (_hasBossTargetSearchState ||
+                _boss?.TargetDetectionModule == null)
+            {
                 return;
+            }
 
-            _previousBossDetectionEnabled =
-                _boss.TargetModule.enabled;
-            _hasBossDetectionState = true;
+            _previousBossTargetSearchEnabled =
+                _boss.TargetDetectionModule.enabled;
+            _hasBossTargetSearchState = true;
 
             _boss.TargetingFlow.ClearTarget();
-            _boss.TargetModule.enabled = false;
+            _boss.TargetDetectionModule.enabled = false;
         }
 
-        private void RestoreBossDetection()
+        private void RestoreBossTargetSearch()
         {
-            if (!_hasBossDetectionState || _boss?.TargetModule == null)
+            if (!_hasBossTargetSearchState ||
+                _boss?.TargetDetectionModule == null)
+            {
                 return;
+            }
 
-            _boss.TargetModule.enabled =
-                _previousBossDetectionEnabled;
-            _hasBossDetectionState = false;
+            _boss.TargetDetectionModule.enabled =
+                _previousBossTargetSearchEnabled;
+            _hasBossTargetSearchState = false;
         }
 
         private void AcquireBossDormantState()
@@ -212,6 +224,7 @@ namespace Alpha.Enemy
 
         private void HandleIntroFinished(bool p_wasCancelled)
         {
+            _introSkipAction?.Disable();
             ReleaseIntroContext();
 
             if (_isResetRequested || p_wasCancelled)
@@ -330,8 +343,33 @@ namespace Alpha.Enemy
             OnIntroTriggerArmedChanged?.Invoke(_isIntroTriggerArmed);
         }
 
+        private void CreateIntroSkipAction()
+        {
+            if (_introSkipAction != null)
+                return;
+
+            // Gameplay Action Map이 차단된 동안에도 Intro Skip만 독립적으로 받는다.
+            _introSkipAction = new InputAction(
+                "SkipCrabBossIntro",
+                InputActionType.Button);
+            _introSkipAction.AddBinding("<Keyboard>/escape");
+            _introSkipAction.AddBinding("<Gamepad>/start");
+            _introSkipAction.performed += HandleIntroSkip;
+        }
+
+        private void HandleIntroSkip(InputAction.CallbackContext _)
+        {
+            if (CurrentState == ECrabBossEncounterState.Intro &&
+                _intro?.IsPlaying == true)
+            {
+                _intro.Skip();
+            }
+        }
+
         private void OnDisable()
         {
+            _introSkipAction?.Disable();
+
             if (CurrentState == ECrabBossEncounterState.Intro)
             {
                 _isResetRequested = true;
@@ -345,6 +383,13 @@ namespace Alpha.Enemy
         {
             if (_boss?.HealthModule != null)
                 _boss.HealthModule.OnDeath -= HandleBossDefeated;
+
+            if (_introSkipAction != null)
+            {
+                _introSkipAction.performed -= HandleIntroSkip;
+                _introSkipAction.Dispose();
+                _introSkipAction = null;
+            }
         }
     }
 }

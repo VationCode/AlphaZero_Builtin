@@ -23,7 +23,7 @@ public class ItemDatabaseManager : MonoBehaviour
 
     public bool IsInitialized { get; private set; }
 
-    // Resources의 아이템 JSON 경로를 사용하는 Loader로 Database를 구성한다.
+    // Resources의 아이템 CSV를 읽는 Loader로 현재 Item Database를 구성한다.
     private void Awake()
     {
         /*if (_instance != null && _instance != this)
@@ -35,13 +35,13 @@ public class ItemDatabaseManager : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);*/
 
-        IDataLoader loader = new JsonDataLoader(Application.dataPath + "/Resources/DB/Items");
+        ICsvDataLoader loader = new CsvDataLoader("DB/Items");
 
         Initialize(loader);
     }
 
     // 하나의 Loader를 공유하는 아이템 종류별 Database를 생성한다.
-    public void Initialize(IDataLoader p_loader)
+    public void Initialize(ICsvDataLoader p_loader)
     {
         Weapon = new WeaponDatabase(p_loader);
         Armor = new ArmorDatabase(p_loader);
@@ -50,7 +50,7 @@ public class ItemDatabaseManager : MonoBehaviour
         QuestItem = new QuestItemDatabase(p_loader);
     }
 
-    // 모든 아이템 Database의 JSON 적재가 끝난 뒤 조회 가능 상태로 전환한다.
+    // 모든 아이템 Database의 CSV 적재가 끝난 뒤 조회 가능 상태로 전환한다.
     public async Task InitializeAsync()
     {
         if (IsInitialized) return;

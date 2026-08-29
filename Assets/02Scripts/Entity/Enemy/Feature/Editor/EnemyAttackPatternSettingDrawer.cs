@@ -45,9 +45,10 @@ namespace Alpha.Enemy.Editor
 
             DrawProperty(p_position, p_property, "_minimumDistance", ref currentY);
 
-            if (attackType.hasMultipleDifferentValues ||
+            if (attackType != null &&
+                (attackType.hasMultipleDifferentValues ||
                 (EEnemyAttackType)attackType.enumValueIndex !=
-                EEnemyAttackType.Melee)
+                EEnemyAttackType.Melee))
             {
                 DrawProperty(
                     p_position,
@@ -60,10 +61,11 @@ namespace Alpha.Enemy.Editor
             DrawProperty(p_position, p_property, "_selectionWeight", ref currentY);
             DrawProperty(p_position, p_property, "_animationIndex", ref currentY);
             DrawProperty(p_position, p_property, "_windupDuration", ref currentY);
-            DrawProperty(p_position, p_property, "_recoveryDuration", ref currentY);
+            DrawProperty(p_position, p_property, "_attackDelay", ref currentY);
             DrawProperty(p_position, p_property, "_damageProfile", ref currentY);
 
-            if (!attackType.hasMultipleDifferentValues)
+            if (attackType != null &&
+                !attackType.hasMultipleDifferentValues)
             {
                 DrawTypeProperties(
                     p_position,
@@ -93,9 +95,10 @@ namespace Alpha.Enemy.Editor
 
             AddPropertyHeight(p_property, "_minimumDistance", ref height);
 
-            if (attackType.hasMultipleDifferentValues ||
+            if (attackType != null &&
+                (attackType.hasMultipleDifferentValues ||
                 (EEnemyAttackType)attackType.enumValueIndex !=
-                EEnemyAttackType.Melee)
+                EEnemyAttackType.Melee))
             {
                 AddPropertyHeight(
                     p_property,
@@ -107,10 +110,11 @@ namespace Alpha.Enemy.Editor
             AddPropertyHeight(p_property, "_selectionWeight", ref height);
             AddPropertyHeight(p_property, "_animationIndex", ref height);
             AddPropertyHeight(p_property, "_windupDuration", ref height);
-            AddPropertyHeight(p_property, "_recoveryDuration", ref height);
+            AddPropertyHeight(p_property, "_attackDelay", ref height);
             AddPropertyHeight(p_property, "_damageProfile", ref height);
 
-            if (!attackType.hasMultipleDifferentValues)
+            if (attackType != null &&
+                !attackType.hasMultipleDifferentValues)
             {
                 AddTypePropertyHeights(
                     p_property,
@@ -185,6 +189,9 @@ namespace Alpha.Enemy.Editor
             SerializedProperty property =
                 p_parent.FindPropertyRelative(p_relativeName);
 
+            if (property == null)
+                return;
+
             float propertyHeight = EditorGUI.GetPropertyHeight(
                 property,
                 true);
@@ -207,6 +214,9 @@ namespace Alpha.Enemy.Editor
             SerializedProperty property =
                 p_parent.FindPropertyRelative(p_relativeName);
 
+            if (property == null)
+                return;
+
             p_height += VerticalSpacing +
                         EditorGUI.GetPropertyHeight(property, true);
         }
@@ -215,16 +225,21 @@ namespace Alpha.Enemy.Editor
             SerializedProperty p_property,
             GUIContent p_fallbackLabel)
         {
-            string patternName = p_property
-                .FindPropertyRelative("_patternName")
-                .stringValue;
+            SerializedProperty patternNameProperty =
+                p_property.FindPropertyRelative("_patternName");
+
+            string patternName = patternNameProperty != null
+                ? patternNameProperty.stringValue
+                : string.Empty;
 
             SerializedProperty attackType =
                 p_property.FindPropertyRelative("_attackType");
 
-            string typeName = attackType.hasMultipleDifferentValues
-                ? "Mixed"
-                : ((EEnemyAttackType)attackType.enumValueIndex).ToString();
+            string typeName = attackType == null
+                ? "Unknown"
+                : attackType.hasMultipleDifferentValues
+                    ? "Mixed"
+                    : ((EEnemyAttackType)attackType.enumValueIndex).ToString();
 
             string prefix = string.IsNullOrWhiteSpace(patternName)
                 ? p_fallbackLabel.text

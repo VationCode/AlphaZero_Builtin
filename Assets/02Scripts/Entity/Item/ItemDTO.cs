@@ -83,7 +83,7 @@ public enum EMaterialType
 [Serializable]
 public class MaterialDTO : ItemDTO
 {
-    EMaterialType MaterialType;
+    public EMaterialType MaterialType;
 }
 
 // JSON의 재료 아이템 배열 구조를 역직렬화한다.

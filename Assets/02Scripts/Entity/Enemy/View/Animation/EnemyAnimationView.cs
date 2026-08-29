@@ -1,9 +1,63 @@
 using System;
+using System.Collections.Generic;
 using Alpha.Combat;
 using UnityEngine;
 
 namespace Alpha.Enemy.Animation
 {
+    // 공격 타입과 AnimationIndex에 대응하는 Animator 상태 경로를 보관한다.
+    [Serializable]
+    public sealed class EnemyAttackAnimationBinding
+    {
+        [SerializeField]
+        private EEnemyAttackType _attackType;
+
+        [Tooltip("-1은 해당 공격 타입의 기본 설정입니다.")]
+        [SerializeField, Min(-1)]
+        private int _animationIndex = -1;
+
+        [Tooltip("비워 두면 공격 대기 중 현재 애니메이션을 유지합니다.")]
+        [SerializeField]
+        private string _waitStatePath;
+
+        [Tooltip("공격 시작 시 재생할 Base Layer 상태 경로입니다.")]
+        [SerializeField]
+        private string _attackStatePath;
+
+        [SerializeField, Min(0f)]
+        private float _transitionDuration = 0.05f;
+
+        public EEnemyAttackType AttackType => _attackType;
+        public int AnimationIndex => _animationIndex;
+        public string WaitStatePath => _waitStatePath;
+        public string AttackStatePath => _attackStatePath;
+        public float TransitionDuration => _transitionDuration;
+
+        public EnemyAttackAnimationBinding()
+        {
+        }
+
+        public EnemyAttackAnimationBinding(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex,
+            string p_waitStatePath,
+            string p_attackStatePath)
+        {
+            _attackType = p_attackType;
+            _animationIndex = Mathf.Max(-1, p_animationIndex);
+            _waitStatePath = p_waitStatePath;
+            _attackStatePath = p_attackStatePath;
+        }
+
+        public void Validate()
+        {
+            _animationIndex = Mathf.Max(-1, _animationIndex);
+            _waitStatePath ??= string.Empty;
+            _attackStatePath ??= string.Empty;
+            _transitionDuration = Mathf.Max(0f, _transitionDuration);
+        }
+    }
+
     // Enemy의 피격·사망 등 Animator 표현을 담당한다.
     public class EnemyAnimationView : MonoBehaviour
     {
@@ -15,7 +69,7 @@ namespace Alpha.Enemy.Animation
         [SerializeField]
         private string _idleStatePath;
 
-        [Tooltip("Patrol과 ReturnToPatrol 상태에서 재생할 Base Layer 상태 경로입니다.")]
+        [Tooltip("Patrol과 ReturnToArea 상태에서 재생할 Base Layer 상태 경로입니다.")]
         [SerializeField]
         private string _patrolStatePath = "Base Layer.Patrol";
 
@@ -27,60 +81,54 @@ namespace Alpha.Enemy.Animation
         [SerializeField]
         private string _returnStatePath = "Base Layer.Patrol";
 
+        [Header("Attack States")]
+        [Tooltip(
+            "AttackType과 AnimationIndex 조합에 대응하는 상태 경로입니다. " +
+            "AnimationIndex -1은 해당 타입의 기본 설정입니다.")]
+        [SerializeField]
+        private List<EnemyAttackAnimationBinding> _attackAnimations = new()
+        {
+            new EnemyAttackAnimationBinding(
+                EEnemyAttackType.Melee,
+                -1,
+                "Base Layer.MeleeWait",
+                "Base Layer.MeleeAttack"),
+            new EnemyAttackAnimationBinding(
+                EEnemyAttackType.Range,
+                -1,
+                "Base Layer.Aiming",
+                "Base Layer.RangeAttack"),
+            new EnemyAttackAnimationBinding(
+                EEnemyAttackType.Rush,
+                -1,
+                "Base Layer.RushWait",
+                "Base Layer.RushAttack")
+        };
+
+        [Header("Action States")]
+        [SerializeField]
+        private string _lightHitStatePath = "Base Layer.LightHit";
+
+        [SerializeField]
+        private string _heavyHitStatePath = "Base Layer.HeavyHit";
+
+        [SerializeField]
+        private string _knockdownStatePath = "Base Layer.Knockdown";
+
+        [SerializeField]
+        private string _lyingDownStatePath = "Base Layer.Lying down";
+
+        [SerializeField]
+        private string _standUpStatePath = "Base Layer.StandUp";
+
+        [SerializeField]
+        private string _deathStatePath = "Base Layer.Death";
+
         [Header("Debug")]
         [SerializeField]
         private bool _logCrossFadeRequests = true;
 
         private const int BaseLayer = 0;
-
-        private const string RangeWaitStatePath = "Base Layer.Aiming";
-        private const string RangeAttackStatePath = "Base Layer.RangeAttack";
-        private const string MeleeWaitStatePath = "Base Layer.MeleeWait";
-        private const string MeleeAttackStatePath = "Base Layer.MeleeAttack";
-        private const string RushWaitStatePath = "Base Layer.RushWait";
-        private const string RushAttackStatePath = "Base Layer.RushAttack";
-        private const string LightHitStatePath = "Base Layer.LightHit";
-        private const string HeavyHitStatePath = "Base Layer.HeavyHit";
-        private const string KnockdownStatePath = "Base Layer.Knockdown";
-        private const string LyingDownStatePath = "Base Layer.Lying down";
-        private const string StandUpStatePath = "Base Layer.StandUp";
-        private const string DeadStatePath = "Base Layer.Death";
-
-        private static readonly int RangeWaitState =
-            Animator.StringToHash(RangeWaitStatePath);
-
-        private static readonly int RangeAttackState =
-            Animator.StringToHash(RangeAttackStatePath);
-
-        private static readonly int MeleeWaitState =
-            Animator.StringToHash(MeleeWaitStatePath);
-
-        private static readonly int MeleeAttackState =
-            Animator.StringToHash(MeleeAttackStatePath);
-
-        private static readonly int RushWaitState =
-            Animator.StringToHash(RushWaitStatePath);
-
-        private static readonly int RushAttackState =
-            Animator.StringToHash(RushAttackStatePath);
-
-        private static readonly int LightHitState =
-            Animator.StringToHash(LightHitStatePath);
-
-        private static readonly int HeavyHitState =
-            Animator.StringToHash(HeavyHitStatePath);
-
-        private static readonly int KnockdownState =
-            Animator.StringToHash(KnockdownStatePath);
-
-        private static readonly int LyingDownState =
-            Animator.StringToHash(LyingDownStatePath);
-
-        private static readonly int StandUpState =
-            Animator.StringToHash(StandUpStatePath);
-
-        private static readonly int DeadState =
-            Animator.StringToHash(DeadStatePath);
 
         private int _currentBaseState;
         private bool _hasCurrentBaseState;
@@ -133,30 +181,46 @@ namespace Alpha.Enemy.Animation
             _combatFlow = null;
         }
 
-        // 공격 타입에 맞는 쿨타임 대기 상태를 재생한다.
-        public bool PlayAttackWait(EEnemyAttackType p_attackType)
+        // 공격 타입과 인덱스에 연결된 쿨타임 대기 상태를 재생한다.
+        public bool PlayAttackWait(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
         {
-            return p_attackType switch
-            {
-                EEnemyAttackType.Melee => CrossFadeBase(MeleeWaitState, MeleeWaitStatePath),
-                EEnemyAttackType.Range => CrossFadeBase(RangeWaitState, RangeWaitStatePath),
-                EEnemyAttackType.Rush => CrossFadeBase(RushWaitState, RushWaitStatePath),
-                _ => false
-            };
+            if (!TryFindAttackAnimation(
+                    p_attackType,
+                    p_animationIndex,
+                    out EnemyAttackAnimationBinding binding))
+                return false;
+
+            // 전용 Wait 상태가 없으면 현재 표현을 유지하고 실제 공격 시작을 기다린다.
+            return string.IsNullOrWhiteSpace(binding.WaitStatePath) ||
+                   CrossFadeBase(binding.WaitStatePath);
         }
 
-        // 쿨타임이 끝난 공격 타입의 실행 상태를 직접 재생한다.
-        public bool PlayAttack(EEnemyAttackType p_attackType)
+        // 쿨타임이 끝난 공격 타입과 인덱스의 실행 상태를 처음부터 재생한다.
+        public bool PlayAttack(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
         {
-            return p_attackType switch
+            if (!TryFindAttackAnimation(
+                    p_attackType,
+                    p_animationIndex,
+                    out EnemyAttackAnimationBinding binding))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(binding.AttackStatePath))
             {
-                EEnemyAttackType.Melee => CrossFadeBase(MeleeAttackState, MeleeAttackStatePath,
-                    0.05f),
-                EEnemyAttackType.Range => CrossFadeBase(RangeAttackState, RangeAttackStatePath,
-                    0.05f),
-                EEnemyAttackType.Rush => CrossFadeBase(RushAttackState, RushAttackStatePath, 0.05f),
-                _ => false
-            };
+                Debug.LogError(
+                    $"[{name}] 공격 Animation StatePath가 비어 있습니다: " +
+                    $"Type={p_attackType}, Index={p_animationIndex}",
+                    this);
+                return false;
+            }
+
+            return CrossFadeBase(
+                binding.AttackStatePath,
+                binding.TransitionDuration,
+                true);
         }
 
         // 순찰 이동 상태를 직접 재생한다.
@@ -198,22 +262,22 @@ namespace Alpha.Enemy.Animation
             return p_state switch
             {
                 EHitReactionState.LightHit =>
-                    CrossFadeBase(LightHitState, LightHitStatePath, 0.05f, true),
+                    CrossFadeBase(_lightHitStatePath, 0.05f, true),
                 EHitReactionState.HeavyHit =>
-                    CrossFadeBase(HeavyHitState, HeavyHitStatePath, 0.05f, true),
+                    CrossFadeBase(_heavyHitStatePath, 0.05f, true),
                 EHitReactionState.Knockdown =>
-                    CrossFadeBase(KnockdownState, KnockdownStatePath, 0.05f, true),
+                    CrossFadeBase(_knockdownStatePath, 0.05f, true),
                 EHitReactionState.LyingDown =>
-                    CrossFadeBase(LyingDownState, LyingDownStatePath, 0.05f),
+                    CrossFadeBase(_lyingDownStatePath, 0.05f),
                 EHitReactionState.StandUp =>
-                    CrossFadeBase(StandUpState, StandUpStatePath, 0.05f),
+                    CrossFadeBase(_standUpStatePath, 0.05f),
                 _ => false
             };
         }
 
         public bool PlayDeath()
         {
-            return CrossFadeBase(DeadState, DeadStatePath, 0.05f);
+            return CrossFadeBase(_deathStatePath, 0.05f);
         }
 
         private void SubscribeToAction()
@@ -322,7 +386,7 @@ namespace Alpha.Enemy.Animation
                     PlayPatrol();
                     break;
 
-                case EEnemyLocomotionState.ReturnToPatrol:
+                case EEnemyLocomotionState.ReturnToArea:
                     PlayReturn();
                     break;
 
@@ -365,15 +429,64 @@ namespace Alpha.Enemy.Animation
         }
 
         private void HandleAttackWaitStarted(
-            EEnemyAttackType p_attackType)
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
         {
-            PlayAttackWait(p_attackType);
+            PlayAttackWait(
+                p_attackType,
+                p_animationIndex);
         }
 
         private void HandleAttackStarted(
-            EEnemyAttackType p_attackType)
+            EEnemyAttackType p_attackType,
+            int p_animationIndex)
         {
-            PlayAttack(p_attackType);
+            PlayAttack(
+                p_attackType,
+                p_animationIndex);
+        }
+
+        // 정확한 인덱스를 우선 사용하고 없으면 타입별 기본값(-1)을 사용한다.
+        private bool TryFindAttackAnimation(
+            EEnemyAttackType p_attackType,
+            int p_animationIndex,
+            out EnemyAttackAnimationBinding p_binding)
+        {
+            p_binding = null;
+            EnemyAttackAnimationBinding fallback = null;
+
+            if (_attackAnimations != null)
+            {
+                foreach (EnemyAttackAnimationBinding binding in
+                         _attackAnimations)
+                {
+                    if (binding == null ||
+                        binding.AttackType != p_attackType)
+                    {
+                        continue;
+                    }
+
+                    if (binding.AnimationIndex == p_animationIndex)
+                    {
+                        p_binding = binding;
+                        return true;
+                    }
+
+                    if (binding.AnimationIndex == -1)
+                        fallback ??= binding;
+                }
+            }
+
+            p_binding = fallback;
+
+            if (p_binding != null)
+                return true;
+
+            Debug.LogError(
+                $"[{name}] 공격 Animation 연결 설정이 없습니다: " +
+                $"Type={p_attackType}, Index={p_animationIndex}",
+                this);
+            return false;
         }
 
         // Death Animation Clip 마지막 프레임의 Animation Event에서 호출한다.
@@ -459,9 +572,7 @@ namespace Alpha.Enemy.Animation
 
             if (!hasState)
             {
-                Debug.LogError(
-                    $"[{name}] Enemy Animation 상태가 없습니다: {p_statePath}",
-                    this);
+                Debug.LogError($"[{name}] Enemy Animation 상태가 없습니다: {p_statePath}", this);
                 return false;
             }
 
@@ -533,6 +644,18 @@ namespace Alpha.Enemy.Animation
             _currentBaseState = 0;
             _hasCurrentBaseState = false;
             _hasPendingBaseState = false;
+        }
+
+        private void OnValidate()
+        {
+            if (_attackAnimations == null)
+                return;
+
+            foreach (EnemyAttackAnimationBinding binding in
+                     _attackAnimations)
+            {
+                binding?.Validate();
+            }
         }
 
     }

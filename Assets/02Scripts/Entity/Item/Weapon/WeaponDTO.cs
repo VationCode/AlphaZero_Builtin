@@ -1,46 +1,32 @@
 using System;
-using System.Collections.Generic;
-// EWeaponType 관련 선택 값을 정의한다.
-public enum EWeaponType
+
+// 무기의 장착 위치와 상위 전투 방식을 구분한다.
+public enum EWeaponCategory
 {
     None = -1,
     Melee = 0,
     Range = 1,
-    Special = 2     // 특수 장비(수류탄, 드론 등과 같은)
-}
-// WeaponDTO 데이터 표현을 보관한다.
-[Serializable]
-public abstract class WeaponDTO : ItemDTO
-{
-    public abstract EWeaponType WeaponType { get; }
-}
-// MeleeWeaponDTO 데이터 표현을 보관한다.
-[Serializable]
-public sealed class MeleeWeaponDTO : WeaponDTO
-{
-    // 이후 근접 전용 데이터
-    public override EWeaponType WeaponType => EWeaponType.Melee;
+    Special = 2
 }
 
-// RangeWeaponDTO 데이터 표현을 보관한다.
-[Serializable]
-public sealed class RangeWeaponDTO : WeaponDTO
+// Category 안에서 검·소총·산탄총 같은 구체적인 무기 종류를 구분한다.
+public enum EWeaponType
 {
-    public override EWeaponType WeaponType => EWeaponType.Range;
+    None = 0,
+    Sword,
+    Polearm,
+    Rifle,
+    SniperRifle,
+    PenetrationRifle,
+    Shotgun,
+    GrenadeLauncher,
+    SpecialDevice
 }
 
-// SpecialWeaponDTO 데이터 표현을 보관한다.
+// 무기의 상위 Category와 구체 Type을 보관한다.
 [Serializable]
-public sealed class SpecialWeaponDTO : WeaponDTO
+public sealed class WeaponDTO : ItemDTO
 {
-    // 이후 특수 무기 전용 데이터
-    public override EWeaponType WeaponType => EWeaponType.Special;
-}
-// JSON의 무기 타입별 배열 구조를 역직렬화한다.
-[Serializable]
-public class WeaponWrapper
-{
-    public List<MeleeWeaponDTO> MeleeList;
-    public List<RangeWeaponDTO> RangeList;
-    public List<SpecialWeaponDTO> SpecialList;
+    public EWeaponCategory WeaponCategory;
+    public EWeaponType WeaponType;
 }

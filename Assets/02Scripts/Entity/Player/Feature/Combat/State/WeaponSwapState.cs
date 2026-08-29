@@ -76,9 +76,9 @@ namespace Alpha.Player.Combat
             Weapon currentWeapon =
                 _Core.CombatModule.CurrentWeapon;
 
-            EWeaponType currentType =
-                currentWeapon?.Data?.WeaponType ??
-                EWeaponType.None;
+            EWeaponCategory currentCategory =
+                currentWeapon?.Data?.WeaponCategory ??
+                EWeaponCategory.None;
 
             if (currentWeapon is MeleeWeapon meleeWeapon)
             {
@@ -89,19 +89,23 @@ namespace Alpha.Player.Combat
             else
             {
                 _Core.AnimationView?
-                    .ApplyWeaponOverrideController(currentType);
+                    .ApplyWeaponOverrideController(currentCategory);
             }
 
             // 오른손이 무기 기준이므로 Range의 왼손 지지점만 IK Target으로 연결한다.
-            if (currentWeapon is RangeWeapon rangeWeapon)
+            if (currentWeapon is RangeAttackModule rangeAttackModule)
             {
                 _Core.RigView?
                     .SetLeftHandIKTarget(
-                        rangeWeapon.LeftHandIKTarget);
+                        rangeAttackModule.LeftHandIKTarget);
 
-                // Player가 장착한 Range View만 Local Camera Shake를 요청할 수 있다.
-                rangeWeapon
+                // Player가 장착한 Range View에 Local Camera 표현을 연결한다.
+                rangeAttackModule
                     .GetComponent<RangeWeaponEffectView>()?
+                    .BindCamera(_Core.CameraCore);
+
+                rangeAttackModule
+                    .GetComponent<HitscanEffectView>()?
                     .BindCamera(_Core.CameraCore);
             }
             else

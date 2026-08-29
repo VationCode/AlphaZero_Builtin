@@ -9,12 +9,16 @@ namespace Alpha.Enemy.View
 {
     // Enemy 공격 패턴의 거리와 실제 판정 영역을 Scene View에 표현한다.
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(DetectionAreaGizmoView))]
     public sealed class EnemyAttackAreaPreviewView : MonoBehaviour
     {
         private const int CircleSegments = 64;
 
         [SerializeField]
         private EnemyCombatModule _combatModule;
+
+        [SerializeField]
+        private DetectionAreaGizmoView _areaGizmoView;
 
         [Tooltip("편집 모드에서 공격 방향의 기준으로 사용할 Transform")]
         [SerializeField]
@@ -55,18 +59,22 @@ namespace Alpha.Enemy.View
         private void Reset()
         {
             _combatModule = ResolveCombatModule();
+            _areaGizmoView = GetComponent<DetectionAreaGizmoView>();
             _origin = ResolveOrigin(_combatModule);
         }
 
         private void OnValidate()
         {
             _combatModule ??= ResolveCombatModule();
+            _areaGizmoView ??= GetComponent<DetectionAreaGizmoView>();
             _origin ??= ResolveOrigin(_combatModule);
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (!_showAttackPreview)
+            _areaGizmoView ??= GetComponent<DetectionAreaGizmoView>();
+
+            if (!_showAttackPreview || _areaGizmoView == null)
                 return;
 
             EnemyCombatModule combat = ResolveCombatModule();
@@ -153,7 +161,7 @@ namespace Alpha.Enemy.View
                 false);
         }
 
-        private static void DrawTypeArea(
+        private void DrawTypeArea(
             Transform p_origin,
             EnemyAttackPatternSetting p_pattern,
             Color p_color,
@@ -239,7 +247,7 @@ namespace Alpha.Enemy.View
             Gizmos.DrawWireSphere(p_center, p_radius);
         }
 
-        private static void DrawRushPath(
+        private void DrawRushPath(
             Transform p_origin,
             EnemyAttackPatternSetting p_pattern,
             Color p_color)
@@ -267,7 +275,7 @@ namespace Alpha.Enemy.View
                 destinationColor);
         }
 
-        private static void DrawDetectionArea(
+        private void DrawDetectionArea(
             Vector3 p_position,
             Transform p_origin,
             DetectionAreaSettings p_area,
@@ -283,7 +291,7 @@ namespace Alpha.Enemy.View
                 p_origin,
                 p_area);
 
-            DetectionAreaGizmoDrawer.Draw(request, p_color);
+            _areaGizmoView.Draw(request, p_color);
         }
 
         private Color ResolvePatternColor(

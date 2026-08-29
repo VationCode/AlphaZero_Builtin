@@ -8,7 +8,6 @@ namespace Alpha.Enemy.View
 {
     // CrabBoss/Intro가 소유한 Animator, Timeline, DollyCam 표현 생명주기를 관리한다.
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(PlayableDirector))]
     public sealed class CrabBossIntroView : MonoBehaviour
     {
         [SerializeField]
@@ -96,6 +95,29 @@ namespace Alpha.Enemy.View
             _director.Stop();
 
             // stopped 이벤트가 발생하지 않는 Director 상태도 즉시 정리한다.
+            if (IsPlaying)
+                FinishPlayback();
+        }
+
+        public void Skip()
+        {
+            if (!IsPlaying)
+                return;
+
+            // Timeline의 마지막 상태를 반영한 뒤 정상 종료하여 Battle로 전환한다.
+            _wasCancelled = false;
+            double duration = _director.duration;
+
+            if (duration > 0d &&
+                !double.IsNaN(duration) &&
+                !double.IsInfinity(duration))
+            {
+                _director.time = duration;
+                _director.Evaluate();
+            }
+
+            _director.Stop();
+
             if (IsPlaying)
                 FinishPlayback();
         }
