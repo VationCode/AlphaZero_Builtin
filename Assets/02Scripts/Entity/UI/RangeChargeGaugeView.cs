@@ -33,16 +33,16 @@ namespace Alpha.UI
         // Combat Flow 갱신 후 최신 차징 비율만 UI에 반영한다.
         private void LateUpdate()
         {
-            RangeAttackModule rangeAttackModule =
-                _combatModule?.ActiveRangeSecondaryModule;
+            RangeWeapon rangeWeapon =
+                _combatModule?.ActiveRangeSecondaryWeapon;
 
             bool isCharging =
-                rangeAttackModule != null &&
-                rangeAttackModule.IsChargeEnabled &&
-                rangeAttackModule.IsSecondaryActive;
+                rangeWeapon != null &&
+                rangeWeapon.IsChargeEnabled &&
+                rangeWeapon.IsSecondaryActive;
 
             _fillImage.fillAmount =
-                isCharging ? rangeAttackModule.ChargeRatio : 0f;
+                isCharging ? rangeWeapon.ChargeRatio : 0f;
         }
 
         public void Unbind()

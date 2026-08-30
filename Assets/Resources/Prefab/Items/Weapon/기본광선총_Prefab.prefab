@@ -200,10 +200,40 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
       insertIndex: -1
       addedObject: {fileID: -3591894751612736145}
-    - targetCorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
       insertIndex: -1
       addedObject: {fileID: -3591894751612736143}
+    - targetCorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -3591894751612736141}
   m_SourcePrefab: {fileID: 100100000, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+--- !u!1 &2689073528184981158 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 4063864534810233437}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-3591894751612736143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2689073528184981158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: -3591894751612736145}
+  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _muzzleLifetime: 0.5
+  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
+  _impactPrefab: {fileID: 0}
+  _impactLifetime: 5
+  _scopeTracerViewportPosition: {x: 0.5, y: 0.25}
+  _scopeTracerDepthOffset: 0.05
+  _material: {fileID: 2100000, guid: d9ff703fce6d5de46be165b21c589ada, type: 2}
+  _visibleDuration: 0.05
 --- !u!4 &3204813317222370158 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1449165087894339891, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -219,6 +249,27 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 914546279748071263, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 4063864534810233437}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4858729022543161877 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 4063864534810233437}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-3591894751612736141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4858729022543161877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: -3591894751612736145}
+  _audioSource: {fileID: 0}
+  _fireClip: {fileID: 8300000, guid: bddea8aea12189641ad789a470e083dd, type: 3}
+  _fireVolume: 1
 --- !u!1 &8766906499838824801 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -240,14 +291,16 @@ MonoBehaviour:
     _weaponType: 5
     _baseDamage: 15
     _maxDistance: 100
-    _attackTuning:
+    _shotSettings:
       _fireInterval: 0.01
-      _projectilesPerShot: 1
+      _trajectoryCount: 1
       _spreadAngle: 0
+    _fireResponseSettings:
       _recoil: 0
       _moveSpeedMultiplier: 1
+      _cameraShakeName: Weak
     _defaultTriggerMode: 1
-    _aimView: 0
+    _aimView: 1
     _chargeSettings:
       _enabled: 0
       _maxDuration: 1
@@ -255,7 +308,7 @@ MonoBehaviour:
     _impactSettings:
       _hitType: 1
       _lightKnockback:
-        _distance: 1
+        _distance: 0.2
         _duration: 0.2
       _heavyKnockback:
         _distance: 1
@@ -270,33 +323,22 @@ MonoBehaviour:
       _knockbackDuration: 0.2
       _knockbackSettingsVersion: 1
       _recoveryDuration: 0.25
-    _physics:
-      _hitMask:
-        serializedVersion: 2
-        m_Bits: 129
-    _penetration:
-      _startRadius: 0.25
-      _endRadius: 0.25
-    _projectile:
-      _prefab: {fileID: 0}
-      _speed: 120
-      _hitMask:
-        serializedVersion: 2
-        m_Bits: 129
+  _attackSettings:
+    _attackType: 2
+    _hitMask:
+      serializedVersion: 2
+      m_Bits: 129
+    _activeSettings:
+      rid: 8237997002579509349
   _muzzle: {fileID: 3204813317222370158}
   _leftHandIKTarget: {fileID: 3806845421035578626}
---- !u!114 &-3591894751612736143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8766906499838824801}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db3a8a6e7f9c4aa7bced59437a0f24b1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _attackModule: {fileID: -3591894751612736145}
-  _material: {fileID: 2100000, guid: d9ff703fce6d5de46be165b21c589ada, type: 2}
-  _visibleDuration: 0.05
+  _showRange: 1
+  _rangeColor: {r: 0, g: 0.8, b: 1, a: 1}
+  references:
+    version: 2
+    RefIds:
+    - rid: 8237997002579509349
+      type: {class: PenetrationAttackSettings, ns: Alpha.Item.Weapon.Range, asm: Assembly-CSharp}
+      data:
+        _startRadius: 0.25
+        _endRadius: 0.25

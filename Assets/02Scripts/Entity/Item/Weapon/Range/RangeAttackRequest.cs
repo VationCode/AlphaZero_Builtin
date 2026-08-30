@@ -11,9 +11,9 @@ namespace Alpha.Item.Weapon.Range
         public Vector3 Origin { get; }
         public Vector3 Direction { get; }
         public float Damage { get; }
-        public float MaxDistance { get; }
-        public AttackImpactInfo Impact { get; }
-        public int ProjectilesPerShot { get; }
+       public float MaxDistance { get; }
+       public AttackImpactInfo Impact { get; }
+       public int TrajectoryCount { get; }
         public float SpreadAngle { get; }
 
         public bool IsValid =>
@@ -21,7 +21,7 @@ namespace Alpha.Item.Weapon.Range
             Direction.sqrMagnitude > 0.0001f &&
             Damage >= 0f &&
             MaxDistance > 0f &&
-            ProjectilesPerShot > 0 &&
+            TrajectoryCount > 0 &&
             SpreadAngle >= 0f;
 
         public RangeAttackRequest(
@@ -31,9 +31,9 @@ namespace Alpha.Item.Weapon.Range
             Vector3 p_direction,
             float p_damage,
             float p_maxDistance,
-            AttackImpactInfo p_impact = default,
-            float p_spreadAngle = 0f,
-            int p_projectilesPerShot = 1)
+           AttackImpactInfo p_impact = default,
+           float p_spreadAngle = 0f,
+            int p_trajectoryCount = 1)
         {
             Attacker = p_attacker;
             MuzzleOrigin = p_muzzleOrigin;
@@ -44,11 +44,11 @@ namespace Alpha.Item.Weapon.Range
                 : Vector3.zero;
 
             Damage = p_damage;
-            MaxDistance = p_maxDistance;
-            Impact = p_impact;
-            ProjectilesPerShot = Mathf.Max(
+           MaxDistance = p_maxDistance;
+           Impact = p_impact;
+           TrajectoryCount = Mathf.Max(
                 1,
-                p_projectilesPerShot);
+                p_trajectoryCount);
             SpreadAngle = Mathf.Max(0f, p_spreadAngle);
         }
 
@@ -62,9 +62,9 @@ namespace Alpha.Item.Weapon.Range
                 Origin,
                 p_direction,
                 p_damage,
-                MaxDistance,
-                Impact,
-                0f,
+               MaxDistance,
+               Impact,
+               0f,
                 1);
         }
     }

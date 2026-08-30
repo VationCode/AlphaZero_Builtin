@@ -4,12 +4,13 @@ using Alpha.Item.Weapon;
 using Alpha.Item.Weapon.Melee;
 using Alpha.Item.Weapon.Range;
 using System;
+using UnityEngine.Serialization;
 
 namespace Alpha.Player.Combat
 {
     [RequireComponent(typeof(WeaponSwapModule))]
     [RequireComponent(typeof(RangeAimModule))]
-    public class CombatModule : MonoBehaviour, IRangeAttackSource
+    public class CombatModule : MonoBehaviour
     {
         [Header("Attack Power")]
         [Tooltip("무기와 Skill이 계산한 공격력에 Player 능력치로 추가할 값입니다.")]
@@ -17,13 +18,19 @@ namespace Alpha.Player.Combat
         private float _additionalAttackDamage;
 
         [Header("Melee Attack")]
+        [FormerlySerializedAs("_meleeAttackModule")]
         [SerializeField]
-        private PlayerMeleeAttackModule _meleeAttackModule = new();
+        private PlayerMeleeWeaponUseModule _meleeWeaponUseModule = new();
+
+        [Header("Range Attack")]
+        [FormerlySerializedAs("_rangeAttackModule")]
+        [SerializeField]
+        private PlayerRangeWeaponUseModule _rangeWeaponUseModule = new();
 
         private PlayerCore _core;
         private WeaponSwapModule _weaponSwapModule;
         private RangeAimModule _rangeAimModule;
-        private RangeAttackModule _activeRangeSecondaryModule;
+        private RangeWeapon _activeRangeSecondaryWeapon;
 
         public Transform Attacker => _core?.PlayerTr;
 
@@ -44,19 +51,19 @@ namespace Alpha.Player.Combat
 
         // 현재 전투에 사용 가능한 무기를 대표 진입점으로 제공한다.
         public Weapon CurrentWeapon => _weaponSwapModule?.CurrentWeapon;
-        public RangeAttackModule CurrentRangeAttackModule =>
-            CurrentWeapon as RangeAttackModule;
+        public RangeWeapon CurrentRangeWeapon =>
+            CurrentWeapon as RangeWeapon;
         public bool HasWeapon => CurrentWeapon != null;
         public int CurrentMeleeSkillIndex =>
-            _meleeAttackModule?.CurrentSkillIndex ?? -1;
+            _meleeWeaponUseModule?.CurrentSkillIndex ?? -1;
         public MeleeSkillDefinition CurrentMeleeSkill =>
-            _meleeAttackModule?.CurrentSkill;
+            _meleeWeaponUseModule?.CurrentSkill;
         public string CurrentMeleeSkillId =>
-            _meleeAttackModule?.CurrentSkillId;
+            _meleeWeaponUseModule?.CurrentSkillId;
         public string CurrentMeleeAnimationKey =>
-            _meleeAttackModule?.CurrentAnimationKey;
+            _meleeWeaponUseModule?.CurrentAnimationKey;
         public Transform MeleeAttackSource =>
-            _meleeAttackModule?.AttackSource;
+            _meleeWeaponUseModule?.AttackSource;
 
         public EWeaponActionType ActiveActionType =>
             CurrentWeapon?.ActiveActionType ?? EWeaponActionType.None;
@@ -64,16 +71,17 @@ namespace Alpha.Player.Combat
         public bool HasActiveAction =>
             CurrentWeapon != null && CurrentWeapon.HasActiveAction;
 
-        public RangeAttackModule ActiveRangeSecondaryModule =>
-            _activeRangeSecondaryModule;
+        public RangeWeapon ActiveRangeSecondaryWeapon =>
+            _activeRangeSecondaryWeapon;
 
         public bool HasActiveRangeSecondary =>
-            _activeRangeSecondaryModule != null &&
-            _activeRangeSecondaryModule.IsSecondaryActive;
+            _activeRangeSecondaryWeapon != null &&
+            _activeRangeSecondaryWeapon.IsSecondaryActive;
 
         private void Awake()
         {
-            _meleeAttackModule ??= new PlayerMeleeAttackModule();
+            _meleeWeaponUseModule ??= new PlayerMeleeWeaponUseModule();
+            _rangeWeaponUseModule ??= new PlayerRangeWeaponUseModule();
             _weaponSwapModule = GetComponent<WeaponSwapModule>();
             _rangeAimModule = GetComponent<RangeAimModule>();
         }
@@ -81,8 +89,8 @@ namespace Alpha.Player.Combat
         private void OnValidate()
         {
             _additionalAttackDamage = Mathf.Max(0f, _additionalAttackDamage);
-            _meleeAttackModule ??= new PlayerMeleeAttackModule();
-            _meleeAttackModule.Validate();
+            _meleeWeaponUseModule ??= new PlayerMeleeWeaponUseModule();
+            _rangeWeaponUseModule ??= new PlayerRangeWeaponUseModule();
         }
 
         private void OnEnable()
@@ -111,14 +119,23 @@ namespace Alpha.Player.Combat
 
             _core = p_core;
 
-            if (!_meleeAttackModule.Bind(
+            if (!_meleeWeaponUseModule.Bind(
                     Attacker,
-                    ResolveDamage,
                     HandleMeleeSkillEffectRequested,
                     HandleMeleeSkillHitConfirmed))
             {
                 Debug.LogError(
-                    $"{nameof(PlayerMeleeAttackModule)}의 공격 기준을 설정하지 못했습니다.",
+                    $"{nameof(PlayerMeleeWeaponUseModule)}의 사용 기준을 설정하지 못했습니다.",
+                    this);
+                return false;
+            }
+
+            if (!_rangeWeaponUseModule.Bind(
+                    Attacker,
+                    _rangeAimModule))
+            {
+                Debug.LogError(
+                    $"{nameof(PlayerRangeWeaponUseModule)}의 사용 기준을 설정하지 못했습니다.",
                     this);
                 return false;
             }
@@ -183,21 +200,29 @@ namespace Alpha.Player.Combat
             if (!_weaponSwapModule.Apply(p_weapon))
                 return false;
 
+            // 새 무기가 적용된 뒤 이전 Weapon 연결 상태를 정리한다.
+            _meleeWeaponUseModule.UnbindCurrentWeapon();
+            _rangeWeaponUseModule.UnbindCurrentWeapon();
+
             MeleeWeapon meleeWeapon = CurrentWeapon as MeleeWeapon;
 
             if (meleeWeapon != null &&
-                !meleeWeapon.BindActionController(_meleeAttackModule))
+                !_meleeWeaponUseModule.TryBindWeapon(
+                    meleeWeapon,
+                    _additionalAttackDamage))
             {
                 _weaponSwapModule.Apply(null);
                 OnWeaponChanged?.Invoke(null);
                 return false;
             }
 
-            RangeAttackModule rangeAttackModule =
-                CurrentRangeAttackModule;
+            RangeWeapon rangeWeapon =
+                CurrentRangeWeapon;
 
-            if (rangeAttackModule != null &&
-                !rangeAttackModule.BindAttackSource(this))
+            if (rangeWeapon != null &&
+                !_rangeWeaponUseModule.TryBindWeapon(
+                    rangeWeapon,
+                    _additionalAttackDamage))
             {
                 // 잘못 구성된 Range 무기는 장착 상태로 남기지 않는다.
                 _weaponSwapModule.Apply(null);
@@ -215,17 +240,17 @@ namespace Alpha.Player.Combat
         // Flow의 입력 요청을 현재 대표 Range 공격 Module에 전달한다.
         public bool TrySwitchRangeTriggerMode()
         {
-            RangeAttackModule rangeAttackModule =
-                CurrentRangeAttackModule;
+            RangeWeapon rangeWeapon =
+                CurrentRangeWeapon;
 
-            if (rangeAttackModule == null ||
-                !rangeAttackModule.TrySwitchTriggerMode())
+            if (rangeWeapon == null ||
+                !rangeWeapon.TrySwitchTriggerMode())
             {
                 return false;
             }
 
             OnRangeTriggerModeChanged?.Invoke(
-                rangeAttackModule.CurrentTriggerMode);
+                rangeWeapon.CurrentTriggerMode);
             return true;
         }
         #endregion ============================== /Range Trigger
@@ -234,6 +259,12 @@ namespace Alpha.Player.Combat
         // 현재 무기의 Action을 선택하고 행동을 시작한다.
         public bool TryBeginWeaponAction(EWeaponActionType p_type)
         {
+            if (CurrentRangeWeapon != null &&
+                !_rangeWeaponUseModule.RefreshAttackPose())
+            {
+                return false;
+            }
+
             return CurrentWeapon != null &&
                    CurrentWeapon.TryBeginAction(p_type);
         }
@@ -244,6 +275,9 @@ namespace Alpha.Player.Combat
             bool p_isInputPressed,
             float p_deltaTime)
         {
+            if (CurrentRangeWeapon != null)
+                _rangeWeaponUseModule.RefreshAttackPose();
+
             CurrentWeapon?.TickAction(
                 p_isInputHeld,
                 p_isInputPressed,
@@ -259,35 +293,29 @@ namespace Alpha.Player.Combat
         public MeleeSkillDefinition GetMeleeSkillDefinition(
             int p_skillIndex)
         {
-            MeleeWeapon weapon = CurrentWeapon as MeleeWeapon;
-            return weapon?.ComboDefinition?.GetSkill(p_skillIndex);
+            return _meleeWeaponUseModule?.GetSkillDefinition(
+                p_skillIndex);
         }
 
-        // 무기·Skill이 계산한 값에 Player의 공통 추가 공격력을 반영한다.
-        public float ResolveDamage(float p_baseDamage)
-        {
-            return Mathf.Max(0f, p_baseDamage) +
-                   _additionalAttackDamage;
-        }
-
-        public bool TryGetAttackPose(
-            Vector3 p_muzzleOrigin,
-            float p_maxDistance,
+        // Player가 계산한 현재 조준 자세를 RangeWeapon과 공유한다.
+        public bool TryGetRangeAttackPose(
             out Vector3 p_attackOrigin,
-            out Vector3 p_targetPoint)
+            out Vector3 p_attackDirection)
         {
-            if (_rangeAimModule == null)
+            RangeWeapon rangeWeapon = CurrentRangeWeapon;
+
+            if (rangeWeapon == null ||
+                _rangeWeaponUseModule == null)
             {
                 p_attackOrigin = Vector3.zero;
-                p_targetPoint = Vector3.zero;
+                p_attackDirection = Vector3.zero;
                 return false;
             }
 
-            return _rangeAimModule.TryResolveAttackPose(
-                p_muzzleOrigin,
-                p_maxDistance,
+            return _rangeWeaponUseModule.TryGetAttackPose(
+                rangeWeapon,
                 out p_attackOrigin,
-                out p_targetPoint);
+                out p_attackDirection);
         }
 
         // 현재 Range 공격 Module의 총구 기준 전체 조준 방향을 반환한다.
@@ -296,9 +324,9 @@ namespace Alpha.Player.Combat
         {
             p_direction = Vector3.zero;
 
-            return CurrentRangeAttackModule != null &&
-                   CurrentRangeAttackModule.TryGetAimDirection(
-                       out p_direction);
+            return TryGetRangeAttackPose(
+                out _,
+                out p_direction);
         }
 
         // 현재 Range 조준점을 Player의 지상 회전 방향으로 변환한다.
@@ -329,29 +357,33 @@ namespace Alpha.Player.Combat
         #region ============================== Range Secondary
         public bool BeginRangeSecondary()
         {
-            RangeAttackModule rangeAttackModule =
-                CurrentRangeAttackModule;
+            RangeWeapon rangeWeapon =
+                CurrentRangeWeapon;
 
-            if (rangeAttackModule == null ||
-                _activeRangeSecondaryModule != null ||
-                !rangeAttackModule.BeginSecondary())
+            if (rangeWeapon != null)
+                _rangeWeaponUseModule.RefreshAttackPose();
+
+            if (rangeWeapon == null ||
+                _activeRangeSecondaryWeapon != null ||
+                !rangeWeapon.BeginSecondary())
             {
                 return false;
             }
 
-            _activeRangeSecondaryModule = rangeAttackModule;
+            _activeRangeSecondaryWeapon = rangeWeapon;
             return true;
         }
 
         public void TickRangeSecondary(float p_deltaTime)
         {
-            _activeRangeSecondaryModule?.TickSecondary(p_deltaTime);
+            _rangeWeaponUseModule?.RefreshAttackPose();
+            _activeRangeSecondaryWeapon?.TickSecondary(p_deltaTime);
         }
 
         public void CancelRangeSecondary()
         {
-            _activeRangeSecondaryModule?.CancelSecondary();
-            _activeRangeSecondaryModule = null;
+            _activeRangeSecondaryWeapon?.CancelSecondary();
+            _activeRangeSecondaryWeapon = null;
         }
         #endregion ============================== /Range Secondary
     }

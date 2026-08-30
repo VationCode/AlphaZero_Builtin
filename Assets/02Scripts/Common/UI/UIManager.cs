@@ -1,11 +1,17 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Alpha.UI
 {
     // Scene의 공용 HUD View 참조를 Installer에 제공한다.
     public class UIManager : MonoBehaviour
     {
-        public CrossHairUI CrossHairUI;
+        [FormerlySerializedAs("CrossHairUI")]
+        [SerializeField]
+        private WeaponCrosshairView _weaponCrosshairView;
+
+        public WeaponCrosshairView WeaponCrosshairView =>
+            _weaponCrosshairView;
         public RangeChargeGaugeView RangeChargeGaugeView;
         public StateUI StateUI;
         public InteractionView InteractionUI;
@@ -26,7 +32,8 @@ namespace Alpha.UI
             if (!p_isVisible)
             {
                 _crossHairWasActive =
-                    CrossHairUI != null && CrossHairUI.gameObject.activeSelf;
+                    WeaponCrosshairView != null &&
+                    WeaponCrosshairView.gameObject.activeSelf;
                 _stateWasActive =
                     StateUI != null && StateUI.gameObject.activeSelf;
                 _interactionWasActive =
@@ -47,8 +54,8 @@ namespace Alpha.UI
             bool p_state,
             bool p_interaction)
         {
-            if (CrossHairUI != null)
-                CrossHairUI.gameObject.SetActive(p_crossHair);
+            if (WeaponCrosshairView != null)
+                WeaponCrosshairView.gameObject.SetActive(p_crossHair);
 
             if (StateUI != null)
                 StateUI.gameObject.SetActive(p_state);

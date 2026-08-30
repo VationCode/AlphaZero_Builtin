@@ -74,10 +74,10 @@ public class Installer : MonoBehaviour
             _crabBossEncounterFlow?.BindCamera(
                 _cameraCore.RenderCamera?.GetComponent<CinemachineBrain>());
 
-            _uiManager.CrossHairUI?.Bind(
+            _uiManager.WeaponCrosshairView?.Bind(
                 _cameraCore,
                 _playerCore.CombatModule);
-            ConnectCrossHairState();
+            ConnectCrosshairState();
             _mouseSystem.Bind(_cameraCore.RenderCamera);
             _cameraCore.RequestView(ECameraViewType.ThirdPerson);
             _mouseSystem.SetViewCursor(false);
@@ -128,19 +128,20 @@ public class Installer : MonoBehaviour
         _equipmentView.OnUnequipRequested += equipmentFlow.RequestUnequip;
     }
 
-    // 실제 활성 무기 변경을 CrossHair 표시 조건과 연결한다.
-    private void ConnectCrossHairState()
+    // 실제 활성 무기 변경을 Crosshair 표시 조건과 연결한다.
+    private void ConnectCrosshairState()
     {
-        CrossHairUI crossHairUI = _uiManager?.CrossHairUI;
+        WeaponCrosshairView crosshairView =
+            _uiManager?.WeaponCrosshairView;
         CombatModule combatModule = _playerCore?.CombatModule;
 
-        if (crossHairUI == null || combatModule == null)
+        if (crosshairView == null || combatModule == null)
             return;
 
-        combatModule.OnWeaponChanged -= crossHairUI.HandleWeaponChanged;
-        combatModule.OnWeaponChanged += crossHairUI.HandleWeaponChanged;
+        combatModule.OnWeaponChanged -= crosshairView.HandleWeaponChanged;
+        combatModule.OnWeaponChanged += crosshairView.HandleWeaponChanged;
 
-        crossHairUI.HandleWeaponChanged(
+        crosshairView.HandleWeaponChanged(
             combatModule.CurrentWeapon?.Data);
     }
 
@@ -170,11 +171,11 @@ public class Installer : MonoBehaviour
             _equipmentView.OnUnequipRequested -= equipmentFlow.RequestUnequip;
         }
 
-        if (_uiManager?.CrossHairUI != null &&
+        if (_uiManager?.WeaponCrosshairView != null &&
             _playerCore.CombatModule != null)
         {
             _playerCore.CombatModule.OnWeaponChanged -=
-                _uiManager.CrossHairUI.HandleWeaponChanged;
+                _uiManager.WeaponCrosshairView.HandleWeaponChanged;
         }
     }
 

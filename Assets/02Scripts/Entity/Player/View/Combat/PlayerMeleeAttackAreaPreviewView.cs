@@ -1,4 +1,3 @@
-using Alpha.Combat;
 using Alpha.Detection;
 using Alpha.Item.Weapon.Melee;
 using UnityEngine;

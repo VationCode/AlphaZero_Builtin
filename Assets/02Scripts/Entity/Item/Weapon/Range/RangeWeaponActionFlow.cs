@@ -1,204 +1,184 @@
-using Alpha.Item.Weapon;
-using UnityEngine;
-
 namespace Alpha.Item.Weapon.Range
 {
-    // 원거리 입력을 해석해 발사 시점과 Secondary 상태를 결정한다.
-    public sealed class RangeWeaponActionFlow
+    internal enum ERangeWeaponActionResult
     {
-        private RangeAttackModule _attackModule;
-        private RangeWeaponSettings _settings;
+        Running,
+        Completed
+    }
 
-        private float _nextFireTime;
-        private float _chargeElapsedTime;
+    // Trigger와 Secondary 자식 Flow를 조정하고 행동 결과만 부모에 반환한다.
+    internal sealed class RangeWeaponActionFlow
+    {
+        private readonly RangeWeaponTriggerFlow _triggerFlow = new();
+        private readonly RangeWeaponSecondaryFlow _secondaryFlow = new();
+
+        private RangeWeaponAttackModule _attackModule;
         private bool _isChargedPrimaryAction;
 
-        public ERangeTriggerMode CurrentTriggerMode { get; private set; }
+        public ERangeTriggerMode CurrentTriggerMode =>
+            _triggerFlow.CurrentMode;
         public bool DidFireDuringPrimaryAction { get; private set; }
-        public bool IsSecondaryActive { get; private set; }
-
-        public bool CanSwitchTriggerMode =>
-            _attackModule != null &&
-            _attackModule.IsInitialized &&
-            !_attackModule.HasActiveAction;
-
-        public float ChargeRatio => IsChargeEnabled
-            ? Mathf.Clamp01(
-                _chargeElapsedTime / _settings.ChargeSettings.MaxDuration)
-            : 0f;
-
-        private bool IsChargeEnabled =>
-            _settings?.ChargeSettings?.Enabled == true;
-        private bool IsFireReady => Time.time >= _nextFireTime;
+        public bool IsSecondaryActive => _secondaryFlow.IsActive;
+        public bool IsChargeEnabled => _secondaryFlow.IsChargeEnabled;
+        public float ChargeRatio => _secondaryFlow.ChargeRatio;
 
         public void Bind(
-            RangeAttackModule p_attackModule,
-            RangeWeaponSettings p_settings)
+            RangeWeaponSettings p_settings,
+            RangeWeaponAttackModule p_attackModule)
         {
             _attackModule = p_attackModule;
-            _settings = p_settings;
-            Reset();
+            _triggerFlow.Bind(p_settings);
+            _secondaryFlow.Bind(p_settings);
+            ResetRuntimeState();
         }
 
         public void Reset()
         {
-            _nextFireTime = 0f;
-            _chargeElapsedTime = 0f;
-            _isChargedPrimaryAction = false;
-            DidFireDuringPrimaryAction = false;
-            IsSecondaryActive = false;
-            CurrentTriggerMode = _settings?.DefaultTriggerMode ??
-                                 ERangeTriggerMode.Auto;
+            _triggerFlow.Reset();
+            _secondaryFlow.Reset();
+            ResetRuntimeState();
         }
 
-        public bool TrySwitchTriggerMode()
+        public bool TrySwitchTriggerMode(
+            bool p_hasUseContext,
+            bool p_hasActiveWeaponAction)
         {
-            if (!CanSwitchTriggerMode)
-                return false;
-
-            CurrentTriggerMode =
-                CurrentTriggerMode == ERangeTriggerMode.Semi
-                    ? ERangeTriggerMode.Auto
-                    : ERangeTriggerMode.Semi;
-
-            return true;
+            return _triggerFlow.TrySwitchMode(
+                p_hasUseContext && !p_hasActiveWeaponAction);
         }
 
-        // Primary 시작 시 일반 사격과 우클릭 차징 사격을 구분한다.
-        public bool TryBeginAction(EWeaponActionType p_type)
+        public bool TryBeginAction(
+            EWeaponActionType p_type,
+            bool p_hasUseContext)
         {
-            if (p_type != EWeaponActionType.Primary)
+            if (p_type != EWeaponActionType.Primary ||
+                !p_hasUseContext ||
+                _attackModule == null)
+            {
                 return false;
+            }
 
             DidFireDuringPrimaryAction = false;
             _isChargedPrimaryAction =
-                IsChargeEnabled && IsSecondaryActive;
+                _secondaryFlow.IsChargeEnabled &&
+                _secondaryFlow.IsActive;
 
-            // Primary 시작 시 저장한 우클릭 상태로 일반 사격과 차징 사격을 분리한다.
             if (_isChargedPrimaryAction)
             {
                 // Auto는 쿨다운 중 입력을 유지하고 준비되는 즉시 발사한다.
-                if (!IsFireReady)
+                if (!_triggerFlow.IsFireReady)
                     return CurrentTriggerMode == ERangeTriggerMode.Auto;
 
                 return TryFireChargedPrimary();
             }
 
-            if (!IsFireReady)
+            if (!_triggerFlow.IsFireReady)
                 return CurrentTriggerMode == ERangeTriggerMode.Auto;
 
-            if (!TryFireByRate())
+            if (!TryFire())
                 return false;
 
             DidFireDuringPrimaryAction = true;
             return true;
         }
 
-        // Auto 입력 유지 중 Fire Interval마다 대표 공격 Module을 실행한다.
-        public void TickAction(EWeaponActionType p_type)
+        public ERangeWeaponActionResult TickAction(
+            EWeaponActionType p_type)
         {
-            if (p_type != EWeaponActionType.Primary)
-                return;
-
-            // 시작할 때 차징으로 확정된 Primary만 Secondary 상태와 Charge 피해를 사용한다.
-            if (_isChargedPrimaryAction)
+            if (p_type != EWeaponActionType.Primary ||
+                _attackModule == null)
             {
-                if (!IsSecondaryActive ||
-                    CurrentTriggerMode == ERangeTriggerMode.Semi)
-                {
-                    _attackModule.EndAction();
-                    return;
-                }
-
-                if (!IsFireReady)
-                    return;
-
-                if (!TryFireChargedPrimary())
-                    _attackModule.EndAction();
-
-                return;
+                return ERangeWeaponActionResult.Completed;
             }
+
+            if (_isChargedPrimaryAction)
+                return TickChargedPrimary();
 
             if (CurrentTriggerMode == ERangeTriggerMode.Semi)
-            {
-                _attackModule.EndAction();
-                return;
-            }
+                return ERangeWeaponActionResult.Completed;
 
-            if (!IsFireReady)
-                return;
+            if (!_triggerFlow.IsFireReady)
+                return ERangeWeaponActionResult.Running;
 
-            if (!TryFireByRate())
-            {
-                _attackModule.EndAction();
-                return;
-            }
+            if (!TryFire())
+                return ERangeWeaponActionResult.Completed;
 
             DidFireDuringPrimaryAction = true;
+            return ERangeWeaponActionResult.Running;
         }
 
-        public bool BeginSecondary()
+        public bool BeginSecondary(
+            bool p_hasUseContext,
+            bool p_hasSecondaryAction,
+            bool p_hasActiveWeaponAction)
         {
-            if (_attackModule == null ||
-                !_attackModule.IsInitialized ||
-                IsSecondaryActive ||
-                (IsChargeEnabled && _attackModule.HasActiveAction) ||
-                !_attackModule.HasSecondaryAction)
-            {
-                return false;
-            }
-
-            IsSecondaryActive = true;
-            _chargeElapsedTime = 0f;
-            return true;
+            return p_hasUseContext &&
+                   _secondaryFlow.Begin(
+                       p_hasSecondaryAction,
+                       p_hasActiveWeaponAction);
         }
 
         public void TickSecondary(float p_deltaTime)
         {
-            if (!IsSecondaryActive || !IsChargeEnabled)
-                return;
-
-            _chargeElapsedTime = Mathf.Min(
-                _chargeElapsedTime + Mathf.Max(0f, p_deltaTime),
-                _settings.ChargeSettings.MaxDuration);
+            _secondaryFlow.Tick(p_deltaTime);
         }
 
         public void CancelSecondary()
         {
-            IsSecondaryActive = false;
-            _chargeElapsedTime = 0f;
+            _secondaryFlow.Cancel();
         }
 
-        // 현재 차징 비율을 피해에 반영하고 성공한 경우 다음 차징을 시작한다.
+        public void EndAction(EWeaponActionType p_type)
+        {
+            if (p_type == EWeaponActionType.Primary)
+                _isChargedPrimaryAction = false;
+        }
+
+        public void CancelAction(EWeaponActionType p_type)
+        {
+            EndAction(p_type);
+        }
+
+        private ERangeWeaponActionResult TickChargedPrimary()
+        {
+            if (!_secondaryFlow.IsActive ||
+                CurrentTriggerMode == ERangeTriggerMode.Semi)
+            {
+                return ERangeWeaponActionResult.Completed;
+            }
+
+            if (!_triggerFlow.IsFireReady)
+                return ERangeWeaponActionResult.Running;
+
+            return TryFireChargedPrimary()
+                ? ERangeWeaponActionResult.Running
+                : ERangeWeaponActionResult.Completed;
+        }
+
         private bool TryFireChargedPrimary()
         {
-            if (!IsSecondaryActive || !IsFireReady)
+            if (!_secondaryFlow.IsActive || !_triggerFlow.IsFireReady)
                 return false;
 
-            float bonusDamage =
-                _settings.ChargeSettings.CalculateBonusDamage(
-                    ChargeRatio);
-
-            if (!TryFireByRate(bonusDamage))
+            if (!TryFire(_secondaryFlow.CalculateBonusDamage()))
                 return false;
 
-            _chargeElapsedTime = 0f;
+            _secondaryFlow.ResetChargeAfterFire();
             DidFireDuringPrimaryAction = true;
             return true;
         }
 
-        private bool TryFireByRate(float p_bonusDamage = 0f)
+        private bool TryFire(float p_bonusDamage = 0f)
         {
-            if (!IsFireReady ||
-                _attackModule == null ||
-                !_attackModule.TryFire(p_bonusDamage))
-            {
-                return false;
-            }
+            return _triggerFlow.TryFire(
+                p_bonusDamage,
+                _attackModule.TryFire);
+        }
 
-            _nextFireTime =
-                Time.time + _settings.AttackTuning.FireInterval;
-            return true;
+        private void ResetRuntimeState()
+        {
+            _isChargedPrimaryAction = false;
+            DidFireDuringPrimaryAction = false;
         }
     }
 }

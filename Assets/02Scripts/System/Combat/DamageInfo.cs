@@ -18,9 +18,9 @@ namespace Alpha.Combat
         public Vector3 HitPoint { get; }
         public Vector3 HitNormal { get; }
         public Vector3 Direction { get; }
-        public EDamageDeliveryType DeliveryType { get; }
-        public AttackImpactInfo Impact { get; }
-        public EHitType HitType => Impact.HitType;
+       public EDamageDeliveryType DeliveryType { get; }
+       public AttackImpactInfo Impact { get; }
+       public EHitType HitType => Impact.HitType;
 
         public bool IsValid =>
             Attacker != null &&
@@ -31,17 +31,17 @@ namespace Alpha.Combat
             float p_amount,
             Vector3 p_hitPoint,
             Vector3 p_hitNormal,
-            Vector3 p_direction,
-            AttackImpactInfo p_impact = default,
-            EDamageDeliveryType p_deliveryType =
+           Vector3 p_direction,
+           AttackImpactInfo p_impact = default,
+           EDamageDeliveryType p_deliveryType =
                 EDamageDeliveryType.Unknown)
         {
             Attacker = p_attacker;
             Amount = p_amount;
             HitPoint = p_hitPoint;
             HitNormal = p_hitNormal;
-            DeliveryType = p_deliveryType;
-            Impact = p_impact;
+           DeliveryType = p_deliveryType;
+           Impact = p_impact;
 
             Direction = p_direction.sqrMagnitude > 0.0001f
                 ? p_direction.normalized

@@ -1,4 +1,3 @@
-using Alpha.Combat;
 using System;
 using UnityEngine;
 using UnityEngine.Serialization;

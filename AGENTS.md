@@ -182,6 +182,19 @@ PlayerActionFlow
 - Loader와 Database는 LDA가 소유하고 Domain은 LDA를 알지 않는다.
 - Interface는 전역에 모으지 않고 계약을 소유한 기능 옆에 둔다. 예: `IDataLoader → LDA/Loader`, `IDamageable → System/Combat`.
 
+### 5.1 독립 객체 연결 원칙
+
+- 각 Entity와 기능 객체는 자신의 상태와 내부 실행을 소유한다.
+- 외부는 대표 진입점에 명령하며 내부 Flow·Module을 직접 참조하지 않는다.
+- 명령은 메서드로 전달하고 실행 결과는 이벤트나 읽기 전용 값으로 알린다.
+- 객체는 상대의 구체 클래스 대신 작은 데이터나 계약을 통해 연결한다.
+- Player는 입력·행동 조건·신체 반응을, Weapon은 공격 방식·내부 상태·작동 결과를 소유한다.
+- 세부 종류의 차이가 설정뿐이라면 클래스를 추가하지 않고 데이터로 구성한다.
+
+```text
+외부 Flow → 대표 객체 → 내부 Flow / Module → 결과 이벤트 → 반응 객체 / View
+```
+
 ## 6. 참조 및 실행 방향
 
 ```text

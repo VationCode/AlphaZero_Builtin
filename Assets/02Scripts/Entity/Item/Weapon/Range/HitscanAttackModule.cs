@@ -6,34 +6,31 @@ using UnityEngine;
 namespace Alpha.Item.Weapon.Range
 {
     // 여러 Ray 탄도를 검사하고 같은 대상의 피해를 합산해 한 번만 전달한다.
-    public sealed class HitscanAttackModule
+    internal sealed class HitscanAttackModule
     {
         private readonly Dictionary<IDamageable, HitAggregate> _hitAggregates =
             new();
 
         public bool Execute(
             in RangeAttackRequest p_request,
-            PhysicsRangeAttackSettings p_settings,
+            LayerMask p_hitMask,
             Action<RangeAttackResult> p_publishTrajectory)
         {
-            if (p_settings == null)
-                return false;
-
             _hitAggregates.Clear();
 
             for (int index = 0;
-                 index < p_request.ProjectilesPerShot;
+                 index < p_request.TrajectoryCount;
                  index++)
             {
                 CollectRayTrajectory(
                     p_request,
-                    RangeAttackModule.ResolveSpreadDirection(p_request),
-                    p_settings,
+                    RangeWeaponAttackModule.ResolveSpreadDirection(p_request),
+                    p_hitMask,
                     p_publishTrajectory);
             }
 
             float damagePerProjectile =
-                p_request.Damage / p_request.ProjectilesPerShot;
+                p_request.Damage / p_request.TrajectoryCount;
 
             foreach (HitAggregate aggregate in _hitAggregates.Values)
             {
@@ -41,9 +38,9 @@ namespace Alpha.Item.Weapon.Range
                     p_request.Attacker,
                     damagePerProjectile * aggregate.HitCount,
                     aggregate.AveragePoint,
-                    aggregate.AverageNormal,
-                    aggregate.AverageDirection,
-                    p_impact: p_request.Impact,
+                   aggregate.AverageNormal,
+                   aggregate.AverageDirection,
+                   p_impact: p_request.Impact,
                     p_deliveryType: EDamageDeliveryType.Ranged);
 
                 DamageSystem.TryApply(aggregate.Collider, damageInfo);
@@ -56,7 +53,7 @@ namespace Alpha.Item.Weapon.Range
         private void CollectRayTrajectory(
             in RangeAttackRequest p_request,
             Vector3 p_direction,
-            PhysicsRangeAttackSettings p_settings,
+            LayerMask p_hitMask,
             Action<RangeAttackResult> p_publishTrajectory)
         {
             Ray attackRay = new(p_request.Origin, p_direction);
@@ -65,7 +62,7 @@ namespace Alpha.Item.Weapon.Range
                 attackRay,
                 out RaycastHit hit,
                 p_request.MaxDistance,
-                p_settings.HitMask,
+                p_hitMask,
                 QueryTriggerInteraction.Ignore);
 
             Vector3 endPoint = hasHit

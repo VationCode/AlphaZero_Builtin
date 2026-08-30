@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 1738257865903820294}
   - component: {fileID: 1882931740597341329}
   - component: {fileID: 6091277785713086067}
-  - component: {fileID: 9223372036854775807}
   - component: {fileID: 2865481717781954232}
   m_Layer: 0
   m_Name: AlienBullet
@@ -77,19 +76,7 @@ MonoBehaviour:
   _impactSettings:
     _impactType: 0
     _damageRadius: 0.025
---- !u!114 &9223372036854775807
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1738257865904116262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e73b1aef6a6f4d4185fb92a50209e60e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _projectile: {fileID: 6091277785713086067}
+  _logLifecycle: 0
   _showDamageRadius: 1
   _damageRadiusColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
 --- !u!114 &2865481717781954232

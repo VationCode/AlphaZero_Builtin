@@ -78,8 +78,8 @@ namespace Alpha.Player.Locomotion
                 TryResolveAimFacingDirection(out Vector3 facingDirection);
 
             float rangeMoveSpeedMultiplier = isAimFacing
-                ? _Core.CombatModule.CurrentRangeAttackModule?
-                    .AttackTuning?.MoveSpeedMultiplier ?? 1f
+                ? _Core.CombatModule.CurrentRangeWeapon?
+                    .FireResponseSettings?.MoveSpeedMultiplier ?? 1f
                 : 1f;
 
             _Core.LocomotionModule.MoveGround(

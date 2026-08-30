@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 7531513283624096028}
   - component: {fileID: 6654812379043182765}
   - component: {fileID: 7261030758123456789}
-  - component: {fileID: 8472916503247810921}
   - component: {fileID: 7322508452814768725}
   - component: {fileID: 4590685473239834900}
   m_Layer: 0
@@ -75,19 +74,6 @@ MonoBehaviour:
     _impactType: 1
     _damageRadius: 3
   _logLifecycle: 0
---- !u!114 &8472916503247810921
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3178874345004076425}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e73b1aef6a6f4d4185fb92a50209e60e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _projectile: {fileID: 7261030758123456789}
   _showDamageRadius: 1
   _damageRadiusColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
 --- !u!33 &7322508452814768725

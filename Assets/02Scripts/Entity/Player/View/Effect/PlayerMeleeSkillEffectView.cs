@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Alpha.Combat;
+using Alpha.Item.Weapon.Melee;
 using Alpha.Player.Combat;
 using UnityEngine;
 

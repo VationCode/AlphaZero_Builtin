@@ -38,6 +38,14 @@ namespace Alpha.Projectile
         [SerializeField]
         private bool _logLifecycle;
 
+        [Header("Scene Preview")]
+        [SerializeField]
+        private bool _showDamageRadius = true;
+
+        [SerializeField]
+        private Color _damageRadiusColor =
+            new(1f, 0.25f, 0.1f, 0.2f);
+
         private readonly Collider[] _impactBuffer =
             new Collider[ImpactBufferCapacity];
 
@@ -116,6 +124,30 @@ namespace Alpha.Projectile
             _collisionShape ??= GetComponent<SphereCollider>();
             _gravityScale = Mathf.Max(0f, _gravityScale);
             _impactSettings.Validate();
+        }
+
+        // 설정을 소유한 Projectile에서 개발용 피해 반경을 직접 표시한다.
+        private void OnDrawGizmosSelected()
+        {
+            if (!_showDamageRadius ||
+                !_impactSettings.IsRadial ||
+                _impactSettings.DamageRadius <= 0f)
+            {
+                return;
+            }
+
+            Color previousColor = Gizmos.color;
+            float radius = _impactSettings.DamageRadius;
+
+            Gizmos.color = _damageRadiusColor;
+            Gizmos.DrawSphere(transform.position, radius);
+
+            Color wireColor = _damageRadiusColor;
+            wireColor.a = 1f;
+
+            Gizmos.color = wireColor;
+            Gizmos.DrawWireSphere(transform.position, radius);
+            Gizmos.color = previousColor;
         }
 
         private void Update()

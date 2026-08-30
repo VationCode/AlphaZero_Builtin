@@ -74,18 +74,18 @@ namespace Alpha.Player.Combat
             UpdateCombatStance();
         }
 
-        // 발사 모드 변경 입력을 해석하고 현재 Range 공격 Module에 위임한다.
+        // 발사 모드 변경 입력을 해석하고 현재 Range 무기에 위임한다.
         private void UpdateRangeTriggerMode()
         {
             AlphaInputSystem input = _core.Input;
-            RangeAttackModule rangeAttackModule =
-                _core.CombatModule.CurrentRangeAttackModule;
+            RangeWeapon rangeWeapon =
+                _core.CombatModule.CurrentRangeWeapon;
 
             if (input == null ||
                 !input.IsTriggerModeSwitchInput ||
                 !_core.CanUseCombat ||
                 CurrentState?.Type == ECombatStateType.WeaponSwap ||
-                rangeAttackModule == null)
+                rangeWeapon == null)
             {
                 return;
             }
@@ -275,7 +275,7 @@ namespace Alpha.Player.Combat
                 return;
             }
 
-            bool isRange = module.CurrentRangeAttackModule != null;
+            bool isRange = module.CurrentRangeWeapon != null;
             Vector3 rangeDirection = Vector3.zero;
 
             if (isRange)
@@ -346,7 +346,7 @@ namespace Alpha.Player.Combat
                 !module.HasWeapon ||
                 CurrentState?.Type == ECombatStateType.WeaponSwap ||
                 (context.IsRangeCombatActive &&
-                 (module.CurrentRangeAttackModule == null ||
+                 (module.CurrentRangeWeapon == null ||
                   !CanUseRangeAttack())))
             {
                 EndCombatStance();
@@ -408,11 +408,11 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
-            RangeAttackModule currentRangeAttackModule =
-                _core.CombatModule.CurrentRangeAttackModule;
+            RangeWeapon currentRangeWeapon =
+                _core.CombatModule.CurrentRangeWeapon;
 
             if (p_actionType == EWeaponActionType.Primary &&
-                currentRangeAttackModule != null &&
+                currentRangeWeapon != null &&
                 !CanUseRangeAttack())
             {
                 return false;
@@ -420,7 +420,7 @@ namespace Alpha.Player.Combat
 
             // Range Secondary는 Primary와 동시에 유지되므로 별도 흐름이 처리한다.
             if (p_actionType == EWeaponActionType.Secondary &&
-                currentRangeAttackModule != null)
+                currentRangeWeapon != null)
             {
                 return false;
             }
@@ -444,23 +444,23 @@ namespace Alpha.Player.Combat
         private void UpdateRangeSecondary()
         {
             CombatModule module = _core.CombatModule;
-            RangeAttackModule currentRangeAttackModule =
-                module.CurrentRangeAttackModule;
+            RangeWeapon currentRangeWeapon =
+                module.CurrentRangeWeapon;
 
             bool canUseSecondary =
                 _core.Input != null &&
                 _core.CanUseCombat &&
                 CurrentState?.Type != ECombatStateType.WeaponSwap &&
-                currentRangeAttackModule != null &&
-                currentRangeAttackModule.HasSecondaryAction &&
-                (!currentRangeAttackModule.IsChargeEnabled ||
+                currentRangeWeapon != null &&
+                currentRangeWeapon.HasSecondaryAction &&
+                (!currentRangeWeapon.IsChargeEnabled ||
                  CanUseRangeAttack());
 
             if (module.HasActiveRangeSecondary)
             {
                 if (!canUseSecondary ||
-                    currentRangeAttackModule !=
-                    module.ActiveRangeSecondaryModule)
+                    currentRangeWeapon !=
+                    module.ActiveRangeSecondaryWeapon)
                 {
                     CancelRangeSecondary();
                     return;
@@ -485,17 +485,17 @@ namespace Alpha.Player.Combat
             }
 
             BeginCombatStance();
-            BeginRangeSecondaryPresentation(currentRangeAttackModule);
+            BeginRangeSecondaryPresentation(currentRangeWeapon);
         }
 
         private void BeginRangeSecondaryPresentation(
-            RangeAttackModule p_rangeAttackModule)
+            RangeWeapon p_rangeWeapon)
         {
             SetRangeAiming(true);
 
             if (_core.CameraCore == null ||
                 !TryResolveAimView(
-                    p_rangeAttackModule.AimView,
+                    p_rangeWeapon.AimView,
                     out ECameraViewType targetView))
             {
                 return;
@@ -593,7 +593,7 @@ namespace Alpha.Player.Combat
             CombatContext context = _core.CombatContext;
 
             bool shouldActivate =
-                _core.CombatModule.CurrentRangeAttackModule != null &&
+                _core.CombatModule.CurrentRangeWeapon != null &&
                 (context.IsAiming ||
                  context.IsRangePrimaryActive ||
                  context.IsRangeAttacking ||

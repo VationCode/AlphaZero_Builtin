@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Alpha.Item.Weapon.Range
 {
     // 발사 지점부터 유효 거리까지 관통 영역을 투영해 내부 대상 모두에게 피해를 준다.
-    public sealed class PenetrationAttackModule
+    internal sealed class PenetrationAttackModule
     {
         private const int PathHitCapacity = 64;
         private const int VolumeCandidateCapacity = 128;
@@ -22,12 +22,11 @@ namespace Alpha.Item.Weapon.Range
 
         public bool Execute(
             in RangeAttackRequest p_request,
-            PhysicsRangeAttackSettings p_physicsSettings,
-            PenetrationAttackSettings p_penetrationSettings,
+            PenetrationAttackSettings p_settings,
+            LayerMask p_hitMask,
             Action<RangeAttackResult> p_publishTrajectory)
         {
-            if (p_physicsSettings == null ||
-                p_penetrationSettings == null)
+            if (p_settings == null || !p_settings.IsValid)
             {
                 return false;
             }
@@ -35,19 +34,19 @@ namespace Alpha.Item.Weapon.Range
             _hitAggregates.Clear();
 
             for (int index = 0;
-                 index < p_request.ProjectilesPerShot;
+                 index < p_request.TrajectoryCount;
                  index++)
             {
                 CollectPenetrationTrajectory(
                     p_request,
-                    RangeAttackModule.ResolveSpreadDirection(p_request),
-                    p_physicsSettings,
-                    p_penetrationSettings,
+                    RangeWeaponAttackModule.ResolveSpreadDirection(p_request),
+                    p_settings,
+                    p_hitMask,
                     p_publishTrajectory);
             }
 
             float damagePerTrajectory =
-                p_request.Damage / p_request.ProjectilesPerShot;
+                p_request.Damage / p_request.TrajectoryCount;
 
             foreach (HitAggregate aggregate in _hitAggregates.Values)
             {
@@ -55,9 +54,9 @@ namespace Alpha.Item.Weapon.Range
                     p_request.Attacker,
                     damagePerTrajectory * aggregate.HitCount,
                     aggregate.AveragePoint,
-                    aggregate.AverageNormal,
-                    aggregate.AverageDirection,
-                    p_impact: p_request.Impact,
+                   aggregate.AverageNormal,
+                   aggregate.AverageDirection,
+                   p_impact: p_request.Impact,
                     p_deliveryType: EDamageDeliveryType.Ranged);
 
                 DamageSystem.TryApply(aggregate.Collider, damageInfo);
@@ -70,14 +69,14 @@ namespace Alpha.Item.Weapon.Range
         private void CollectPenetrationTrajectory(
             in RangeAttackRequest p_request,
             Vector3 p_direction,
-            PhysicsRangeAttackSettings p_physicsSettings,
-            PenetrationAttackSettings p_penetrationSettings,
+            PenetrationAttackSettings p_settings,
+            LayerMask p_hitMask,
             Action<RangeAttackResult> p_publishTrajectory)
         {
             float effectiveDistance = ResolveEffectiveDistance(
                 p_request,
                 p_direction,
-                p_physicsSettings,
+                p_hitMask,
                 out bool hasCollision,
                 out Vector3 collisionNormal);
 
@@ -87,9 +86,9 @@ namespace Alpha.Item.Weapon.Range
             float effectiveEndRadius = EvaluateRadius(
                 effectiveDistance,
                 p_request.MaxDistance,
-                p_penetrationSettings);
+                p_settings);
             float broadphaseRadius = Mathf.Max(
-                p_penetrationSettings.StartRadius,
+                p_settings.StartRadius,
                 effectiveEndRadius);
             Vector3 endPoint =
                 p_request.Origin + p_direction * effectiveDistance;
@@ -105,7 +104,7 @@ namespace Alpha.Item.Weapon.Range
                 endPoint,
                 broadphaseRadius,
                 _volumeCandidates,
-                p_physicsSettings.HitMask,
+                p_hitMask,
                 QueryTriggerInteraction.Ignore);
 
             _trajectoryTargets.Clear();
@@ -125,7 +124,7 @@ namespace Alpha.Item.Weapon.Range
                         p_direction,
                         effectiveDistance,
                         candidate,
-                        p_penetrationSettings,
+                        p_settings,
                         out Vector3 hitPoint,
                         out Vector3 hitNormal))
                 {
@@ -145,7 +144,7 @@ namespace Alpha.Item.Weapon.Range
         private float ResolveEffectiveDistance(
             in RangeAttackRequest p_request,
             Vector3 p_direction,
-            PhysicsRangeAttackSettings p_settings,
+            LayerMask p_hitMask,
             out bool p_hasCollision,
             out Vector3 p_collisionNormal)
         {
@@ -154,7 +153,7 @@ namespace Alpha.Item.Weapon.Range
                 pathRay,
                 _pathHits,
                 p_request.MaxDistance,
-                p_settings.HitMask,
+                p_hitMask,
                 QueryTriggerInteraction.Ignore);
 
             float effectiveDistance = p_request.MaxDistance;

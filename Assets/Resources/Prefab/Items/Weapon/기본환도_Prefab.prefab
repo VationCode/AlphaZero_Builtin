@@ -124,6 +124,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1300496038980976958}
+    - targetCorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1300496038980976960}
   m_SourcePrefab: {fileID: 100100000, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
 --- !u!4 &3097666916641606670 stripped
 Transform:
@@ -133,6 +136,11 @@ Transform:
 --- !u!1 &6924581076934626315 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 2438415031445772087}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6924581076934626316 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 2438415031445772087}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1300496038980976958
@@ -145,9 +153,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 47bf2ae762a743d4b9fa7d210c7af045, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   _weaponType: 1
   _baseDamage: 20
+  _hitBufferCapacity: 16
   _comboDefinition: {fileID: 11400000, guid: 2ba64cd94dad4f8f92685216f23be318, type: 2}
   _animatorOverrideController: {fileID: 22100000, guid: 4b1bbd6db2798e84393539ff19b436b9, type: 2}
+--- !u!114 &1300496038980976960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6924581076934626316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc3dfd8ecbaf43df9e3678251106755f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _weapon: {fileID: 1300496038980976958}
+  _audioSource: {fileID: 0}
+  _volume: 1

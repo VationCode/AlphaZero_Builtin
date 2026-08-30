@@ -1,4 +1,3 @@
-using Alpha.Combat;
 using Alpha.Item.Weapon.Melee;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +6,7 @@ namespace Alpha.Item.Weapon.View
 {
     // 근접 무기가 시작한 Skill 자산의 AudioClip을 재생한다.
     [DisallowMultipleComponent]
-    public sealed class MeleeWeaponAudioView : MonoBehaviour
+    public sealed class MeleeWeaponAudioView : WeaponView
     {
         [SerializeField]
         private MeleeWeapon _weapon;
@@ -20,8 +19,7 @@ namespace Alpha.Item.Weapon.View
 
         private void Awake()
         {
-            _weapon ??= GetComponent<MeleeWeapon>();
-            _audioSource ??= GetComponentInChildren<AudioSource>(true);
+            ResolveDependencies();
 
             if (_audioSource == null)
                 _audioSource = gameObject.AddComponent<AudioSource>();
@@ -31,7 +29,7 @@ namespace Alpha.Item.Weapon.View
 
         private void OnEnable()
         {
-            _weapon ??= GetComponent<MeleeWeapon>();
+            ResolveDependencies();
 
             if (_weapon == null)
                 return;
@@ -46,7 +44,7 @@ namespace Alpha.Item.Weapon.View
                 _weapon.OnSkillStarted -= HandleSkillStarted;
         }
 
-        private void HandleSkillStarted(CombatSkillDefinition p_skill)
+        private void HandleSkillStarted(MeleeSkillDefinition p_skill)
         {
             IReadOnlyList<AudioClip> clips = p_skill?.AudioClips;
 
@@ -59,9 +57,17 @@ namespace Alpha.Item.Weapon.View
                 _audioSource.PlayOneShot(clip, _volume);
         }
 
+        private void ResolveDependencies()
+        {
+            _weapon ??= GetComponentInParent<MeleeWeapon>();
+            _audioSource ??= GetComponent<AudioSource>();
+            _audioSource ??= GetComponentInChildren<AudioSource>(true);
+        }
+
         private void OnValidate()
         {
             _volume = Mathf.Clamp01(_volume);
+            ResolveDependencies();
         }
     }
 }

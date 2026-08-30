@@ -4,61 +4,46 @@ using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Item.Weapon.Range
 {
-    // 조준 미리보기가 사용할 계산된 궤적 수와 예상 충돌 정보를 보관한다.
-    public readonly struct ProjectileTrajectoryResult
-    {
-        public int PointCount { get; }
-        public bool HasImpact { get; }
-        public Vector3 ImpactPoint { get; }
-        public Vector3 ImpactNormal { get; }
-
-        public ProjectileTrajectoryResult(
-            int p_pointCount,
-            bool p_hasImpact,
-            Vector3 p_impactPoint,
-            Vector3 p_impactNormal)
-        {
-            PointCount = Mathf.Max(0, p_pointCount);
-            HasImpact = p_hasImpact;
-            ImpactPoint = p_impactPoint;
-            ImpactNormal = p_impactNormal;
-        }
-    }
-
-    // Projectile 생성·발사와 같은 구체적인 실행만 담당한다.
-    public sealed class ProjectileAttackModule
+    // Effect Prefab이 아닌 이동·충돌·피해를 소유한 Projectile Entity를 생성한다.
+    internal sealed class ProjectileAttackModule
     {
         public bool Execute(
             in RangeAttackRequest p_request,
-            ProjectileLaunchSettings p_settings)
+            ProjectileAttackSettings p_settings,
+            LayerMask p_hitMask)
         {
-            if (!p_settings.IsValid ||
-                !p_settings.Prefab.IsConfigurationValid)
+            if (p_settings == null || !p_settings.IsValid)
             {
                 return false;
             }
 
+            ProjectileLaunchSettings launchSettings =
+                p_settings.CreateLaunchSettings(p_hitMask);
+
+            if (!launchSettings.Prefab.IsConfigurationValid)
+                return false;
+
             float damagePerProjectile =
-                p_request.Damage / p_request.ProjectilesPerShot;
+                p_request.Damage / p_request.TrajectoryCount;
             bool didLaunch = false;
 
             for (int index = 0;
-                 index < p_request.ProjectilesPerShot;
+                 index < p_request.TrajectoryCount;
                  index++)
             {
                 Vector3 launchDirection =
-                    RangeAttackModule.ResolveSpreadDirection(p_request);
+                    RangeWeaponAttackModule.ResolveSpreadDirection(p_request);
                 RangeAttackRequest launchRequest =
                     p_request.CreateTrajectory(
                         launchDirection,
                         damagePerProjectile);
 
                 ProjectileEntity projectile = Object.Instantiate(
-                    p_settings.Prefab,
+                    launchSettings.Prefab,
                     p_request.Origin,
                     Quaternion.LookRotation(launchDirection));
 
-                if (projectile.Initialize(launchRequest, p_settings))
+                if (projectile.Initialize(launchRequest, launchSettings))
                 {
                     didLaunch = true;
                     continue;
@@ -72,7 +57,8 @@ namespace Alpha.Item.Weapon.Range
 
         // 실제 Projectile의 이동·충돌·종료 조건으로 조준 궤적을 미리 계산한다.
         public bool TryPredictTrajectory(
-            ProjectileLaunchSettings p_settings,
+            ProjectileAttackSettings p_settings,
+            LayerMask p_hitMask,
             Vector3 p_origin,
             Vector3 p_direction,
             float p_maxDistance,
@@ -82,8 +68,8 @@ namespace Alpha.Item.Weapon.Range
         {
             p_result = default;
 
-            if (!p_settings.IsValid ||
-                !p_settings.Prefab.IsConfigurationValid ||
+            if (p_settings == null ||
+                !p_settings.IsValid ||
                 p_direction.sqrMagnitude <= 0.0001f ||
                 p_maxDistance <= 0f ||
                 p_simulationStep <= 0f ||
@@ -93,16 +79,22 @@ namespace Alpha.Item.Weapon.Range
                 return false;
             }
 
-            ProjectileEntity projectilePrefab = p_settings.Prefab;
+            ProjectileLaunchSettings launchSettings =
+                p_settings.CreateLaunchSettings(p_hitMask);
+            ProjectileEntity projectilePrefab = launchSettings.Prefab;
+
+            if (!projectilePrefab.IsConfigurationValid)
+                return false;
+
             Vector3 position = p_origin;
             Vector3 velocity =
-                p_direction.normalized * p_settings.Speed;
+                p_direction.normalized * launchSettings.Speed;
             Vector3 gravity =
                 Physics.gravity * projectilePrefab.GravityScale;
             float simulationStep = ResolveSimulationStep(
                 p_simulationStep,
                 p_maxDistance,
-                p_settings.Speed,
+                launchSettings.Speed,
                 gravity.magnitude,
                 p_points.Length);
             int pointCount = 1;
@@ -149,7 +141,7 @@ namespace Alpha.Item.Weapon.Range
                 Ray movementRay = new(collisionCenter, moveDirection);
 
                 if (TryCastTrajectory(
-                        p_settings,
+                        launchSettings,
                         movementRay,
                         moveDistance,
                         projectilePrefab.CollisionRadius,
@@ -214,12 +206,12 @@ namespace Alpha.Item.Weapon.Range
         }
 
         public bool TryGetRadialDamageRadius(
-            ProjectileLaunchSettings p_settings,
+            ProjectileAttackSettings p_settings,
             out float p_radius)
         {
             p_radius = 0f;
 
-            if (!p_settings.IsValid)
+            if (p_settings == null || !p_settings.IsValid)
                 return false;
 
             ProjectileImpactSettings impactSettings =

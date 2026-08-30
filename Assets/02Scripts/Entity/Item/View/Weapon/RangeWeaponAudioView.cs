@@ -1,10 +1,15 @@
+using Alpha.Item.Weapon.Range;
 using UnityEngine;
 
 namespace Alpha.Item.Weapon.View
 {
-    // RangeWeapon의 Audio 표현만 담당한다.
-    public sealed class RangeWeaponAudioView : MonoBehaviour
+    // Range 무기의 발사 Audio 표현만 담당한다.
+    [DisallowMultipleComponent]
+    public sealed class RangeWeaponAudioView : WeaponView
     {
+        [SerializeField]
+        private RangeWeapon _weapon;
+
         [SerializeField]
         private AudioSource _audioSource;
 
@@ -16,23 +21,48 @@ namespace Alpha.Item.Weapon.View
 
         private void Awake()
         {
-            _audioSource ??= GetComponentInChildren<AudioSource>(true);
-
-            if (_audioSource == null)
-                _audioSource = gameObject.AddComponent<AudioSource>();
-
-            _audioSource.playOnAwake = false;
+            ResolveDependencies();
         }
 
-        public void PlayFire()
+        private void OnEnable()
         {
-            if (_audioSource == null || _fireClip == null)
+            ResolveDependencies();
+
+            if (_weapon == null)
                 return;
 
-            // 연사 중에도 이전 발사음을 끊지 않고 중첩한다.
-            _audioSource.PlayOneShot(
-                _fireClip,
-                _fireVolume);
+            _weapon.OnFired -= HandleFired;
+            _weapon.OnFired += HandleFired;
+        }
+
+        private void OnDisable()
+        {
+            if (_weapon != null)
+                _weapon.OnFired -= HandleFired;
+        }
+
+        private void ResolveDependencies()
+        {
+            _weapon ??= GetComponentInParent<RangeWeapon>();
+            _audioSource ??= GetComponent<AudioSource>();
+            _audioSource ??= GetComponentInChildren<AudioSource>(true);
+
+            if (_audioSource == null && _fireClip != null)
+                _audioSource = gameObject.AddComponent<AudioSource>();
+
+            if (_audioSource != null)
+                _audioSource.playOnAwake = false;
+        }
+
+        private void HandleFired(RangeAttackRequest p_request)
+        {
+            if (_audioSource != null && _fireClip != null)
+                _audioSource.PlayOneShot(_fireClip, _fireVolume);
+        }
+
+        private void OnValidate()
+        {
+            _fireVolume = Mathf.Clamp01(_fireVolume);
         }
     }
 }

@@ -12,6 +12,7 @@ using Alpha.Player.Actions;
 using Alpha.Living;
 using Alpha.Combat;
 using Alpha.Rig.Player;
+using Alpha.Player.View.Combat;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -62,10 +63,11 @@ namespace Alpha.Player
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
         public PlayerMeleeSkillEffectView MeleeSkillEffectView { get; private set; }
-        public PlayerTargetHitFeedbackView HitFeedbackView { get; private set; }
+        public PlayerWeaponCameraShakeView WeaponCameraShakeView { get; private set; }
         public PlayerDamageFeedbackView DamageFeedbackView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
+        public PlayerRangeTrajectoryView RangeTrajectoryView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
 
         #endregion
@@ -140,10 +142,13 @@ namespace Alpha.Player
                 }
             }
 
-            HitFeedbackView = GetComponentInChildren<PlayerTargetHitFeedbackView>(true);
+            WeaponCameraShakeView =
+                GetComponentInChildren<PlayerWeaponCameraShakeView>(true);
             DamageFeedbackView = GetComponentInChildren<PlayerDamageFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
+            RangeTrajectoryView =
+                GetComponentInChildren<PlayerRangeTrajectoryView>(true);
 
             PlayerTr = this.transform;
         }
@@ -171,6 +176,8 @@ namespace Alpha.Player
             // 장비 변경 완료 이벤트를 실제 무기 생성 기능과 연결한다.
             if (CombatModule.Bind(this))
             {
+                RangeTrajectoryView?.Bind(CombatModule);
+
                 EquipmentFlow.OnWeaponChanged -= CombatFlow.HandleEquipmentWeaponChanged;
                 EquipmentFlow.OnWeaponChanged += CombatFlow.HandleEquipmentWeaponChanged;
 
@@ -223,7 +230,7 @@ namespace Alpha.Player
             LocomotionAudioView?.Bind(LocomotionContext);
             ActionEffectView?.Bind(LocomotionContext);
             MeleeSkillEffectView?.Bind(CombatModule);
-            HitFeedbackView?.Bind(CombatModule, CameraCore);
+            WeaponCameraShakeView?.Bind(CombatModule, CameraCore);
             DamageFeedbackView?.Bind(ActionFlow, CameraCore);
             ScopeView?.Bind(CameraCore);
             AnimationView.OnRootMotion -= LocomotionModule.ApplyRootMotion;
@@ -289,8 +296,9 @@ namespace Alpha.Player
             LocomotionAudioView?.Unbind();
             ActionEffectView?.Unbind();
             MeleeSkillEffectView?.Unbind();
-            HitFeedbackView?.Unbind();
+            WeaponCameraShakeView?.Unbind();
             DamageFeedbackView?.Unbind();
+            RangeTrajectoryView?.Unbind();
             ArmorView?.Unbind();
             EquipmentModule?.Unbind();
 
