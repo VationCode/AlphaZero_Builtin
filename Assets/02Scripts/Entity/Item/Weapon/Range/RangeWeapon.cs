@@ -1,5 +1,7 @@
 using System;
+using Alpha.Projectile;
 using UnityEngine;
+using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Item.Weapon.Range
 {
@@ -9,6 +11,8 @@ namespace Alpha.Item.Weapon.Range
     {
         public event Action<RangeAttackRequest> OnFired;
         public event Action<RangeAttackResult> OnTrajectoryResolved;
+        public event Action<RangeHitResult> OnHitResolved;
+        public event Action<ProjectileEntity> OnProjectileLaunched;
 
         [SerializeField]
         private RangeWeaponSettings _settings = new();
@@ -99,7 +103,9 @@ namespace Alpha.Item.Weapon.Range
                     _context,
                     Muzzle,
                     PublishFired,
-                    PublishTrajectory))
+                    PublishTrajectory,
+                    PublishHit,
+                    PublishProjectile))
             {
                 Debug.LogError(
                     "원거리 무기 공격 객체를 초기화하지 못했습니다.",
@@ -254,6 +260,17 @@ namespace Alpha.Item.Weapon.Range
         {
             if (p_result.HasVisiblePath)
                 OnTrajectoryResolved?.Invoke(p_result);
+        }
+
+        private void PublishHit(RangeHitResult p_result)
+        {
+            OnHitResolved?.Invoke(p_result);
+        }
+
+        private void PublishProjectile(ProjectileEntity p_projectile)
+        {
+            if (p_projectile != null)
+                OnProjectileLaunched?.Invoke(p_projectile);
         }
 
         private void OnValidate()

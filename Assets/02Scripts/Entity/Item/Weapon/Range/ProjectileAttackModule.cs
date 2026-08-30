@@ -10,7 +10,8 @@ namespace Alpha.Item.Weapon.Range
         public bool Execute(
             in RangeAttackRequest p_request,
             ProjectileAttackSettings p_settings,
-            LayerMask p_hitMask)
+            LayerMask p_hitMask,
+            System.Action<ProjectileEntity> p_publishProjectile)
         {
             if (p_settings == null || !p_settings.IsValid)
             {
@@ -46,6 +47,7 @@ namespace Alpha.Item.Weapon.Range
                 if (projectile.Initialize(launchRequest, launchSettings))
                 {
                     didLaunch = true;
+                    p_publishProjectile?.Invoke(projectile);
                     continue;
                 }
 

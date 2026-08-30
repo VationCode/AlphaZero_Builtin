@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Item.Weapon.Range
 {
@@ -16,6 +17,8 @@ namespace Alpha.Item.Weapon.Range
         private Transform _muzzle;
         private Action<RangeAttackRequest> _publishFired;
         private Action<RangeAttackResult> _publishTrajectory;
+        private Action<RangeHitResult> _publishHit;
+        private Action<ProjectileEntity> _publishProjectile;
 
         public bool Bind(
             RangeWeaponSettings p_settings,
@@ -23,7 +26,9 @@ namespace Alpha.Item.Weapon.Range
             RangeWeaponContext p_context,
             Transform p_muzzle,
             Action<RangeAttackRequest> p_publishFired,
-            Action<RangeAttackResult> p_publishTrajectory)
+            Action<RangeAttackResult> p_publishTrajectory,
+            Action<RangeHitResult> p_publishHit,
+            Action<ProjectileEntity> p_publishProjectile)
         {
             if (p_settings == null ||
                 p_attackSettings == null ||
@@ -31,7 +36,9 @@ namespace Alpha.Item.Weapon.Range
                 p_context == null ||
                 p_muzzle == null ||
                 p_publishFired == null ||
-                p_publishTrajectory == null)
+                p_publishTrajectory == null ||
+                p_publishHit == null ||
+                p_publishProjectile == null)
             {
                 return false;
             }
@@ -42,6 +49,8 @@ namespace Alpha.Item.Weapon.Range
             _muzzle = p_muzzle;
             _publishFired = p_publishFired;
             _publishTrajectory = p_publishTrajectory;
+            _publishHit = p_publishHit;
+            _publishProjectile = p_publishProjectile;
             return true;
         }
 
@@ -53,6 +62,8 @@ namespace Alpha.Item.Weapon.Range
             _muzzle = null;
             _publishFired = null;
             _publishTrajectory = null;
+            _publishHit = null;
+            _publishProjectile = null;
         }
 
         public bool TryFire(float p_bonusDamage)
@@ -80,9 +91,9 @@ namespace Alpha.Item.Weapon.Range
                 attackOrigin,
                 attackDirection,
                 damage,
-               _settings.MaxDistance,
-               _settings.ImpactSettings.CreateInfo(),
-               _settings.ShotSettings.SpreadAngle,
+                _settings.MaxDistance,
+                _settings.ImpactSettings.CreateInfo(),
+                _settings.ShotSettings.SpreadAngle,
                 _settings.ShotSettings.TrajectoryCount);
 
             if (!Execute(request))
@@ -106,18 +117,21 @@ namespace Alpha.Item.Weapon.Range
                     _hitscan.Execute(
                         p_request,
                         _attackSettings.HitMask,
-                        _publishTrajectory),
+                        _publishTrajectory,
+                        _publishHit),
                 ERangeAttackType.Penetration =>
                     _penetration.Execute(
                         p_request,
                         _attackSettings.Penetration,
                         _attackSettings.HitMask,
-                        _publishTrajectory),
+                        _publishTrajectory,
+                        _publishHit),
                 ERangeAttackType.Projectile =>
                     _projectile.Execute(
                         p_request,
                         _attackSettings.Projectile,
-                        _attackSettings.HitMask),
+                        _attackSettings.HitMask,
+                        _publishProjectile),
                 _ => false
             };
         }

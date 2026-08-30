@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7531513283624096028}
   - component: {fileID: 6654812379043182765}
   - component: {fileID: 7261030758123456789}
+  - component: {fileID: 9100000000000000001}
   m_Layer: 0
   m_Name: BulletProjectile
   m_TagString: Untagged
@@ -76,6 +77,19 @@ MonoBehaviour:
   _logLifecycle: 0
   _showDamageRadius: 1
   _damageRadiusColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
+--- !u!114 &9100000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3178874345004076425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2c7e6a1d9b34f89a0c2e4d6b8f13579, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _projectile: {fileID: 7261030758123456789}
 --- !u!1 &4016864967387721219
 GameObject:
   m_ObjectHideFlags: 0

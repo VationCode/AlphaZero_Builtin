@@ -24,7 +24,8 @@ namespace Alpha.Item.Weapon.Range
             in RangeAttackRequest p_request,
             PenetrationAttackSettings p_settings,
             LayerMask p_hitMask,
-            Action<RangeAttackResult> p_publishTrajectory)
+            Action<RangeAttackResult> p_publishTrajectory,
+            Action<RangeHitResult> p_publishHit)
         {
             if (p_settings == null || !p_settings.IsValid)
             {
@@ -42,7 +43,8 @@ namespace Alpha.Item.Weapon.Range
                     RangeWeaponAttackModule.ResolveSpreadDirection(p_request),
                     p_settings,
                     p_hitMask,
-                    p_publishTrajectory);
+                    p_publishTrajectory,
+                    p_publishHit);
             }
 
             float damagePerTrajectory =
@@ -54,9 +56,9 @@ namespace Alpha.Item.Weapon.Range
                     p_request.Attacker,
                     damagePerTrajectory * aggregate.HitCount,
                     aggregate.AveragePoint,
-                   aggregate.AverageNormal,
-                   aggregate.AverageDirection,
-                   p_impact: p_request.Impact,
+                    aggregate.AverageNormal,
+                    aggregate.AverageDirection,
+                    p_impact: p_request.Impact,
                     p_deliveryType: EDamageDeliveryType.Ranged);
 
                 DamageSystem.TryApply(aggregate.Collider, damageInfo);
@@ -71,7 +73,8 @@ namespace Alpha.Item.Weapon.Range
             Vector3 p_direction,
             PenetrationAttackSettings p_settings,
             LayerMask p_hitMask,
-            Action<RangeAttackResult> p_publishTrajectory)
+            Action<RangeAttackResult> p_publishTrajectory,
+            Action<RangeHitResult> p_publishHit)
         {
             float effectiveDistance = ResolveEffectiveDistance(
                 p_request,
@@ -98,6 +101,13 @@ namespace Alpha.Item.Weapon.Range
                 endPoint,
                 hasCollision,
                 collisionNormal));
+
+            if (hasCollision)
+            {
+                p_publishHit?.Invoke(new RangeHitResult(
+                    endPoint,
+                    collisionNormal));
+            }
 
             int candidateCount = Physics.OverlapCapsuleNonAlloc(
                 p_request.Origin,
@@ -132,6 +142,9 @@ namespace Alpha.Item.Weapon.Range
                 }
 
                 _trajectoryTargets.Add(damageable);
+                p_publishHit?.Invoke(new RangeHitResult(
+                    hitPoint,
+                    hitNormal));
                 AddHit(
                     damageable,
                     candidate,

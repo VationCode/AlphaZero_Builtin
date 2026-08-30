@@ -191,6 +191,27 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1901805864755986860}
   m_SourcePrefab: {fileID: 100100000, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+--- !u!1 &1842884999255233429 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 7105322497578234845}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1901805864755986860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842884999255233429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: 1901805864755986856}
+  _audioSource: {fileID: 0}
+  _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
+  _fireVolume: 1
 --- !u!1 &2545903137041230049 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -213,7 +234,7 @@ MonoBehaviour:
     _baseDamage: 80
     _maxDistance: 200
     _shotSettings:
-      _fireInterval: 2
+      _fireInterval: 1.7
       _trajectoryCount: 1
       _spreadAngle: 0
     _fireResponseSettings:
@@ -224,7 +245,7 @@ MonoBehaviour:
     _aimView: 2
     _chargeSettings:
       _enabled: 1
-      _maxDuration: 1.5
+      _maxDuration: 1.7
       _maxBonusDamage: 80
     _impactSettings:
       _hitType: 1
@@ -253,57 +274,13 @@ MonoBehaviour:
       rid: -2
   _muzzle: {fileID: 8540895077770916590}
   _leftHandIKTarget: {fileID: 7938214281197395074}
+  _showRange: 1
+  _rangeColor: {r: 0, g: 0.8, b: 1, a: 1}
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
---- !u!114 &1901805864755986858
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 820000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _weapon: {fileID: 1901805864755986856}
-  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
-  _muzzleLifetime: 0.5
-  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
-  _impactPrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
-  _impactLifetime: 5
-  _scopeTracerViewportPosition: {x: 0.5, y: 0}
-  _scopeTracerDepthOffset: 3
---- !u!1 &820000000000000001 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
-  m_PrefabInstance: {fileID: 7105322497578234845}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &820000000000000002 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
-  m_PrefabInstance: {fileID: 7105322497578234845}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1901805864755986860
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 820000000000000002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _weapon: {fileID: 1901805864755986856}
-  _audioSource: {fileID: 0}
-  _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
-  _fireVolume: 1
 --- !u!4 &7615814574026434788 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -319,3 +296,30 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1449165087894339891, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 7105322497578234845}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &9200590470538772262 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 7105322497578234845}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1901805864755986858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9200590470538772262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: 1901805864755986856}
+  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _muzzleLifetime: 0.5
+  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
+  _hitParticlePrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
+  _hitParticleLifetime: 5
+  _scopeTracerViewportPosition: {x: 0.5, y: 0}
+  _scopeTracerDepthOffset: 3
+  _material: {fileID: 0}
+  _visibleDuration: 0.05

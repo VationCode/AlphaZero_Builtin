@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Alpha.Combat;
 using Alpha.Item.Weapon.Range;
@@ -6,11 +7,30 @@ using UnityEngine;
 
 namespace Alpha.Projectile
 {
+    // Projectile이 실제 충돌한 위치와 표면 방향을 자신의 View에 전달한다.
+    public readonly struct ProjectileImpactResult
+    {
+        public Vector3 Point { get; }
+        public Vector3 Normal { get; }
+
+        public ProjectileImpactResult(
+            Vector3 p_point,
+            Vector3 p_normal)
+        {
+            Point = p_point;
+            Normal = p_normal.sqrMagnitude > 0.0001f
+                ? p_normal.normalized
+                : Vector3.up;
+        }
+    }
+
     // 발사 후 이동, 충돌, 피해 전달, 발사점 기준 사거리 종료를 관리한다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(SphereCollider))]
     public class Projectile : MonoBehaviour
     {
+        public event Action<ProjectileImpactResult> OnImpacted;
+
         private const int ImpactBufferCapacity = 32;
 
         // 공격 대상의 Trigger 피격 영역도 항상 충돌 검색에 포함한다.
@@ -383,6 +403,10 @@ namespace Alpha.Projectile
                 $"DamageApplied={damagedTargetCount > 0}, " +
                 $"Point={p_hit.point}, " +
                 $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, p_hit.point)}");
+
+            OnImpacted?.Invoke(new ProjectileImpactResult(
+                p_hit.point,
+                p_hit.normal));
 
             // 지형이나 피해 불가능 대상에 명중해도 투사체는 종료한다.
             Release("Impact");

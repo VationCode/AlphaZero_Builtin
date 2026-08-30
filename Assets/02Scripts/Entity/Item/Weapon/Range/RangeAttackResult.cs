@@ -2,6 +2,23 @@ using UnityEngine;
 
 namespace Alpha.Item.Weapon.Range
 {
+    // 공격 방식과 무관하게 실제 충돌 위치와 표면 방향을 표현 계층에 전달한다.
+    public readonly struct RangeHitResult
+    {
+        public Vector3 Point { get; }
+        public Vector3 Normal { get; }
+
+        public RangeHitResult(
+            Vector3 p_point,
+            Vector3 p_normal)
+        {
+            Point = p_point;
+            Normal = p_normal.sqrMagnitude > 0.0001f
+                ? p_normal.normalized
+                : Vector3.up;
+        }
+    }
+
     // 조준 미리보기가 사용할 계산된 궤적 수와 예상 충돌 정보를 보관한다.
     public readonly struct ProjectileTrajectoryResult
     {

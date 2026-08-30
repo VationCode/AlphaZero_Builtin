@@ -228,8 +228,8 @@ MonoBehaviour:
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
   _muzzleLifetime: 0.5
   _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
-  _impactPrefab: {fileID: 0}
-  _impactLifetime: 5
+  _hitParticlePrefab: {fileID: 0}
+  _hitParticleLifetime: 5
   _scopeTracerViewportPosition: {x: 0.5, y: 0.25}
   _scopeTracerDepthOffset: 0.05
   _material: {fileID: 2100000, guid: d9ff703fce6d5de46be165b21c589ada, type: 2}

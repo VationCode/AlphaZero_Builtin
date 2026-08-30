@@ -1,7 +1,10 @@
 using Alpha.AlphaCamera;
 using Alpha.Item.Weapon.Range;
+using Alpha.Projectile.View;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
+using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Item.Weapon.View
 {
@@ -19,15 +22,18 @@ namespace Alpha.Item.Weapon.View
         [SerializeField, Min(0.01f)]
         private float _muzzleLifetime = 0.5f;
 
+        [Header("Hit")]
+        [FormerlySerializedAs("_impactPrefab")]
+        [SerializeField]
+        private ParticleSystem _hitParticlePrefab;
+
+        [FormerlySerializedAs("_impactLifetime")]
+        [SerializeField, Min(0.01f)]
+        private float _hitParticleLifetime = 5f;
+
         [Header("Hitscan")]
         [SerializeField]
         private BulletTracerView _tracerPrefab;
-
-        [SerializeField]
-        private ParticleSystem _impactPrefab;
-
-        [SerializeField, Min(0.01f)]
-        private float _impactLifetime = 5f;
 
         [SerializeField]
         private Vector2 _scopeTracerViewportPosition =
@@ -64,6 +70,10 @@ namespace Alpha.Item.Weapon.View
             _weapon.OnFired += HandleFired;
             _weapon.OnTrajectoryResolved -= HandleTrajectoryResolved;
             _weapon.OnTrajectoryResolved += HandleTrajectoryResolved;
+            _weapon.OnHitResolved -= HandleHitResolved;
+            _weapon.OnHitResolved += HandleHitResolved;
+            _weapon.OnProjectileLaunched -= HandleProjectileLaunched;
+            _weapon.OnProjectileLaunched += HandleProjectileLaunched;
         }
 
         private void OnDisable()
@@ -72,6 +82,8 @@ namespace Alpha.Item.Weapon.View
             {
                 _weapon.OnFired -= HandleFired;
                 _weapon.OnTrajectoryResolved -= HandleTrajectoryResolved;
+                _weapon.OnHitResolved -= HandleHitResolved;
+                _weapon.OnProjectileLaunched -= HandleProjectileLaunched;
             }
 
             HidePenetration();
@@ -111,6 +123,31 @@ namespace Alpha.Item.Weapon.View
             Destroy(effect.gameObject, _muzzleLifetime);
         }
 
+        private void HandleHitResolved(RangeHitResult p_result)
+        {
+            PlayHitParticle(p_result.Point, p_result.Normal);
+        }
+
+        private void HandleProjectileLaunched(
+            ProjectileEntity p_projectile)
+        {
+            if (p_projectile == null || _hitParticlePrefab == null)
+                return;
+
+            ProjectileImpactEffectView impactView =
+                p_projectile.GetComponent<ProjectileImpactEffectView>();
+
+            if (impactView == null)
+            {
+                impactView = p_projectile.gameObject
+                    .AddComponent<ProjectileImpactEffectView>();
+            }
+
+            impactView.Configure(
+                _hitParticlePrefab,
+                _hitParticleLifetime);
+        }
+
         private void HandleTrajectoryResolved(RangeAttackResult p_result)
         {
             if (_weapon == null)
@@ -140,17 +177,22 @@ namespace Alpha.Item.Weapon.View
 
                 tracer.Play(tracerStart, p_result.EndPoint);
             }
+        }
 
-            if (!p_result.HasCollision || _impactPrefab == null)
+        private void PlayHitParticle(
+            Vector3 p_point,
+            Vector3 p_normal)
+        {
+            if (_hitParticlePrefab == null)
                 return;
 
-            ParticleSystem impact = Instantiate(
-                _impactPrefab,
-                p_result.EndPoint,
-                Quaternion.LookRotation(p_result.CollisionNormal));
+            ParticleSystem effect = Instantiate(
+                _hitParticlePrefab,
+                p_point,
+                Quaternion.LookRotation(p_normal));
 
-            impact.Play(true);
-            Destroy(impact.gameObject, _impactLifetime);
+            effect.Play(true);
+            Destroy(effect.gameObject, _hitParticleLifetime);
         }
 
         private Vector3 ResolveTracerStart(Vector3 p_defaultStart)
@@ -228,7 +270,9 @@ namespace Alpha.Item.Weapon.View
         private void OnValidate()
         {
             _muzzleLifetime = Mathf.Max(0.01f, _muzzleLifetime);
-            _impactLifetime = Mathf.Max(0.01f, _impactLifetime);
+            _hitParticleLifetime = Mathf.Max(
+                0.01f,
+                _hitParticleLifetime);
             _scopeTracerViewportPosition = new Vector2(
                 Mathf.Clamp01(_scopeTracerViewportPosition.x),
                 Mathf.Clamp01(_scopeTracerViewportPosition.y));

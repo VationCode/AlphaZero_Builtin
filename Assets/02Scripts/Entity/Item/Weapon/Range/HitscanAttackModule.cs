@@ -14,7 +14,8 @@ namespace Alpha.Item.Weapon.Range
         public bool Execute(
             in RangeAttackRequest p_request,
             LayerMask p_hitMask,
-            Action<RangeAttackResult> p_publishTrajectory)
+            Action<RangeAttackResult> p_publishTrajectory,
+            Action<RangeHitResult> p_publishHit)
         {
             _hitAggregates.Clear();
 
@@ -26,7 +27,8 @@ namespace Alpha.Item.Weapon.Range
                     p_request,
                     RangeWeaponAttackModule.ResolveSpreadDirection(p_request),
                     p_hitMask,
-                    p_publishTrajectory);
+                    p_publishTrajectory,
+                    p_publishHit);
             }
 
             float damagePerProjectile =
@@ -38,9 +40,9 @@ namespace Alpha.Item.Weapon.Range
                     p_request.Attacker,
                     damagePerProjectile * aggregate.HitCount,
                     aggregate.AveragePoint,
-                   aggregate.AverageNormal,
-                   aggregate.AverageDirection,
-                   p_impact: p_request.Impact,
+                    aggregate.AverageNormal,
+                    aggregate.AverageDirection,
+                    p_impact: p_request.Impact,
                     p_deliveryType: EDamageDeliveryType.Ranged);
 
                 DamageSystem.TryApply(aggregate.Collider, damageInfo);
@@ -54,7 +56,8 @@ namespace Alpha.Item.Weapon.Range
             in RangeAttackRequest p_request,
             Vector3 p_direction,
             LayerMask p_hitMask,
-            Action<RangeAttackResult> p_publishTrajectory)
+            Action<RangeAttackResult> p_publishTrajectory,
+            Action<RangeHitResult> p_publishHit)
         {
             Ray attackRay = new(p_request.Origin, p_direction);
 
@@ -74,6 +77,13 @@ namespace Alpha.Item.Weapon.Range
                 endPoint,
                 hasHit,
                 hasHit ? hit.normal : -p_direction));
+
+            if (hasHit)
+            {
+                p_publishHit?.Invoke(new RangeHitResult(
+                    hit.point,
+                    hit.normal));
+            }
 
             if (!hasHit ||
                 !DamageSystem.TryGetDamageable(
