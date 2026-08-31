@@ -227,9 +227,9 @@ MonoBehaviour:
   _weapon: {fileID: -3591894751612736145}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
   _muzzleLifetime: 0.5
-  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
-  _hitParticlePrefab: {fileID: 0}
+  _hitParticlePrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
   _hitParticleLifetime: 5
+  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
   _scopeTracerViewportPosition: {x: 0.5, y: 0.25}
   _scopeTracerDepthOffset: 0.05
   _material: {fileID: 2100000, guid: d9ff703fce6d5de46be165b21c589ada, type: 2}
@@ -268,7 +268,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: -3591894751612736145}
   _audioSource: {fileID: 0}
-  _fireClip: {fileID: 8300000, guid: bddea8aea12189641ad789a470e083dd, type: 3}
+  _playbackMode: 1
+  _fireClip: {fileID: 8300000, guid: 4241db4fae894ac46b76d029941f575e, type: 3}
   _fireVolume: 1
 --- !u!1 &8766906499838824801 stripped
 GameObject:
@@ -300,11 +301,15 @@ MonoBehaviour:
       _moveSpeedMultiplier: 1
       _cameraShakeName: Weak
     _defaultTriggerMode: 1
-    _aimView: 1
-    _chargeSettings:
-      _enabled: 0
-      _maxDuration: 1
-      _maxBonusDamage: 0
+    _secondarySettings:
+      _enabled: 1
+      _cameraView: 1
+      _aimSpreadMultiplier: 0.55
+      _aimRecoilMultiplier: 0.75
+      _charge:
+        _enabled: 0
+        _maxDuration: 1
+        _maxBonusDamage: 0
     _impactSettings:
       _hitType: 1
       _lightKnockback:

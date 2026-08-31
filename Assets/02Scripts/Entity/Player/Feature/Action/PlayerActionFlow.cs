@@ -22,6 +22,11 @@ namespace Alpha.Player.Actions
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
+        [Header("Hit Reaction Immunity")]
+        [SerializeField]
+        private HitReactionImmunitySettings _hitReactionImmunitySettings =
+            new();
+
         [Header("Hit Reaction Timing")]
         [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
         [SerializeField, Min(0f)]
@@ -161,9 +166,10 @@ namespace Alpha.Player.Actions
                     p_damageInfo,
                     _hitTypeResponseSettings);
 
-            ApplyKnockback(p_damageInfo, reactionResult);
             OnDamageFeedbackRequested?.Invoke(reactionResult.Reaction);
-            TryEnterHitReaction(reactionResult);
+
+            if (TryEnterHitReaction(reactionResult))
+                ApplyKnockback(p_damageInfo, reactionResult);
         }
 
         // 공격자가 전달한 방향과 거리/시간을 실제 넉백 요청으로 조합한다.
@@ -190,7 +196,7 @@ namespace Alpha.Player.Actions
             if (!_hitReactionFlow.TryBegin(
                     p_result,
                     Time.time,
-                    0f,
+                    _hitReactionImmunitySettings,
                     _knockdownFallDuration,
                     _standupDuration))
             {
@@ -244,7 +250,8 @@ namespace Alpha.Player.Actions
 
             bool isReactionActive = _hitReactionFlow.Tick(
                 Time.deltaTime,
-                _core.LocomotionModule?.IsKnockbackActive == true);
+                _core.LocomotionModule?.IsKnockbackActive == true,
+                Time.time);
 
             if (!isReactionActive)
             {
@@ -340,6 +347,9 @@ namespace Alpha.Player.Actions
         private void OnValidate()
         {
             _hitTypeResponseSettings ??= new HitTypeResponseSettings();
+            _hitReactionImmunitySettings ??=
+                new HitReactionImmunitySettings();
+            _hitReactionImmunitySettings.Validate();
             _knockdownFallDuration =
                 Mathf.Max(0f, _knockdownFallDuration);
             _standupDuration =

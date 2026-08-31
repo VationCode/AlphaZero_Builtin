@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f3dc04b73ee4df59fc344a56ca718d8, type: 3}
+  m_Name: Missile
+  m_EditorClassIdentifier: 
+  _prefab: {fileID: 2853060138587645021, guid: 87c9fc9390752bd4d855cb7502da44fd, type: 3}
+  _gravityScale: 1
+  _impactSettings:
+    _impactType: 1
+    _damageRadius: 5

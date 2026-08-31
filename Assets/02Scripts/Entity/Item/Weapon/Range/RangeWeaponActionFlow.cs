@@ -28,7 +28,7 @@ namespace Alpha.Item.Weapon.Range
         {
             _attackModule = p_attackModule;
             _triggerFlow.Bind(p_settings);
-            _secondaryFlow.Bind(p_settings);
+            _secondaryFlow.Bind(p_settings?.SecondarySettings);
             ResetRuntimeState();
         }
 
@@ -172,6 +172,7 @@ namespace Alpha.Item.Weapon.Range
         {
             return _triggerFlow.TryFire(
                 p_bonusDamage,
+                _secondaryFlow.IsAimViewActive,
                 _attackModule.TryFire);
         }
 

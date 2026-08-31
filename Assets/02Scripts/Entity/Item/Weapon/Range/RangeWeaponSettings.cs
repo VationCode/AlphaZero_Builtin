@@ -75,6 +75,48 @@ namespace Alpha.Item.Weapon.Range
         }
     }
 
+    // Secondary 입력의 활성 여부와 선택 가능한 기능을 한곳에서 구성한다.
+    [Serializable]
+    public sealed class RangeSecondarySettings
+    {
+        [Tooltip("이 무기가 Secondary 입력을 사용하는지 여부입니다.")]
+        [SerializeField]
+        private bool _enabled;
+
+        [Tooltip("None이면 Secondary는 동작하지만 Camera View는 전환하지 않습니다.")]
+        [SerializeField]
+        private ERangeAimView _cameraView = ERangeAimView.None;
+
+        [Tooltip("Aim View에서 기본 Spread Angle에 곱할 배율입니다.")]
+        [SerializeField, Range(0f, 1f)]
+        private float _aimSpreadMultiplier = 0.55f;
+
+        [Tooltip("Aim View에서 기본 Recoil에 곱할 배율입니다.")]
+        [SerializeField, Range(0f, 1f)]
+        private float _aimRecoilMultiplier = 0.75f;
+
+        [SerializeField]
+        private RangeChargeSettings _charge = new();
+
+        public bool Enabled => _enabled;
+        public ERangeAimView CameraView => _cameraView;
+        public float AimSpreadMultiplier =>
+            Mathf.Clamp01(_aimSpreadMultiplier);
+        public float AimRecoilMultiplier =>
+            Mathf.Clamp01(_aimRecoilMultiplier);
+        public RangeChargeSettings Charge => _charge;
+
+        public void Validate()
+        {
+            _aimSpreadMultiplier = Mathf.Clamp01(
+                _aimSpreadMultiplier);
+            _aimRecoilMultiplier = Mathf.Clamp01(
+                _aimRecoilMultiplier);
+            _charge ??= new RangeChargeSettings();
+            _charge.Validate();
+        }
+    }
+
     // 공격 전달 방식과 무관한 RangeWeapon의 기본 설정만 보관한다.
     [Serializable]
     public sealed class RangeWeaponSettings
@@ -106,12 +148,8 @@ namespace Alpha.Item.Weapon.Range
             ERangeTriggerMode.Auto;
 
         [Header("Secondary")]
-        [FormerlySerializedAs("_secondaryView")]
         [SerializeField]
-        private ERangeAimView _aimView = ERangeAimView.None;
-
-        [SerializeField]
-        private RangeChargeSettings _chargeSettings = new();
+        private RangeSecondarySettings _secondarySettings = new();
 
         [Header("Impact")]
         [SerializeField]
@@ -124,8 +162,8 @@ namespace Alpha.Item.Weapon.Range
         public RangeFireResponseSettings FireResponseSettings =>
             _fireResponseSettings;
         public ERangeTriggerMode DefaultTriggerMode => _defaultTriggerMode;
-        public ERangeAimView AimView => _aimView;
-        public RangeChargeSettings ChargeSettings => _chargeSettings;
+        public RangeSecondarySettings SecondarySettings =>
+            _secondarySettings;
         public AttackImpactSettings ImpactSettings => _impactSettings;
 
         public void Validate()
@@ -139,8 +177,8 @@ namespace Alpha.Item.Weapon.Range
             _fireResponseSettings ??= new RangeFireResponseSettings();
             _fireResponseSettings.Validate();
 
-            _chargeSettings ??= new RangeChargeSettings();
-            _chargeSettings.Validate();
+            _secondarySettings ??= new RangeSecondarySettings();
+            _secondarySettings.Validate();
 
             _impactSettings ??= new AttackImpactSettings();
             _impactSettings.Validate();

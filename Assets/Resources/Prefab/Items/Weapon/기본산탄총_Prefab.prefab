@@ -207,17 +207,21 @@ MonoBehaviour:
     _shotSettings:
       _fireInterval: 1.5
       _trajectoryCount: 8
-      _spreadAngle: 6
+      _spreadAngle: 2.8
     _fireResponseSettings:
       _recoil: 10
       _moveSpeedMultiplier: 1
       _cameraShakeName: Weak
     _defaultTriggerMode: 1
-    _aimView: 1
-    _chargeSettings:
-      _enabled: 0
-      _maxDuration: 1
-      _maxBonusDamage: 0
+    _secondarySettings:
+      _enabled: 1
+      _cameraView: 1
+      _aimSpreadMultiplier: 0.55
+      _aimRecoilMultiplier: 0.75
+      _charge:
+        _enabled: 0
+        _maxDuration: 1
+        _maxBonusDamage: 0
     _impactSettings:
       _hitType: 1
       _lightKnockback:
@@ -245,40 +249,14 @@ MonoBehaviour:
       rid: -2
   _muzzle: {fileID: 5073688281823971479}
   _leftHandIKTarget: {fileID: 6828641872705021691}
+  _showRange: 1
+  _rangeColor: {r: 0, g: 0.8, b: 1, a: 1}
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
---- !u!4 &5073688281823971479 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1449165087894339891, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
-  m_PrefabInstance: {fileID: 5941702993894771108}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4238556192481367805
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 830000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _weapon: {fileID: 4238556192481367803}
-  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
-  _muzzleLifetime: 0.5
-  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
-  _hitParticlePrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
-  _hitParticleLifetime: 5
---- !u!1 &830000000000000001 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
-  m_PrefabInstance: {fileID: 5941702993894771108}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &830000000000000002 stripped
+--- !u!1 &2989607757772351980 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 5941702993894771108}
@@ -289,16 +267,49 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 830000000000000002}
+  m_GameObject: {fileID: 2989607757772351980}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 69afbe6bd90445d3b7f9569e8ad02128, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   _weapon: {fileID: 4238556192481367803}
   _audioSource: {fileID: 0}
-  _fireClip: {fileID: 0}
+  _playbackMode: 0
+  _fireClip: {fileID: 8300000, guid: 82d3a235421f6fa459675ea90df3f4cb, type: 3}
   _fireVolume: 1
+--- !u!4 &5073688281823971479 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1449165087894339891, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 5941702993894771108}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5710870023095600479 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 5941702993894771108}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4238556192481367805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5710870023095600479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1b4a62e9c847da98b5f73105a24c10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _weapon: {fileID: 4238556192481367803}
+  _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
+  _muzzleLifetime: 0.5
+  _hitParticlePrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
+  _hitParticleLifetime: 5
+  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
+  _scopeTracerViewportPosition: {x: 0.5, y: 0.25}
+  _scopeTracerDepthOffset: 0.05
+  _material: {fileID: 0}
+  _visibleDuration: 0.05
 --- !u!4 &6439805859220574877 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

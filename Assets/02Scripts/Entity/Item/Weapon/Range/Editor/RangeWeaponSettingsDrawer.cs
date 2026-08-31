@@ -14,6 +14,8 @@ namespace Alpha.Item.Weapon.Range.Editor
         private static readonly GUIContent FireResponseTitle =
             new("[ 발사 반응 ]");
         private static readonly GUIContent ActionTitle = new("[ 행동 ]");
+        private static readonly GUIContent SecondaryTitle =
+            new("[ Secondary ]");
         private static readonly GUIContent ImpactTitle = new("[ 피격 ]");
 
         public override void OnGUI(
@@ -103,13 +105,35 @@ namespace Alpha.Item.Weapon.Range.Editor
                 p_position,
                 p_property.FindPropertyRelative("_defaultTriggerMode"),
                 ref currentY);
-            DrawProperty(
+
+            SerializedProperty secondarySettings =
+                p_property.FindPropertyRelative("_secondarySettings");
+
+            DrawTitle(p_position, SecondaryTitle, ref currentY);
+            DrawNestedProperty(
                 p_position,
-                p_property.FindPropertyRelative("_aimView"),
+                secondarySettings,
+                "_enabled",
                 ref currentY);
-            DrawProperty(
+            DrawNestedProperty(
                 p_position,
-                p_property.FindPropertyRelative("_chargeSettings"),
+                secondarySettings,
+                "_cameraView",
+                ref currentY);
+            DrawNestedProperty(
+                p_position,
+                secondarySettings,
+                "_aimSpreadMultiplier",
+                ref currentY);
+            DrawNestedProperty(
+                p_position,
+                secondarySettings,
+                "_aimRecoilMultiplier",
+                ref currentY);
+            DrawNestedProperty(
+                p_position,
+                secondarySettings,
+                "_charge",
                 ref currentY);
 
             DrawTitle(p_position, ImpactTitle, ref currentY);
@@ -135,6 +159,8 @@ namespace Alpha.Item.Weapon.Range.Editor
                 p_property.FindPropertyRelative("_shotSettings");
             SerializedProperty fireResponseSettings =
                 p_property.FindPropertyRelative("_fireResponseSettings");
+            SerializedProperty secondarySettings =
+                p_property.FindPropertyRelative("_secondarySettings");
 
             AddTitleHeight(ref height);
             AddPropertyHeight(
@@ -179,11 +205,27 @@ namespace Alpha.Item.Weapon.Range.Editor
             AddPropertyHeight(
                 p_property.FindPropertyRelative("_defaultTriggerMode"),
                 ref height);
-            AddPropertyHeight(
-                p_property.FindPropertyRelative("_aimView"),
+
+            AddTitleHeight(ref height);
+            AddNestedPropertyHeight(
+                secondarySettings,
+                "_enabled",
                 ref height);
-            AddPropertyHeight(
-                p_property.FindPropertyRelative("_chargeSettings"),
+            AddNestedPropertyHeight(
+                secondarySettings,
+                "_cameraView",
+                ref height);
+            AddNestedPropertyHeight(
+                secondarySettings,
+                "_aimSpreadMultiplier",
+                ref height);
+            AddNestedPropertyHeight(
+                secondarySettings,
+                "_aimRecoilMultiplier",
+                ref height);
+            AddNestedPropertyHeight(
+                secondarySettings,
+                "_charge",
                 ref height);
 
             AddTitleHeight(ref height);

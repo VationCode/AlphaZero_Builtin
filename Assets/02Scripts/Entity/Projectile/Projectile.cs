@@ -24,47 +24,28 @@ namespace Alpha.Projectile
         }
     }
 
-    // 발사 후 이동, 충돌, 피해 전달, 발사점 기준 사거리 종료를 관리한다.
+    // 발사 후 이동, 충돌, 피해 전달, 발사점 기준 사거리 폭발을 관리한다.
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(SphereCollider))]
     public class Projectile : MonoBehaviour
     {
         public event Action<ProjectileImpactResult> OnImpacted;
 
         private const int ImpactBufferCapacity = 32;
+        private const int MaximumPredictionSteps = 2048;
 
         // 공격 대상의 Trigger 피격 영역도 항상 충돌 검색에 포함한다.
         private const QueryTriggerInteraction TargetTriggerInteraction =
             QueryTriggerInteraction.Collide;
 
-        [Header("Flight")]
-        [Tooltip("Physics Gravity에 곱할 중력 배율입니다. 0이면 직선으로 이동합니다.")]
-        [SerializeField, Min(0f)]
-        private float _gravityScale;
-
         [Header("Collision")]
-        [Tooltip("비행 SphereCast의 중심과 반경으로 사용할 Collider입니다. 실제 물리 충돌에는 사용하지 않습니다.")]
+        [Tooltip("비행 Cast 형상으로 사용할 Sphere, Box 또는 Capsule Collider입니다. 실제 물리 충돌에는 사용하지 않습니다.")]
         [SerializeField]
-        private SphereCollider _collisionShape;
-
-        [Header("Impact")]
-        [SerializeField]
-        private ProjectileImpactSettings _impactSettings = new(
-            EProjectileImpactType.Direct,
-            0f);
+        private Collider _collisionShape;
 
         [Header("Debug")]
         [Tooltip("발사, 충돌 대상, 피해 적용 결과와 종료 사유를 Console에 출력합니다.")]
         [SerializeField]
         private bool _logLifecycle;
-
-        [Header("Scene Preview")]
-        [SerializeField]
-        private bool _showDamageRadius = true;
-
-        [SerializeField]
-        private Color _damageRadiusColor =
-            new(1f, 0.25f, 0.1f, 0.2f);
 
         private readonly Collider[] _impactBuffer =
             new Collider[ImpactBufferCapacity];
@@ -78,24 +59,117 @@ namespace Alpha.Projectile
 
         private float _damage;
         private AttackImpactInfo _attackImpact;
-        private float _activeCollisionRadius;
+        private ProjectileImpactSettings _activeImpactSettings;
         private float _maximumDistance;
 
         private LayerMask _activeHitMask;
 
         private bool _isActive;
 
-        public float GravityScale => _gravityScale;
-        public static QueryTriggerInteraction CollisionTriggerInteraction =>
-            TargetTriggerInteraction;
-        public float CollisionRadius =>
-            CalculateCollisionRadius();
-        public ProjectileImpactSettings ImpactSettings =>
-            _impactSettings;
+        public float CollisionPreviewRadius =>
+            TryCalculateCollisionPreviewRadius(out float radius)
+                ? radius
+                : 0f;
         public bool IsConfigurationValid =>
-            _collisionShape != null &&
-            CollisionRadius > 0f &&
-            _impactSettings.IsValid;
+            TryCalculateCollisionPreviewRadius(out _);
+
+        // 포물선은 표시하지 않고 실제 비행식과 Collider Cast로 최종 폭발점만 계산한다.
+        public bool TryPredictImpact(
+            Vector3 p_origin,
+            Vector3 p_direction,
+            in ProjectileLaunchSettings p_launchSettings,
+            float p_maximumDistance,
+            float p_simulationStep,
+            out ProjectileImpactResult p_result)
+        {
+            p_result = default;
+
+            if (!p_launchSettings.IsValid ||
+                !IsConfigurationValid ||
+                p_direction.sqrMagnitude <= 0.0001f ||
+                p_maximumDistance <= 0f)
+            {
+                return false;
+            }
+
+            Vector3 position = p_origin;
+            Vector3 velocity =
+                p_direction.normalized * p_launchSettings.Speed;
+            Vector3 gravity = p_launchSettings.Gravity;
+            Quaternion rotation =
+                Quaternion.LookRotation(velocity.normalized);
+            float simulationStep = Mathf.Max(
+                0.005f,
+                p_simulationStep);
+
+            for (int stepIndex = 0;
+                 stepIndex < MaximumPredictionSteps;
+                 stepIndex++)
+            {
+                Vector3 displacement = CalculateDisplacement(
+                    velocity,
+                    gravity,
+                    simulationStep);
+                float requestedDistance = displacement.magnitude;
+
+                if (requestedDistance <= 0.0001f)
+                    return false;
+
+                Vector3 moveDirection =
+                    displacement / requestedDistance;
+                float distanceToBoundary =
+                    CalculateDistanceToRangeBoundary(
+                        position,
+                        p_origin,
+                        moveDirection,
+                        p_maximumDistance);
+
+                if (distanceToBoundary <= 0f)
+                {
+                    p_result = new ProjectileImpactResult(
+                        position,
+                        -moveDirection);
+                    return true;
+                }
+
+                float moveDistance = Mathf.Min(
+                    requestedDistance,
+                    distanceToBoundary);
+                bool reachesMaximumDistance =
+                    moveDistance >= distanceToBoundary - 0.0001f;
+
+                if (TryCastMovementAtPose(
+                        position,
+                        rotation,
+                        moveDirection,
+                        moveDistance,
+                        p_launchSettings.HitMask,
+                        out RaycastHit hit))
+                {
+                    p_result = new ProjectileImpactResult(
+                        hit.point,
+                        hit.normal);
+                    return true;
+                }
+
+                position += moveDirection * moveDistance;
+
+                if (reachesMaximumDistance)
+                {
+                    p_result = new ProjectileImpactResult(
+                        position,
+                        -moveDirection);
+                    return true;
+                }
+
+                velocity += gravity * simulationStep;
+
+                if (velocity.sqrMagnitude > 0.0001f)
+                    rotation = Quaternion.LookRotation(velocity.normalized);
+            }
+
+            return false;
+        }
 
         // 발사 주체가 소유한 공용 설정을 런타임 이동·충돌 상태로 복사한다.
         public bool Initialize(
@@ -112,14 +186,14 @@ namespace Alpha.Projectile
             _attacker = p_request.Attacker;
             _launchOrigin = p_request.Origin;
             _velocity = p_request.Direction * p_launchSettings.Speed;
-            _gravity = Physics.gravity * _gravityScale;
+            _gravity = p_launchSettings.Gravity;
             _damage = p_request.Damage;
             _attackImpact = p_request.Impact;
-            _activeCollisionRadius = CollisionRadius;
+            _activeImpactSettings = p_launchSettings.ImpactSettings;
             _maximumDistance = p_request.MaxDistance;
             _activeHitMask = p_launchSettings.HitMask;
 
-            // Collider는 SphereCast 형상 데이터로만 사용해 자기 자신과의 중복 물리 판정을 막는다.
+            // Collider는 Cast 형상 데이터로만 사용해 자기 자신과의 중복 물리 판정을 막는다.
             _collisionShape.enabled = false;
 
             transform.SetPositionAndRotation(
@@ -133,7 +207,8 @@ namespace Alpha.Projectile
                 $"Launch | Attacker={_attacker.name}, " +
                 $"Damage={_damage}, Speed={p_launchSettings.Speed}, " +
                 $"MaxDistance={_maximumDistance}, " +
-                $"GravityScale={_gravityScale}, HitMask={_activeHitMask.value}, " +
+                $"GravityScale={p_launchSettings.GravityScale}, " +
+                $"HitMask={_activeHitMask.value}, " +
                 $"Origin={transform.position}, Direction={p_request.Direction}");
 
             return true;
@@ -141,33 +216,7 @@ namespace Alpha.Projectile
 
         private void OnValidate()
         {
-            _collisionShape ??= GetComponent<SphereCollider>();
-            _gravityScale = Mathf.Max(0f, _gravityScale);
-            _impactSettings.Validate();
-        }
-
-        // 설정을 소유한 Projectile에서 개발용 피해 반경을 직접 표시한다.
-        private void OnDrawGizmosSelected()
-        {
-            if (!_showDamageRadius ||
-                !_impactSettings.IsRadial ||
-                _impactSettings.DamageRadius <= 0f)
-            {
-                return;
-            }
-
-            Color previousColor = Gizmos.color;
-            float radius = _impactSettings.DamageRadius;
-
-            Gizmos.color = _damageRadiusColor;
-            Gizmos.DrawSphere(transform.position, radius);
-
-            Color wireColor = _damageRadiusColor;
-            wireColor.a = 1f;
-
-            Gizmos.color = wireColor;
-            Gizmos.DrawWireSphere(transform.position, radius);
-            Gizmos.color = previousColor;
+            _collisionShape ??= GetComponent<Collider>();
         }
 
         private void Update()
@@ -207,7 +256,7 @@ namespace Alpha.Projectile
 
             if (distanceToBoundary <= 0f)
             {
-                Release("MaximumDistance");
+                DetonateAtMaximumDistance(moveDirection);
                 return;
             }
 
@@ -217,12 +266,8 @@ namespace Alpha.Projectile
             bool reachesMaximumDistance =
                 moveDistance >= distanceToBoundary - 0.0001f;
 
-            Ray moveRay = new(
-                GetCollisionCenter(),
-                moveDirection);
-
             if (TryCastMovement(
-                    moveRay,
+                    moveDirection,
                     moveDistance,
                     out RaycastHit hit))
             {
@@ -237,7 +282,7 @@ namespace Alpha.Projectile
 
             if (reachesMaximumDistance)
             {
-                Release("MaximumDistance");
+                DetonateAtMaximumDistance(moveDirection);
                 return;
             }
 
@@ -253,31 +298,195 @@ namespace Alpha.Projectile
         }
 
         private bool TryCastMovement(
-            Ray p_moveRay,
+            Vector3 p_moveDirection,
             float p_moveDistance,
             out RaycastHit p_hit)
         {
-            if (_activeCollisionRadius > 0f)
-            {
-                return Physics.SphereCast(
-                    p_moveRay,
-                    _activeCollisionRadius,
-                    out p_hit,
-                    p_moveDistance,
-                    _activeHitMask,
-                    TargetTriggerInteraction);
-            }
-
-            return Physics.Raycast(
-                p_moveRay,
-                out p_hit,
+            return TryCastMovementAtPose(
+                transform.position,
+                transform.rotation,
+                p_moveDirection,
                 p_moveDistance,
                 _activeHitMask,
-                TargetTriggerInteraction);
+                out p_hit);
         }
 
-        // 실제 비행과 조준 미리보기가 같은 등가속도 이동식을 사용한다.
-        public static Vector3 CalculateDisplacement(
+        private bool TryCastMovementAtPose(
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation,
+            Vector3 p_moveDirection,
+            float p_moveDistance,
+            LayerMask p_hitMask,
+            out RaycastHit p_hit)
+        {
+            switch (_collisionShape)
+            {
+                case SphereCollider sphere:
+                    if (TryGetSphereWorldShapeAtPose(
+                            sphere,
+                            p_rootPosition,
+                            p_rootRotation,
+                            out Vector3 sphereCenter,
+                            out float sphereRadius))
+                    {
+                        return Physics.SphereCast(
+                            sphereCenter,
+                            sphereRadius,
+                            p_moveDirection,
+                            out p_hit,
+                            p_moveDistance,
+                            p_hitMask,
+                            TargetTriggerInteraction);
+                    }
+
+                    break;
+
+                case BoxCollider box:
+                    if (TryGetBoxWorldShapeAtPose(
+                            box,
+                            p_rootPosition,
+                            p_rootRotation,
+                            out Vector3 boxCenter,
+                            out Vector3 halfExtents,
+                            out Quaternion orientation))
+                    {
+                        return Physics.BoxCast(
+                            boxCenter,
+                            halfExtents,
+                            p_moveDirection,
+                            out p_hit,
+                            orientation,
+                            p_moveDistance,
+                            p_hitMask,
+                            TargetTriggerInteraction);
+                    }
+
+                    break;
+
+                case CapsuleCollider capsule:
+                    if (TryGetCapsuleWorldShapeAtPose(
+                            capsule,
+                            p_rootPosition,
+                            p_rootRotation,
+                            out Vector3 point1,
+                            out Vector3 point2,
+                            out float capsuleRadius))
+                    {
+                        return Physics.CapsuleCast(
+                            point1,
+                            point2,
+                            capsuleRadius,
+                            p_moveDirection,
+                            out p_hit,
+                            p_moveDistance,
+                            p_hitMask,
+                            TargetTriggerInteraction);
+                    }
+
+                    break;
+            }
+
+            p_hit = default;
+            return false;
+        }
+
+        private bool TryGetSphereWorldShapeAtPose(
+            SphereCollider p_sphere,
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation,
+            out Vector3 p_center,
+            out float p_radius)
+        {
+            if (!TryGetSphereWorldShape(
+                    p_sphere,
+                    out Vector3 sourceCenter,
+                    out p_radius))
+            {
+                p_center = default;
+                return false;
+            }
+
+            p_center = TransformPointToRootPose(
+                sourceCenter,
+                p_rootPosition,
+                p_rootRotation);
+            return true;
+        }
+
+        private bool TryGetBoxWorldShapeAtPose(
+            BoxCollider p_box,
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation,
+            out Vector3 p_center,
+            out Vector3 p_halfExtents,
+            out Quaternion p_orientation)
+        {
+            if (!TryGetBoxWorldShape(
+                    p_box,
+                    out Vector3 sourceCenter,
+                    out p_halfExtents,
+                    out Quaternion sourceOrientation))
+            {
+                p_center = default;
+                p_orientation = Quaternion.identity;
+                return false;
+            }
+
+            p_center = TransformPointToRootPose(
+                sourceCenter,
+                p_rootPosition,
+                p_rootRotation);
+            p_orientation = p_rootRotation *
+                            Quaternion.Inverse(transform.rotation) *
+                            sourceOrientation;
+            return true;
+        }
+
+        private bool TryGetCapsuleWorldShapeAtPose(
+            CapsuleCollider p_capsule,
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation,
+            out Vector3 p_point1,
+            out Vector3 p_point2,
+            out float p_radius)
+        {
+            if (!TryGetCapsuleWorldShape(
+                    p_capsule,
+                    out Vector3 sourcePoint1,
+                    out Vector3 sourcePoint2,
+                    out p_radius))
+            {
+                p_point1 = default;
+                p_point2 = default;
+                return false;
+            }
+
+            p_point1 = TransformPointToRootPose(
+                sourcePoint1,
+                p_rootPosition,
+                p_rootRotation);
+            p_point2 = TransformPointToRootPose(
+                sourcePoint2,
+                p_rootPosition,
+                p_rootRotation);
+            return true;
+        }
+
+        private Vector3 TransformPointToRootPose(
+            Vector3 p_sourceWorldPoint,
+            Vector3 p_rootPosition,
+            Quaternion p_rootRotation)
+        {
+            Vector3 rootRelativePoint =
+                Quaternion.Inverse(transform.rotation) *
+                (p_sourceWorldPoint - transform.position);
+
+            return p_rootPosition +
+                   p_rootRotation * rootRelativePoint;
+        }
+
+        // 현재 속도와 중력으로 이번 Frame의 이동량을 계산한다.
+        private static Vector3 CalculateDisplacement(
             Vector3 p_velocity,
             Vector3 p_gravity,
             float p_deltaTime)
@@ -288,7 +497,7 @@ namespace Alpha.Projectile
         }
 
         // 현재 이동 방향이 발사점 기준 MaxDistance 경계까지 갈 수 있는 거리를 계산한다.
-        public static float CalculateDistanceToRangeBoundary(
+        private static float CalculateDistanceToRangeBoundary(
             Vector3 p_position,
             Vector3 p_launchOrigin,
             Vector3 p_moveDirection,
@@ -323,47 +532,189 @@ namespace Alpha.Projectile
                 -projection + Mathf.Sqrt(discriminant));
         }
 
-        // 생성 전 예측에서도 Projectile Collider의 실제 중심을 사용할 수 있게 한다.
-        public Vector3 CalculateCollisionCenter(
-            Vector3 p_rootPosition,
-            Quaternion p_rootRotation)
+        // Scene Preview는 Collider 전체를 감싸는 보수적인 반경을 사용한다.
+        private bool TryCalculateCollisionPreviewRadius(
+            out float p_radius)
         {
-            if (_collisionShape == null)
-                return p_rootPosition;
+            p_radius = 0f;
 
-            Vector3 rootLocalCenter =
-                transform.InverseTransformPoint(
-                    _collisionShape.transform.TransformPoint(
-                        _collisionShape.center));
+            switch (_collisionShape)
+            {
+                case SphereCollider sphere:
+                    if (!TryGetSphereWorldShape(
+                            sphere,
+                            out Vector3 sphereCenter,
+                            out float sphereRadius))
+                    {
+                        return false;
+                    }
 
-            Vector3 scaledCenter = Vector3.Scale(
-                rootLocalCenter,
-                transform.localScale);
+                    p_radius =
+                        Vector3.Distance(transform.position, sphereCenter) +
+                        sphereRadius;
+                    return true;
 
-            return p_rootPosition +
-                   p_rootRotation * scaledCenter;
+                case BoxCollider box:
+                    if (!TryGetBoxWorldShape(
+                            box,
+                            out Vector3 boxCenter,
+                            out Vector3 halfExtents,
+                            out _))
+                    {
+                        return false;
+                    }
+
+                    p_radius =
+                        Vector3.Distance(transform.position, boxCenter) +
+                        halfExtents.magnitude;
+                    return true;
+
+                case CapsuleCollider capsule:
+                    if (!TryGetCapsuleWorldShape(
+                            capsule,
+                            out Vector3 point1,
+                            out Vector3 point2,
+                            out float capsuleRadius))
+                    {
+                        return false;
+                    }
+
+                    Vector3 capsuleCenter = (point1 + point2) * 0.5f;
+                    float halfSegment =
+                        Vector3.Distance(point1, point2) * 0.5f;
+
+                    p_radius =
+                        Vector3.Distance(transform.position, capsuleCenter) +
+                        halfSegment +
+                        capsuleRadius;
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
-        private Vector3 GetCollisionCenter()
+        private static bool TryGetSphereWorldShape(
+            SphereCollider p_sphere,
+            out Vector3 p_center,
+            out float p_radius)
         {
-            return CalculateCollisionCenter(
-                transform.position,
-                transform.rotation);
-        }
+            p_center = default;
+            p_radius = 0f;
 
-        private float CalculateCollisionRadius()
-        {
-            if (_collisionShape == null)
-                return 0f;
+            if (p_sphere == null)
+                return false;
 
-            Vector3 scale = _collisionShape.transform.lossyScale;
+            Transform shapeTransform = p_sphere.transform;
+            Vector3 scale = Abs(shapeTransform.lossyScale);
             float maximumScale = Mathf.Max(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y),
-                Mathf.Abs(scale.z));
+                scale.x,
+                scale.y,
+                scale.z);
 
-            return Mathf.Max(0f, _collisionShape.radius) *
-                   maximumScale;
+            p_center = shapeTransform.TransformPoint(p_sphere.center);
+            p_radius =
+                Mathf.Max(0f, p_sphere.radius) * maximumScale;
+            return p_radius > 0.0001f;
+        }
+
+        private static bool TryGetBoxWorldShape(
+            BoxCollider p_box,
+            out Vector3 p_center,
+            out Vector3 p_halfExtents,
+            out Quaternion p_orientation)
+        {
+            p_center = default;
+            p_halfExtents = default;
+            p_orientation = Quaternion.identity;
+
+            if (p_box == null)
+                return false;
+
+            Transform shapeTransform = p_box.transform;
+            Vector3 scale = Abs(shapeTransform.lossyScale);
+
+            p_center = shapeTransform.TransformPoint(p_box.center);
+            p_halfExtents = Vector3.Scale(
+                p_box.size * 0.5f,
+                scale);
+            p_orientation = shapeTransform.rotation;
+
+            return p_halfExtents.x > 0.0001f &&
+                   p_halfExtents.y > 0.0001f &&
+                   p_halfExtents.z > 0.0001f;
+        }
+
+        private static bool TryGetCapsuleWorldShape(
+            CapsuleCollider p_capsule,
+            out Vector3 p_point1,
+            out Vector3 p_point2,
+            out float p_radius)
+        {
+            p_point1 = default;
+            p_point2 = default;
+            p_radius = 0f;
+
+            if (p_capsule == null)
+                return false;
+
+            Transform shapeTransform = p_capsule.transform;
+            Vector3 scale = Abs(shapeTransform.lossyScale);
+            Vector3 localAxis;
+            float heightScale;
+            float radiusScale;
+
+            switch (p_capsule.direction)
+            {
+                case 0:
+                    localAxis = Vector3.right;
+                    heightScale = scale.x;
+                    radiusScale = Mathf.Max(scale.y, scale.z);
+                    break;
+
+                case 1:
+                    localAxis = Vector3.up;
+                    heightScale = scale.y;
+                    radiusScale = Mathf.Max(scale.x, scale.z);
+                    break;
+
+                case 2:
+                    localAxis = Vector3.forward;
+                    heightScale = scale.z;
+                    radiusScale = Mathf.Max(scale.x, scale.y);
+                    break;
+
+                default:
+                    return false;
+            }
+
+            p_radius =
+                Mathf.Max(0f, p_capsule.radius) * radiusScale;
+
+            if (p_radius <= 0.0001f)
+                return false;
+
+            float height = Mathf.Max(
+                Mathf.Max(0f, p_capsule.height) * heightScale,
+                p_radius * 2f);
+            float halfSegment =
+                Mathf.Max(0f, height * 0.5f - p_radius);
+            Vector3 center =
+                shapeTransform.TransformPoint(p_capsule.center);
+            Vector3 axis =
+                shapeTransform.TransformDirection(localAxis).normalized;
+
+            p_point1 = center + axis * halfSegment;
+            p_point2 = center - axis * halfSegment;
+            return true;
+        }
+
+        private static Vector3 Abs(Vector3 p_value)
+        {
+            return new Vector3(
+                Mathf.Abs(p_value.x),
+                Mathf.Abs(p_value.y),
+                Mathf.Abs(p_value.z));
         }
 
         private void HandleHit(
@@ -374,7 +725,7 @@ namespace Alpha.Projectile
 
             int damagedTargetCount;
 
-            if (_impactSettings.IsRadial)
+            if (_activeImpactSettings.IsRadial)
             {
                 damagedTargetCount = ApplyRadialDamage(
                     p_hit.point,
@@ -404,12 +755,51 @@ namespace Alpha.Projectile
                 $"Point={p_hit.point}, " +
                 $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, p_hit.point)}");
 
-            OnImpacted?.Invoke(new ProjectileImpactResult(
-                p_hit.point,
-                p_hit.normal));
-
             // 지형이나 피해 불가능 대상에 명중해도 투사체는 종료한다.
-            Release("Impact");
+            CompleteImpact(
+                p_hit.point,
+                p_hit.normal,
+                "Impact");
+        }
+
+        // 충돌 대상이 없는 최대 사거리에서도 Radial 피해와 폭발 표현을 동일하게 실행한다.
+        private void DetonateAtMaximumDistance(
+            Vector3 p_fallbackDirection)
+        {
+            Vector3 direction =
+                p_fallbackDirection.sqrMagnitude > 0.0001f
+                    ? p_fallbackDirection.normalized
+                    : transform.forward;
+
+            int damagedTargetCount =
+                _activeImpactSettings.IsRadial
+                    ? ApplyRadialDamage(
+                        transform.position,
+                        direction)
+                    : 0;
+
+            LogLifecycle(
+                $"Detonate | Reason=MaximumDistance, " +
+                $"DamageApplied={damagedTargetCount > 0}, " +
+                $"Point={transform.position}, " +
+                $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, transform.position)}");
+
+            CompleteImpact(
+                transform.position,
+                -direction,
+                "MaximumDistance");
+        }
+
+        private void CompleteImpact(
+            Vector3 p_point,
+            Vector3 p_normal,
+            string p_releaseReason)
+        {
+            OnImpacted?.Invoke(new ProjectileImpactResult(
+                p_point,
+                p_normal));
+
+            Release(p_releaseReason);
         }
 
         private bool ApplyDirectDamage(
@@ -444,7 +834,7 @@ namespace Alpha.Projectile
 
             int hitCount = Physics.OverlapSphereNonAlloc(
                 p_impactPoint,
-                _impactSettings.DamageRadius,
+                _activeImpactSettings.DamageRadius,
                 _impactBuffer,
                 _activeHitMask,
                 TargetTriggerInteraction);

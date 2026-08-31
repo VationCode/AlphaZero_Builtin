@@ -15,6 +15,7 @@ namespace Alpha.Item.Weapon.Range
        public AttackImpactInfo Impact { get; }
        public int TrajectoryCount { get; }
         public float SpreadAngle { get; }
+        public float Recoil { get; }
 
         public bool IsValid =>
             Attacker != null &&
@@ -33,7 +34,8 @@ namespace Alpha.Item.Weapon.Range
             float p_maxDistance,
            AttackImpactInfo p_impact = default,
            float p_spreadAngle = 0f,
-            int p_trajectoryCount = 1)
+            int p_trajectoryCount = 1,
+            float p_recoil = 0f)
         {
             Attacker = p_attacker;
             MuzzleOrigin = p_muzzleOrigin;
@@ -46,10 +48,11 @@ namespace Alpha.Item.Weapon.Range
             Damage = p_damage;
            MaxDistance = p_maxDistance;
            Impact = p_impact;
-           TrajectoryCount = Mathf.Max(
+            TrajectoryCount = Mathf.Max(
                 1,
                 p_trajectoryCount);
             SpreadAngle = Mathf.Max(0f, p_spreadAngle);
+            Recoil = Mathf.Max(0f, p_recoil);
         }
 
         public RangeAttackRequest CreateTrajectory(
@@ -65,7 +68,8 @@ namespace Alpha.Item.Weapon.Range
                MaxDistance,
                Impact,
                0f,
-                1);
+                1,
+                Recoil);
         }
     }
 }

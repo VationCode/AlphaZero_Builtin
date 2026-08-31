@@ -9,7 +9,7 @@ namespace Alpha.Projectile
         Radial
     }
 
-    // Projectile Prefab이 소유하는 명중 이후 피해 방식과 범위를 보관한다.
+    // ProjectileDefinition이 소유하는 명중 이후 피해 방식과 범위를 보관한다.
     [Serializable]
     public struct ProjectileImpactSettings
     {

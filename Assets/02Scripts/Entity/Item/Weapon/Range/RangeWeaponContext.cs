@@ -50,10 +50,12 @@ namespace Alpha.Item.Weapon.Range
 
         public bool TryGetAttackPose(
             out Vector3 p_origin,
-            out Vector3 p_direction)
+            out Vector3 p_direction,
+            out Vector3 p_targetPoint)
         {
             p_origin = _attackPose.Origin;
             p_direction = _attackPose.Direction;
+            p_targetPoint = _attackPose.TargetPoint;
             return HasUser && _attackPose.IsValid;
         }
 

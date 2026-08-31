@@ -22,7 +22,7 @@ namespace Alpha.Item.Weapon.Range.Editor
 
         private static readonly string[] ProjectilePropertyNames =
         {
-            "_prefab",
+            "_projectile",
             "_speed"
         };
 

@@ -40,10 +40,15 @@ namespace Alpha.Item.Weapon.Range
 
         public bool TryFire(
             float p_bonusDamage,
-            Func<float, bool> p_fire)
+            bool p_isAimViewActive,
+            Func<float, bool, bool> p_fire)
         {
-            if (!IsFireReady || p_fire == null || !p_fire(p_bonusDamage))
+            if (!IsFireReady ||
+                p_fire == null ||
+                !p_fire(p_bonusDamage, p_isAimViewActive))
+            {
                 return false;
+            }
 
             _nextFireTime =
                 Time.time + _settings.ShotSettings.FireInterval;

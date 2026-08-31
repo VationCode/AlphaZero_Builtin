@@ -209,7 +209,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weapon: {fileID: 1901805864755986856}
-  _audioSource: {fileID: 0}
+  _audioSource: {fileID: 8609604963728520760}
   _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
   _fireVolume: 1
 --- !u!1 &2545903137041230049 stripped
@@ -242,11 +242,15 @@ MonoBehaviour:
       _moveSpeedMultiplier: 1
       _cameraShakeName: Weak
     _defaultTriggerMode: 1
-    _aimView: 2
-    _chargeSettings:
+    _secondarySettings:
       _enabled: 1
-      _maxDuration: 1.7
-      _maxBonusDamage: 80
+      _cameraView: 2
+      _aimSpreadMultiplier: 0.55
+      _aimRecoilMultiplier: 0.75
+      _charge:
+        _enabled: 1
+        _maxDuration: 1.7
+        _maxBonusDamage: 80
     _impactSettings:
       _hitType: 1
       _lightKnockback:
@@ -296,6 +300,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1449165087894339891, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 7105322497578234845}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &8609604963728520760 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 1576360145083401701, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+  m_PrefabInstance: {fileID: 7105322497578234845}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &9200590470538772262 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -316,9 +325,9 @@ MonoBehaviour:
   _weapon: {fileID: 1901805864755986856}
   _muzzleFlashPrefab: {fileID: 7454064954837563461, guid: 5eefa667267dc6c4cb2f6f2bd5506b57, type: 3}
   _muzzleLifetime: 0.5
-  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
   _hitParticlePrefab: {fileID: 2877279608468535525, guid: 16a054aca9321754da4369028058e92d, type: 3}
   _hitParticleLifetime: 5
+  _tracerPrefab: {fileID: 7261030758123456789, guid: a4c2f8e193f64d10b75a0c6e29df4381, type: 3}
   _scopeTracerViewportPosition: {x: 0.5, y: 0}
   _scopeTracerDepthOffset: 3
   _material: {fileID: 0}

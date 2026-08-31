@@ -93,10 +93,9 @@ namespace Alpha.Player.Inventory
                 itemPageView.OnAddSlotRequested -= HandleAddSlotRequested;
                 itemPageView.OnAddSlotRequested += HandleAddSlotRequested;
 
-                if (_context.TryGetSlotList(itemPageView.ItemType, out var slotList))
-                {
-                    itemPageView.Bind(slotList, _resourceLoader);
-                }
+                // 초기 Slot 생성 순서와 관계없이 버튼 요청 이벤트를 먼저 연결한다.
+                _context.TryGetSlotList(itemPageView.ItemType, out var slotList);
+                itemPageView.Bind(slotList, _resourceLoader);
             }
 
             return true;

@@ -66,7 +66,9 @@ namespace Alpha.Item.Weapon.Range
             _publishProjectile = null;
         }
 
-        public bool TryFire(float p_bonusDamage)
+        public bool TryFire(
+            float p_bonusDamage,
+            bool p_isAimViewActive)
         {
             if (_settings == null ||
                 _context == null ||
@@ -74,7 +76,8 @@ namespace Alpha.Item.Weapon.Range
                 _muzzle == null ||
                 !_context.TryGetAttackPose(
                     out Vector3 attackOrigin,
-                    out Vector3 attackDirection))
+                    out Vector3 attackDirection,
+                    out _))
             {
                 return false;
             }
@@ -84,6 +87,19 @@ namespace Alpha.Item.Weapon.Range
                     0f,
                     _settings.BaseDamage + Mathf.Max(0f, p_bonusDamage)) +
                 _context.AdditionalDamage;
+            float spreadAngle =
+                _settings.ShotSettings.SpreadAngle;
+            float recoil =
+                _settings.FireResponseSettings.Recoil;
+
+            // Aim View의 Secondary가 유지되는 동안만 조준 보정 배율을 적용한다.
+            if (p_isAimViewActive)
+            {
+                spreadAngle *=
+                    _settings.SecondarySettings.AimSpreadMultiplier;
+                recoil *=
+                    _settings.SecondarySettings.AimRecoilMultiplier;
+            }
 
             RangeAttackRequest request = new(
                 _context.Attacker,
@@ -93,8 +109,9 @@ namespace Alpha.Item.Weapon.Range
                 damage,
                 _settings.MaxDistance,
                 _settings.ImpactSettings.CreateInfo(),
-                _settings.ShotSettings.SpreadAngle,
-                _settings.ShotSettings.TrajectoryCount);
+                spreadAngle,
+                _settings.ShotSettings.TrajectoryCount,
+                recoil);
 
             if (!Execute(request))
                 return false;
@@ -134,43 +151,6 @@ namespace Alpha.Item.Weapon.Range
                         _publishProjectile),
                 _ => false
             };
-        }
-
-        public bool TryPredictProjectileTrajectory(
-            Vector3 p_origin,
-            Vector3 p_direction,
-            float p_simulationStep,
-            Vector3[] p_points,
-            out ProjectileTrajectoryResult p_result)
-        {
-            if (_attackSettings?.AttackType != ERangeAttackType.Projectile)
-            {
-                p_result = default;
-                return false;
-            }
-
-            return _projectile.TryPredictTrajectory(
-                _attackSettings.Projectile,
-                _attackSettings.HitMask,
-                p_origin,
-                p_direction,
-                _settings.MaxDistance,
-                p_simulationStep,
-                p_points,
-                out p_result);
-        }
-
-        public bool TryGetProjectileRadialDamageRadius(out float p_radius)
-        {
-            if (_attackSettings?.AttackType != ERangeAttackType.Projectile)
-            {
-                p_radius = 0f;
-                return false;
-            }
-
-            return _projectile.TryGetRadialDamageRadius(
-                _attackSettings.Projectile,
-                out p_radius);
         }
 
         // 모든 Range 세부 공격이 동일한 원형 분산 계산을 사용한다.

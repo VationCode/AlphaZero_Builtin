@@ -22,16 +22,21 @@ namespace Alpha.Item.Weapon.Range
     public readonly struct RangeWeaponAttackPose
     {
         public Vector3 Origin { get; }
+        public Vector3 TargetPoint { get; }
         public Vector3 Direction { get; }
-        public bool IsValid => Direction.sqrMagnitude > 0.0001f;
+        public bool IsValid =>
+            (TargetPoint - Origin).sqrMagnitude > 0.0001f;
 
         public RangeWeaponAttackPose(
             Vector3 p_origin,
-            Vector3 p_direction)
+            Vector3 p_targetPoint)
         {
             Origin = p_origin;
-            Direction = p_direction.sqrMagnitude > 0.0001f
-                ? p_direction.normalized
+            TargetPoint = p_targetPoint;
+
+            Vector3 direction = p_targetPoint - p_origin;
+            Direction = direction.sqrMagnitude > 0.0001f
+                ? direction.normalized
                 : Vector3.zero;
         }
     }

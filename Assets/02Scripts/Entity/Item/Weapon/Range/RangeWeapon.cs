@@ -13,6 +13,7 @@ namespace Alpha.Item.Weapon.Range
         public event Action<RangeAttackResult> OnTrajectoryResolved;
         public event Action<RangeHitResult> OnHitResolved;
         public event Action<ProjectileEntity> OnProjectileLaunched;
+        public event Action<EWeaponActionType> OnActionStopped;
 
         [SerializeField]
         private RangeWeaponSettings _settings = new();
@@ -51,18 +52,20 @@ namespace Alpha.Item.Weapon.Range
 
         public ERangeAttackType AttackType =>
             _attackSettings?.AttackType ?? ERangeAttackType.None;
-        public ERangeAimView AimView =>
-            _settings?.AimView ?? ERangeAimView.None;
         public RangeShotSettings ShotSettings =>
             _settings?.ShotSettings;
         public RangeFireResponseSettings FireResponseSettings =>
             _settings?.FireResponseSettings;
         public float MaxDistance =>
             _settings?.MaxDistance ?? 0.01f;
+        public RangeSecondarySettings SecondarySettings =>
+            _settings?.SecondarySettings;
+        public ERangeAimView AimView =>
+            SecondarySettings?.CameraView ?? ERangeAimView.None;
         public bool IsChargeEnabled =>
-            _settings?.ChargeSettings?.Enabled == true;
+            SecondarySettings?.Charge?.Enabled == true;
         public bool HasSecondaryAction =>
-            AimView != ERangeAimView.None || IsChargeEnabled;
+            SecondarySettings?.Enabled == true;
         public float StartRadius =>
             _attackSettings?.Penetration?.StartRadius ?? 0.01f;
         public float EndRadius =>
@@ -166,7 +169,60 @@ namespace Alpha.Item.Weapon.Range
         {
             return _context.TryGetAttackPose(
                 out p_origin,
-                out p_direction);
+                out p_direction,
+                out _);
+        }
+
+        // Projectile의 실제 이동식과 Collider로 최종 폭발점만 예측한다.
+        public bool TryPredictProjectileImpact(
+            Vector3 p_origin,
+            Vector3 p_direction,
+            float p_simulationStep,
+            out ProjectileImpactResult p_result)
+        {
+            p_result = default;
+
+            ProjectileAttackSettings projectileSettings =
+                _attackSettings?.Projectile;
+
+            if (AttackType != ERangeAttackType.Projectile ||
+                projectileSettings == null ||
+                !projectileSettings.IsValid)
+            {
+                return false;
+            }
+
+            ProjectileLaunchSettings launchSettings =
+                projectileSettings.CreateLaunchSettings(
+                    _attackSettings.HitMask);
+
+            return launchSettings.Prefab.TryPredictImpact(
+                p_origin,
+                p_direction,
+                launchSettings,
+                MaxDistance,
+                p_simulationStep,
+                out p_result);
+        }
+
+        // 실제 Radial 피해 설정을 조준 범위 View의 단일 반경 원본으로 제공한다.
+        public bool TryGetProjectileRadialDamageRadius(
+            out float p_damageRadius)
+        {
+            p_damageRadius = 0f;
+
+            ProjectileDefinition definition =
+                _attackSettings?.Projectile?.Projectile;
+
+            if (AttackType != ERangeAttackType.Projectile ||
+                definition == null ||
+                !definition.ImpactSettings.IsRadial)
+            {
+                return false;
+            }
+
+            p_damageRadius = definition.ImpactSettings.DamageRadius;
+            return p_damageRadius > 0f;
         }
 
         public override bool EndsOnInputRelease(EWeaponActionType p_type)
@@ -197,11 +253,13 @@ namespace Alpha.Item.Weapon.Range
         protected override void OnEndAction(EWeaponActionType p_type)
         {
             _actionFlow.EndAction(p_type);
+            OnActionStopped?.Invoke(p_type);
         }
 
         protected override void OnCancelAction(EWeaponActionType p_type)
         {
             _actionFlow.CancelAction(p_type);
+            OnActionStopped?.Invoke(p_type);
         }
 
         public bool TrySwitchTriggerMode()
@@ -211,7 +269,7 @@ namespace Alpha.Item.Weapon.Range
                 HasActiveAction);
         }
 
-        // Secondary는 Primary와 동시에 유지되는 조준·차징 상태다.
+        // Secondary는 Camera View와 독립적으로 유지되는 조준·차징 상태다.
         public bool BeginSecondary()
         {
             return _actionFlow.BeginSecondary(
@@ -228,27 +286,6 @@ namespace Alpha.Item.Weapon.Range
         public void CancelSecondary()
         {
             _actionFlow.CancelSecondary();
-        }
-
-        public bool TryPredictProjectileTrajectory(
-            Vector3 p_origin,
-            Vector3 p_direction,
-            float p_simulationStep,
-            Vector3[] p_points,
-            out ProjectileTrajectoryResult p_result)
-        {
-            return _attackModule.TryPredictProjectileTrajectory(
-                p_origin,
-                p_direction,
-                p_simulationStep,
-                p_points,
-                out p_result);
-        }
-
-        public bool TryGetProjectileRadialDamageRadius(out float p_radius)
-        {
-            return _attackModule.TryGetProjectileRadialDamageRadius(
-                out p_radius);
         }
 
         private void PublishFired(RangeAttackRequest p_request)

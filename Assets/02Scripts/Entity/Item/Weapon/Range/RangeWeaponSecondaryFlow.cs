@@ -5,18 +5,21 @@ namespace Alpha.Item.Weapon.Range
     // RangeWeapon의 Secondary 활성 상태와 차징 시간을 관리한다.
     internal sealed class RangeWeaponSecondaryFlow
     {
-        private RangeWeaponSettings _settings;
+        private RangeSecondarySettings _settings;
         private float _chargeElapsedTime;
 
         public bool IsActive { get; private set; }
         public bool IsChargeEnabled =>
-            _settings?.ChargeSettings?.Enabled == true;
+            _settings?.Charge?.Enabled == true;
+        public bool IsAimViewActive =>
+            IsActive &&
+            _settings?.CameraView == ERangeAimView.Aim;
         public float ChargeRatio => IsChargeEnabled
             ? Mathf.Clamp01(
-                _chargeElapsedTime / _settings.ChargeSettings.MaxDuration)
+                _chargeElapsedTime / _settings.Charge.MaxDuration)
             : 0f;
 
-        public void Bind(RangeWeaponSettings p_settings)
+        public void Bind(RangeSecondarySettings p_settings)
         {
             _settings = p_settings;
             Reset();
@@ -51,13 +54,13 @@ namespace Alpha.Item.Weapon.Range
 
             _chargeElapsedTime = Mathf.Min(
                 _chargeElapsedTime + Mathf.Max(0f, p_deltaTime),
-                _settings.ChargeSettings.MaxDuration);
+                _settings.Charge.MaxDuration);
         }
 
         public float CalculateBonusDamage()
         {
             return IsChargeEnabled
-                ? _settings.ChargeSettings.CalculateBonusDamage(ChargeRatio)
+                ? _settings.Charge.CalculateBonusDamage(ChargeRatio)
                 : 0f;
         }
 

@@ -218,7 +218,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: -1205438234555539969}
   _audioSource: {fileID: 0}
-  _fireClip: {fileID: 0}
+  _fireClip: {fileID: 8300000, guid: c48654f7d1f7b5a41b2e2f5c77f6ec94, type: 3}
   _fireVolume: 1
 --- !u!1 &2314529660664611562 stripped
 GameObject:
@@ -250,16 +250,20 @@ MonoBehaviour:
       _moveSpeedMultiplier: 1
       _cameraShakeName: Weak
     _defaultTriggerMode: 1
-    _aimView: 1
-    _chargeSettings:
-      _enabled: 0
-      _maxDuration: 1
-      _maxBonusDamage: 0
+    _secondarySettings:
+      _enabled: 1
+      _cameraView: 1
+      _aimSpreadMultiplier: 0.55
+      _aimRecoilMultiplier: 0.75
+      _charge:
+        _enabled: 0
+        _maxDuration: 1
+        _maxBonusDamage: 0
     _impactSettings:
       _hitType: 1
       _lightKnockback:
-        _distance: 1
-        _duration: 0.2
+        _distance: 1.5
+        _duration: 0.3
       _heavyKnockback:
         _distance: 1
         _duration: 0.2
@@ -290,8 +294,8 @@ MonoBehaviour:
     - rid: 720000000000000005
       type: {class: ProjectileAttackSettings, ns: Alpha.Item.Weapon.Range, asm: Assembly-CSharp}
       data:
-        _prefab: {fileID: 2853060138587645021, guid: 87c9fc9390752bd4d855cb7502da44fd, type: 3}
-        _speed: 40
+        _projectile: {fileID: 11400000, guid: 4edb85f68a9a4de5adaf554880ee8060, type: 2}
+        _speed: 50
 --- !u!4 &7708700338529141487 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

@@ -765,7 +765,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7406245935055561107, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: SlotGroupView, Assembly-CSharp
+      value: Alpha.Player.Inventory.InventorySlotScrollView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7769521849718791193, guid: 6deb8a2dabc616742af891f36b641e81, type: 3}
       propertyPath: m_Name

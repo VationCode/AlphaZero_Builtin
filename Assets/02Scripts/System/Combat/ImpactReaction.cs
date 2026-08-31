@@ -265,6 +265,47 @@ namespace Alpha.Combat
         }
     }
 
+    // 피격 반응이 끝난 뒤 동일 Hit Type이 행동을 다시 중단할 수 없는 시간을 보관한다.
+    [Serializable]
+    public sealed class HitReactionImmunitySettings
+    {
+        [Tooltip("Light 피격 반응이 끝난 뒤 동일 타입 반응을 무시할 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _lightDuration = 0.35f;
+
+        [Tooltip("Heavy 피격 반응이 끝난 뒤 동일 타입 반응을 무시할 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _heavyDuration = 0.6f;
+
+        [Tooltip("Knockdown 피격 반응이 끝난 뒤 동일 타입 반응을 무시할 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _knockdownDuration = 1.5f;
+
+        [Tooltip("Launch 피격 반응이 끝난 뒤 동일 타입 반응을 무시할 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _launchDuration = 1.5f;
+
+        public float GetDuration(EHitReaction p_reaction)
+        {
+            return p_reaction switch
+            {
+                EHitReaction.Light => _lightDuration,
+                EHitReaction.Heavy => _heavyDuration,
+                EHitReaction.Knockdown => _knockdownDuration,
+                EHitReaction.Launch => _launchDuration,
+                _ => 0f
+            };
+        }
+
+        public void Validate()
+        {
+            _lightDuration = Mathf.Max(0f, _lightDuration);
+            _heavyDuration = Mathf.Max(0f, _heavyDuration);
+            _knockdownDuration = Mathf.Max(0f, _knockdownDuration);
+            _launchDuration = Mathf.Max(0f, _launchDuration);
+        }
+    }
+
     // 공용 판정 결과는 피격자가 실행할 반응과 공격자가 전달한 수치를 보관한다.
     public readonly struct ImpactReactionResult
     {

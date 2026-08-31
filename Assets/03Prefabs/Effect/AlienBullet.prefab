@@ -71,14 +71,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d460671cdc02df4cb96c011b719f555, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gravityScale: 0
   _collisionShape: {fileID: 1882931740597341329}
-  _impactSettings:
-    _impactType: 0
-    _damageRadius: 0.025
   _logLifecycle: 0
-  _showDamageRadius: 1
-  _damageRadiusColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
 --- !u!114 &2865481717781954232
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -9,6 +9,8 @@ namespace Alpha.Enemy
     {
         private EnemyCore _core;
         private float _nextSearchTime;
+        private object _targetLockOwner;
+        private Transform _lockedTarget;
 
         public void Bind(EnemyCore p_core)
         {
@@ -25,11 +27,17 @@ namespace Alpha.Enemy
                 return;
             }
 
+            if (_targetLockOwner != null)
+            {
+                TickLockedTarget();
+                return;
+            }
+
             AreaDetectionModule detection =
                 _core.TargetDetectionModule;
             Transform currentTarget = _core.Target;
 
-            if (IsValidTarget(currentTarget))
+            if (IsValidDetectedTarget(currentTarget))
             {
                 return;
             }
@@ -60,10 +68,16 @@ namespace Alpha.Enemy
             if (_core == null)
                 return false;
 
+            if (_targetLockOwner != null)
+            {
+                return _lockedTarget == p_target &&
+                       IsValidLivingTarget(_lockedTarget);
+            }
+
             EnemyLocomotionModule locomotion = _core.LocomotionModule;
 
             if (locomotion == null ||
-                !IsValidTarget(p_target) ||
+                !IsValidDetectedTarget(p_target) ||
                 locomotion.IsOutsideChaseArea(p_target.position))
             {
                 return false;
@@ -79,6 +93,39 @@ namespace Alpha.Enemy
             return true;
         }
 
+        public bool BeginTargetLock(
+            object p_owner,
+            Transform p_target)
+        {
+            if (_core == null ||
+                p_owner == null ||
+                !IsValidLivingTarget(p_target) ||
+                (_targetLockOwner != null &&
+                 !ReferenceEquals(_targetLockOwner, p_owner)))
+            {
+                return false;
+            }
+
+            _targetLockOwner = p_owner;
+            _lockedTarget = p_target;
+            AssignTarget(_lockedTarget);
+            return true;
+        }
+
+        public bool EndTargetLock(object p_owner)
+        {
+            if (p_owner == null ||
+                !ReferenceEquals(_targetLockOwner, p_owner))
+            {
+                return false;
+            }
+
+            ClearTargetLock();
+            ClearTarget();
+            ScheduleNextSearch();
+            return true;
+        }
+
         public void ClearTarget()
         {
             if (_core == null)
@@ -90,8 +137,38 @@ namespace Alpha.Enemy
 
         public void Reset()
         {
+            ClearTargetLock();
             ClearTarget();
             _nextSearchTime = Time.time;
+        }
+
+        private void TickLockedTarget()
+        {
+            if (!IsValidLivingTarget(_lockedTarget))
+            {
+                if (_core.Target != null)
+                    ClearTarget();
+
+                return;
+            }
+
+            AssignTarget(_lockedTarget);
+        }
+
+        private void AssignTarget(Transform p_target)
+        {
+            if (_core.Target == p_target)
+                return;
+
+            _core.CombatFlow?.CancelCombat();
+            _core.SetTarget(p_target);
+            ScheduleNextSearch();
+        }
+
+        private void ClearTargetLock()
+        {
+            _targetLockOwner = null;
+            _lockedTarget = null;
         }
 
         // 공용 감지 결과를 Enemy 규칙으로 해석해 가장 가까운 Living을 고른다.
@@ -116,7 +193,7 @@ namespace Alpha.Enemy
                 Transform candidate =
                     ResolveTargetRoot(hit.Collider.transform);
 
-                if (!IsValidTarget(candidate))
+                if (!IsValidDetectedTarget(candidate))
                     continue;
 
                 float distanceSqr =
@@ -132,7 +209,7 @@ namespace Alpha.Enemy
             return p_target != null;
         }
 
-        private bool IsValidTarget(Transform p_target)
+        private bool IsValidDetectedTarget(Transform p_target)
         {
             AreaDetectionModule detection =
                 _core?.TargetDetectionModule;
@@ -145,6 +222,17 @@ namespace Alpha.Enemy
                 settings == null ||
                 (settings.TargetLayers.value &
                  (1 << p_target.gameObject.layer)) == 0)
+            {
+                return false;
+            }
+
+            return IsValidLivingTarget(p_target);
+        }
+
+        private static bool IsValidLivingTarget(Transform p_target)
+        {
+            if (p_target == null ||
+                !p_target.gameObject.activeInHierarchy)
             {
                 return false;
             }

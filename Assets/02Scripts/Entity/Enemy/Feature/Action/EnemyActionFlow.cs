@@ -13,9 +13,10 @@ namespace Alpha.Enemy
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
-        [Tooltip("연사 공격이 Light 피격 애니메이션을 매 프레임 다시 시작하지 않게 하는 간격입니다.")]
-        [SerializeField, Min(0f)]
-        private float _lightHitRepeatInterval = 0.15f;
+        [Header("Hit Reaction Immunity")]
+        [SerializeField]
+        private HitReactionImmunitySettings _hitReactionImmunitySettings =
+            new();
 
         [Header("Knockdown")]
         [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
@@ -155,8 +156,9 @@ namespace Alpha.Enemy
                     p_damageInfo,
                     _hitTypeResponseSettings);
 
-            ApplyKnockback(p_damageInfo, reactionResult);
-            TryEnterHitReaction(reactionResult);
+            if (TryEnterHitReaction(reactionResult))
+                ApplyKnockback(p_damageInfo, reactionResult);
+
             _core.TargetingFlow.TryPrioritizeTarget(
                 p_damageInfo.Attacker);
         }
@@ -188,7 +190,7 @@ namespace Alpha.Enemy
             if (!_hitReactionFlow.TryBegin(
                     p_result,
                     Time.time,
-                    _lightHitRepeatInterval,
+                    _hitReactionImmunitySettings,
                     _knockdownFallDuration,
                     _standupDuration))
             {
@@ -215,7 +217,8 @@ namespace Alpha.Enemy
 
             bool isReactionActive = _hitReactionFlow.Tick(
                 p_deltaTime,
-                isKnockbackActive);
+                isKnockbackActive,
+                Time.time);
 
             if (!isReactionActive)
             {
@@ -347,8 +350,9 @@ namespace Alpha.Enemy
         private void OnValidate()
         {
             _hitTypeResponseSettings ??= new HitTypeResponseSettings();
-            _lightHitRepeatInterval =
-                Mathf.Max(0f, _lightHitRepeatInterval);
+            _hitReactionImmunitySettings ??=
+                new HitReactionImmunitySettings();
+            _hitReactionImmunitySettings.Validate();
             _knockdownFallDuration =
                 Mathf.Max(0f, _knockdownFallDuration);
             _standupDuration =

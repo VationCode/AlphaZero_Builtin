@@ -25,16 +25,12 @@ namespace Alpha.Enemy.View
         private const string BossIntroStatePath = "Base Layer.Intro1";
 
         private CinemachineBrain _brain;
-        private CinemachineVirtualCameraBase _previousVirtualCamera;
         private CameraTarget _previousCameraTarget;
         private DirectorUpdateMode _previousUpdateMode;
-        private Vector3 _previousOutputCameraPosition;
-        private Quaternion _previousOutputCameraRotation;
         private Vector3 _previousDollyLocalPosition;
         private Quaternion _previousDollyLocalRotation;
         private Action<bool> _onFinished;
         private bool _previousIgnoreTimeScale;
-        private bool _hasOutputCameraPose;
         private bool _hasDollyCameraPose;
         private bool _hasCameraTarget;
         private bool _hasUpdateMode;
@@ -143,15 +139,6 @@ namespace Alpha.Enemy.View
 
             if (_brain != null)
             {
-                _previousVirtualCamera =
-                    _brain.ActiveVirtualCamera as
-                        CinemachineVirtualCameraBase;
-
-                Transform outputCamera = _brain.ControlledObject.transform;
-                _previousOutputCameraPosition = outputCamera.position;
-                _previousOutputCameraRotation = outputCamera.rotation;
-                _hasOutputCameraPose = true;
-
                 _previousIgnoreTimeScale = _brain.IgnoreTimeScale;
                 _brain.IgnoreTimeScale = true;
                 _hasBrainSetting = true;
@@ -197,25 +184,21 @@ namespace Alpha.Enemy.View
 
             if (_brain != null)
             {
-                if (_hasOutputCameraPose)
+                _brain.ResetState();
+
+                if (_brain.ControlledObject != null)
                 {
-                    // 기존 Virtual Camera 상태와 실제 Render Camera Pose를 함께 복구한다.
-                    _previousVirtualCamera?.ForceCameraPosition(
-                        _previousOutputCameraPosition,
-                        _previousOutputCameraRotation);
-                    _brain.ResetState();
+                    // Main Camera는 Camera Rig 계층의 로컬 원점을 유지한다.
                     _brain.ControlledObject.transform
-                        .SetPositionAndRotation(
-                            _previousOutputCameraPosition,
-                            _previousOutputCameraRotation);
+                        .SetLocalPositionAndRotation(
+                            Vector3.zero,
+                            Quaternion.identity);
                 }
 
                 if (_hasBrainSetting)
                     _brain.IgnoreTimeScale = _previousIgnoreTimeScale;
             }
 
-            _previousVirtualCamera = null;
-            _hasOutputCameraPose = false;
             _hasDollyCameraPose = false;
             _hasCameraTarget = false;
             _hasUpdateMode = false;

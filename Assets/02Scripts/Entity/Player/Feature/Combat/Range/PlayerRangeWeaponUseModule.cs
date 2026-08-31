@@ -85,16 +85,14 @@ namespace Alpha.Player.Combat
                 return false;
             }
 
-            Vector3 direction = targetPoint - origin;
-
-            if (direction.sqrMagnitude <= 0.0001f)
+            if ((targetPoint - origin).sqrMagnitude <= 0.0001f)
             {
                 weapon.ClearAttackPose();
                 return false;
             }
 
             return weapon.SetAttackPose(
-                new RangeWeaponAttackPose(origin, direction));
+                new RangeWeaponAttackPose(origin, targetPoint));
         }
 
         public bool TryGetAttackPose(
@@ -111,5 +109,6 @@ namespace Alpha.Player.Combat
                        out p_origin,
                        out p_direction);
         }
+
     }
 }

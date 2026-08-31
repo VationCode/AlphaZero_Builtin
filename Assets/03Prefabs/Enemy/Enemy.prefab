@@ -227,6 +227,64 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _effectPrefab: {fileID: 4709844674621904195, guid: f0dcb29c0d669184387ce2c2a6384a22, type: 3}
   _lifetime: 1
+--- !u!1 &4990770888551286956
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4990770888551286957}
+  - component: {fileID: 4990770888551286955}
+  m_Layer: 7
+  m_Name: Action
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4990770888551286957
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4990770888551286956}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8107772672699007014}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4990770888551286955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4990770888551286956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c96c8ca4fb4ee4a2bb4597d673f7ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hitTypeResponseSettings:
+    _respondToLight: 1
+    _respondToHeavy: 1
+    _respondToKnockdown: 1
+    _respondToLaunch: 1
+  _hitReactionImmunitySettings:
+    _lightDuration: 2
+    _heavyDuration: 4
+    _knockdownDuration: 4
+    _launchDuration: 4
+  _knockdownFallDuration: 1.1
+  _standupDuration: 0.95
+  _corpseRemovalDelay: 3
+  _logStateChanges: 1
 --- !u!1 &4992554211477451114
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,7 +482,6 @@ GameObject:
   - component: {fileID: 3056080420898172373}
   - component: {fileID: 6536687439481801986}
   - component: {fileID: 5317132400321718897}
-  - component: {fileID: 4990770888551286955}
   - component: {fileID: 5234987524635677959}
   m_Layer: 7
   m_Name: Alien
@@ -453,6 +510,7 @@ Transform:
   - {fileID: 455858985770858600}
   - {fileID: 5656520701355414788}
   - {fileID: 4946357698843301124}
+  - {fileID: 4990770888551286957}
   m_Father: {fileID: 1855519137295756756}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &3056080420898172373
@@ -524,32 +582,10 @@ MonoBehaviour:
   _targetSearchInterval: 0.2
   _combatModule: {fileID: 0}
   _combatFlow: {fileID: 928699017801547103}
-  _actionFlow: {fileID: 0}
+  _actionFlow: {fileID: 4990770888551286955}
   _animationView: {fileID: 8840238435943024568}
   _audioView: {fileID: 0}
   _damageEffectView: {fileID: 4946357698843301125}
---- !u!114 &4990770888551286955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6119935158228818829}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03c96c8ca4fb4ee4a2bb4597d673f7ae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _hitTypeResponseSettings:
-    _respondToLight: 1
-    _respondToHeavy: 1
-    _respondToKnockdown: 1
-    _respondToLaunch: 1
-  _lightHitRepeatInterval: 0.15
-  _knockdownFallDuration: 1.1
-  _standupDuration: 0.95
-  _corpseRemovalDelay: 3
-  _logStateChanges: 1
 --- !u!114 &5234987524635677959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -746,8 +782,8 @@ MonoBehaviour:
   _attackPatterns:
   - _patternName: Range Attack
     _attackType: 1
-    _minimumDistance: 0
-    _maximumDistance: 15
+    _minimumDistance: 5
+    _maximumDistance: 12
     _cooldown: 1.5
     _selectionWeight: 1
     _animationIndex: 0
@@ -787,7 +823,7 @@ MonoBehaviour:
         m_Bits: 64
     _projectileSpawnPoint: {fileID: 6471633248284953907}
     _projectileLaunchSettings:
-      _prefab: {fileID: 6091277785713086067, guid: 14008581ef8e9a14e928709b57f90da2, type: 3}
+      _projectile: {fileID: 11400000, guid: d01151f023ab4dc3b988a1b1c5b707a9, type: 2}
       _speed: 20
       _hitMask:
         serializedVersion: 2

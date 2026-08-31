@@ -391,6 +391,7 @@ namespace Alpha.Enemy.Animation
                     break;
 
                 case EEnemyLocomotionState.Chase:
+                case EEnemyLocomotionState.Retreat:
                     PlayChase();
                     break;
             }

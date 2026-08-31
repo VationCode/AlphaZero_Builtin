@@ -75,6 +75,10 @@ namespace Alpha.Enemy
             _combatModule ??= GetComponentInChildren<EnemyCombatModule>(true);
             _combatFlow ??= GetComponentInChildren<EnemyCombatFlow>(true);
             _actionFlow ??= GetComponentInChildren<EnemyActionFlow>(true);
+
+            if (_actionFlow == null)
+                _actionFlow = ResolveOrCreateActionFlow();
+
             _animationView ??= GetComponentInChildren<EnemyAnimationView>(true);
             _audioView ??= GetComponentInChildren<EnemyAudioView>(true);
             _damageEffectView ??= GetComponentInChildren<DamageEffectView>(true);
@@ -110,6 +114,22 @@ namespace Alpha.Enemy
                 _healthModule);
             _damageEffectView?.Bind(_damageReceiver);
             _actionFlow?.Bind(this);
+        }
+
+        private EnemyActionFlow ResolveOrCreateActionFlow()
+        {
+            Transform actionOwner = transform.Find("Action");
+
+            if (actionOwner == null)
+            {
+                GameObject actionObject = new("Action");
+                actionObject.layer = gameObject.layer;
+                actionObject.transform.SetParent(transform, false);
+                actionOwner = actionObject.transform;
+            }
+
+            return actionOwner.GetComponent<EnemyActionFlow>() ??
+                   actionOwner.gameObject.AddComponent<EnemyActionFlow>();
         }
 
         // Core는 공용 피해 이벤트를 Enemy 행동 Flow로 연결만 한다.
@@ -150,6 +170,21 @@ namespace Alpha.Enemy
         internal void ClearTarget()
         {
             Target = null;
+        }
+
+        // Encounter는 Core 진입점을 통해서만 Player Target을 고정한다.
+        public bool BeginTargetLock(
+            object p_owner,
+            Transform p_target)
+        {
+            return TargetingFlow.BeginTargetLock(
+                p_owner,
+                p_target);
+        }
+
+        public bool EndTargetLock(object p_owner)
+        {
+            return TargetingFlow.EndTargetLock(p_owner);
         }
     }
 }

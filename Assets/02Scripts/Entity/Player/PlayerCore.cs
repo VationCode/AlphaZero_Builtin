@@ -12,7 +12,6 @@ using Alpha.Player.Actions;
 using Alpha.Living;
 using Alpha.Combat;
 using Alpha.Rig.Player;
-using Alpha.Player.View.Combat;
 using UnityEngine;
 
 namespace Alpha.Player
@@ -67,7 +66,6 @@ namespace Alpha.Player
         public PlayerDamageFeedbackView DamageFeedbackView { get; private set; }
         public PlayerArmorView ArmorView { get; private set; }
         public PlayerScopeView ScopeView { get; private set; }
-        public PlayerRangeTrajectoryView RangeTrajectoryView { get; private set; }
         //public PlayerEquipmentView EquipmentView { get; private set; }
 
         #endregion
@@ -112,14 +110,10 @@ namespace Alpha.Player
             EquipmentModule = GetComponentInChildren<EquipmentModule>(true);
             CombatModule = GetComponentInChildren<CombatModule>(true);
             HealthModule = GetComponentInChildren<HealthModule>(true);
-            // Scene에 아직 상위 행동 Flow가 없다면 Health Feature에 기본 구성으로 추가한다.
+
+            // Scene에 상위 행동 Flow가 없으면 전용 Action 하위 객체에 구성한다.
             if (ActionFlow == null)
-            {
-                GameObject owner = HealthModule != null
-                    ? HealthModule.gameObject
-                    : gameObject;
-                ActionFlow = owner.AddComponent<PlayerActionFlow>();
-            }
+                ActionFlow = ResolveOrCreateActionFlow();
 
             DamageReceiver = GetComponent<DamageReceiverModule>();
 
@@ -147,10 +141,24 @@ namespace Alpha.Player
             DamageFeedbackView = GetComponentInChildren<PlayerDamageFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
             ScopeView = GetComponent<PlayerScopeView>();
-            RangeTrajectoryView =
-                GetComponentInChildren<PlayerRangeTrajectoryView>(true);
 
             PlayerTr = this.transform;
+        }
+
+        private PlayerActionFlow ResolveOrCreateActionFlow()
+        {
+            Transform actionOwner = transform.Find("Action");
+
+            if (actionOwner == null)
+            {
+                GameObject actionObject = new("Action");
+                actionObject.layer = gameObject.layer;
+                actionObject.transform.SetParent(transform, false);
+                actionOwner = actionObject.transform;
+            }
+
+            return actionOwner.GetComponent<PlayerActionFlow>() ??
+                   actionOwner.gameObject.AddComponent<PlayerActionFlow>();
         }
 
         // Player 내부 Feature를 Context와 실행 순서에 맞춰 초기화한다.
@@ -176,8 +184,6 @@ namespace Alpha.Player
             // 장비 변경 완료 이벤트를 실제 무기 생성 기능과 연결한다.
             if (CombatModule.Bind(this))
             {
-                RangeTrajectoryView?.Bind(CombatModule);
-
                 EquipmentFlow.OnWeaponChanged -= CombatFlow.HandleEquipmentWeaponChanged;
                 EquipmentFlow.OnWeaponChanged += CombatFlow.HandleEquipmentWeaponChanged;
 
@@ -298,7 +304,6 @@ namespace Alpha.Player
             MeleeSkillEffectView?.Unbind();
             WeaponCameraShakeView?.Unbind();
             DamageFeedbackView?.Unbind();
-            RangeTrajectoryView?.Unbind();
             ArmorView?.Unbind();
             EquipmentModule?.Unbind();
 

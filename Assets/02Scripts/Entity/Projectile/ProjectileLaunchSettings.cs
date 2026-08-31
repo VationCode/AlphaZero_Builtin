@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Alpha.Projectile
 {
-    // Player 무기와 Enemy 공격 패턴이 각각 소유하는 공용 Projectile 발사 설정이다.
+    // 발사 주체가 선택한 탄종과 발사 조건을 Projectile에 전달한다.
     [Serializable]
     public struct ProjectileLaunchSettings
     {
-        [Tooltip("발사 주체가 생성할 Projectile Prefab입니다.")]
+        [Tooltip("발사 주체가 사용할 탄종 정의입니다.")]
         [SerializeField]
-        private Projectile _prefab;
+        private ProjectileDefinition _projectile;
 
         [Tooltip("발사 주체가 Projectile에 부여할 초당 이동 속도입니다.")]
         [SerializeField, Min(0.01f)]
@@ -19,20 +19,34 @@ namespace Alpha.Projectile
         [SerializeField]
         private LayerMask _hitMask;
 
-        public Projectile Prefab => _prefab;
+        public ProjectileDefinition Projectile => _projectile;
+        public Projectile Prefab => _projectile != null
+            ? _projectile.Prefab
+            : null;
+        public float GravityScale => _projectile != null
+            ? _projectile.GravityScale
+            : 0f;
+        public Vector3 Gravity => _projectile != null
+            ? _projectile.Gravity
+            : Vector3.zero;
+        public ProjectileImpactSettings ImpactSettings =>
+            _projectile != null
+                ? _projectile.ImpactSettings
+                : default;
         public float Speed => _speed;
         public LayerMask HitMask => _hitMask;
 
         public bool IsValid =>
-            _prefab != null &&
+            _projectile != null &&
+            _projectile.IsValid &&
             _speed > 0f;
 
         public ProjectileLaunchSettings(
-            Projectile p_prefab,
+            ProjectileDefinition p_projectile,
             float p_speed,
             LayerMask p_hitMask)
         {
-            _prefab = p_prefab;
+            _projectile = p_projectile;
             _speed = Mathf.Max(0.01f, p_speed);
             _hitMask = p_hitMask;
         }

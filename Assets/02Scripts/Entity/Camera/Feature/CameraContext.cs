@@ -3,10 +3,10 @@ using UnityEngine;
 // ECameraViewType 관련 선택 값을 정의한다.
 public enum ECameraViewType
 {
-    ThirdPerson,
-    Aim,
-    Quarter,
-    Scope
+    ThirdPerson = 0,
+    Aim = 1,
+    Quarter = 2,
+    Scope = 3
 }
 
 namespace Alpha.AlphaCamera

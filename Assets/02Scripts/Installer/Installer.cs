@@ -1,6 +1,5 @@
 using Alpha.AlphaCamera;
 using Alpha.Enemy;
-using Alpha.Gameplay;
 using Alpha.Mouse;
 using Alpha.Player;
 using Alpha.Player.Combat;
@@ -22,8 +21,7 @@ public class Installer : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private CameraCore _cameraCore;
 
-    [Header("Gameplay / Boss")]
-    [SerializeField] private GameplayPauseSystem _gameplayPauseSystem;
+    [Header("Boss")]
     [SerializeField] private CrabBossEncounterFlow _crabBossEncounterFlow;
 
     [Header("Data")]
@@ -43,7 +41,6 @@ public class Installer : MonoBehaviour
     {
         _playerCore.Bind(_input, _cameraCore, _mouseSystem, _itemDatabase, _resourceLoader);
 
-        _gameplayPauseSystem?.Bind(_input);
         _crabBossEncounterFlow?.Bind(
             _playerCore,
             _input);

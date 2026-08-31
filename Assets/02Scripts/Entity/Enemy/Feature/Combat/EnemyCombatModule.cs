@@ -79,6 +79,60 @@ namespace Alpha.Enemy
             return false;
         }
 
+        // 현재 거리에서 가장 적은 이동으로 진입할 수 있는 공격 거리 보정값을 구한다.
+        // 양수는 대상에게서 멀어져야 하고, 음수는 대상에게 가까워져야 함을 뜻한다.
+        public bool TryResolvePositioning(
+            Transform p_target,
+            out Vector3 p_directionToTarget,
+            out float p_distanceAdjustment)
+        {
+            p_directionToTarget = Vector3.zero;
+            p_distanceAdjustment = 0f;
+
+            if (!TryMeasureTarget(
+                    p_target,
+                    out p_directionToTarget,
+                    out float distance))
+            {
+                return false;
+            }
+
+            bool hasExecutablePattern = false;
+            float closestAdjustment = 0f;
+            float closestMovementDistance = float.PositiveInfinity;
+
+            for (int index = 0; index < PatternCount; index++)
+            {
+                EnemyAttackPatternSetting pattern =
+                    _attackPatterns[index];
+
+                if (pattern == null || !pattern.IsExecutable)
+                    continue;
+
+                hasExecutablePattern = true;
+
+                if (pattern.IsWithinDistance(distance))
+                {
+                    p_distanceAdjustment = 0f;
+                    return true;
+                }
+
+                float adjustment = distance < pattern.MinimumDistance
+                    ? pattern.MinimumDistance - distance
+                    : pattern.MaximumDistance - distance;
+                float movementDistance = Mathf.Abs(adjustment);
+
+                if (movementDistance >= closestMovementDistance)
+                    continue;
+
+                closestMovementDistance = movementDistance;
+                closestAdjustment = adjustment;
+            }
+
+            p_distanceAdjustment = closestAdjustment;
+            return hasExecutablePattern;
+        }
+
         // CombatFlow가 가중치 선택 전에 거리와 쿨타임 후보를 검사한다.
         public bool CanStartPattern(
             int p_patternIndex,

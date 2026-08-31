@@ -6,6 +6,9 @@ namespace Alpha.Enemy
     // ActionFlow가 허용한 동안 순찰·추적·복귀 상태를 선택하고 이동 Module을 실행한다.
     public sealed class EnemyLocomotionFlow
     {
+        private const float PositioningEpsilon = 0.01f;
+        private const float RetreatArrivalPadding = 0.1f;
+
         private EnemyCore _core;
         private bool _hasCurrentState;
 
@@ -70,6 +73,24 @@ namespace Alpha.Enemy
 
             if (p_target != null)
             {
+                EnemyCombatModule combat = _core.CombatModule;
+
+                if (combat != null &&
+                    combat.TryResolvePositioning(
+                        p_target,
+                        out Vector3 directionToTarget,
+                        out float distanceAdjustment) &&
+                    distanceAdjustment > PositioningEpsilon)
+                {
+                    ChangeState(EEnemyLocomotionState.Retreat);
+                    locomotion.MoveTo(
+                        ResolveRetreatDestination(
+                            directionToTarget,
+                            distanceAdjustment),
+                        p_deltaTime);
+                    return false;
+                }
+
                 ChangeState(EEnemyLocomotionState.Chase);
                 locomotion.MoveTo(
                     p_target.position,
@@ -107,6 +128,31 @@ namespace Alpha.Enemy
             return _core?.LocomotionModule?.UsesPatrol == true
                 ? EEnemyLocomotionState.Patrol
                 : EEnemyLocomotionState.Idle;
+        }
+
+        private Vector3 ResolveRetreatDestination(
+            Vector3 p_directionToTarget,
+            float p_distanceAdjustment)
+        {
+            Vector3 retreatDirection = -p_directionToTarget;
+            retreatDirection.y = 0f;
+
+            if (retreatDirection.sqrMagnitude <= PositioningEpsilon)
+            {
+                retreatDirection = -Vector3.ProjectOnPlane(
+                    _core.transform.forward,
+                    Vector3.up);
+            }
+
+            if (retreatDirection.sqrMagnitude <= PositioningEpsilon)
+                retreatDirection = Vector3.back;
+
+            float retreatDistance =
+                Mathf.Max(0f, p_distanceAdjustment) +
+                RetreatArrivalPadding;
+
+            return _core.transform.position +
+                   retreatDirection.normalized * retreatDistance;
         }
 
         private void ChangeState(EEnemyLocomotionState p_nextState)

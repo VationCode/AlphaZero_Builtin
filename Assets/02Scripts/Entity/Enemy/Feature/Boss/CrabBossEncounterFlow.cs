@@ -11,12 +11,10 @@ namespace Alpha.Enemy
     {
         Dormant,
         Intro,
-        Battle,
-        Resetting,
-        Defeated
+        Battle
     }
 
-    // CrabBoss의 Intro 진입, 전투 전환, 구역 이탈 재설정을 관리한다.
+    // Intro를 시작하고 종료 시 Player를 고정 Target으로 전달하는 최소 Encounter Flow다.
     [DisallowMultipleComponent]
     public sealed class CrabBossEncounterFlow : MonoBehaviour
     {
@@ -28,20 +26,14 @@ namespace Alpha.Enemy
 
         private PlayerCore _player;
         private AlphaInputSystem _input;
-        private Rigidbody _bossRigidbody;
-        private Vector3 _initialPosition;
-        private Quaternion _initialRotation;
-        private bool _hasInitialPose;
+        private InputAction _introSkipAction;
         private bool _isIntroTriggerArmed;
-        private bool _isResetRequested;
         private bool _isPlayerBlocked;
         private bool _isBossBlocked;
-        private bool _previousBossTargetSearchEnabled;
-        private bool _hasBossTargetSearchState;
         private bool _ownsBossInvulnerability;
         private bool _ownsGameplayInputBlock;
         private bool _isHudHidden;
-        private InputAction _introSkipAction;
+        private bool _isShuttingDown;
 
         public ECrabBossEncounterState CurrentState { get; private set; } =
             ECrabBossEncounterState.Dormant;
@@ -58,7 +50,11 @@ namespace Alpha.Enemy
             CreateIntroSkipAction();
         }
 
-        // Installer가 Scene 공용 의존성만 Encounter에 전달한다.
+        private void OnEnable()
+        {
+            _isShuttingDown = false;
+        }
+
         public void Bind(
             PlayerCore p_player,
             AlphaInputSystem p_input)
@@ -74,14 +70,6 @@ namespace Alpha.Enemy
 
         private void Start()
         {
-            CaptureInitialPose();
-
-            if (_boss?.HealthModule != null)
-            {
-                _boss.HealthModule.OnDeath -= HandleBossDefeated;
-                _boss.HealthModule.OnDeath += HandleBossDefeated;
-            }
-
             AcquireBossDormantState();
             ChangeState(ECrabBossEncounterState.Dormant);
             SetIntroTriggerArmed(true);
@@ -117,53 +105,55 @@ namespace Alpha.Enemy
             return false;
         }
 
-        // Player가 외부 경계를 벗어나면 Intro 또는 전투를 초기 상태로 되돌린다.
-        public bool RequestReset(PlayerCore p_player)
+        private void HandleIntroFinished(bool p_wasCancelled)
         {
-            if (!ReferenceEquals(_player, p_player) ||
-                CurrentState is ECrabBossEncounterState.Dormant or
-                    ECrabBossEncounterState.Resetting or
-                    ECrabBossEncounterState.Defeated)
+            _introSkipAction?.Disable();
+            ReleaseIntroContext();
+
+            if (_isShuttingDown)
+                return;
+
+            if (p_wasCancelled || !TryBeginBattle())
             {
-                return false;
+                AcquireBossDormantState();
+                ChangeState(ECrabBossEncounterState.Dormant);
+                SetIntroTriggerArmed(true);
+                return;
             }
 
-            _isResetRequested = true;
-            SetIntroTriggerArmed(false);
+            ReleaseBossDormantState();
+            ChangeState(ECrabBossEncounterState.Battle);
+        }
 
-            if (CurrentState == ECrabBossEncounterState.Intro &&
-                _intro?.IsPlaying == true)
-            {
-                _intro.Cancel();
-            }
-            else
-            {
-                ResetEncounter();
-            }
+        private bool TryBeginBattle()
+        {
+            Transform playerTarget =
+                _player != null ? _player.transform : null;
 
-            return true;
+            return _boss?.BeginTargetLock(this, playerTarget) == true;
         }
 
         private void AcquireIntroContext()
         {
-            DisableBossTargetSearch();
-
             _isPlayerBlocked =
                 _player?.ActionFlow?.BeginExternalBlock(this) == true;
             _ownsGameplayInputBlock =
                 _input?.BeginGameplayInputBlock(this) == true;
 
-            if (!_isHudHidden)
-            {
-                _isHudHidden = true;
-                OnGameplayHudVisibilityRequested?.Invoke(false);
-            }
+            if (_isHudHidden)
+                return;
+
+            _isHudHidden = true;
+            OnGameplayHudVisibilityRequested?.Invoke(false);
         }
 
         private void ReleaseIntroContext()
         {
-            RestoreBossTargetSearch();
-            ReleasePlayerBlock();
+            if (_isPlayerBlocked)
+            {
+                _player?.ActionFlow?.EndExternalBlock(this);
+                _isPlayerBlocked = false;
+            }
 
             if (_ownsGameplayInputBlock)
             {
@@ -171,40 +161,11 @@ namespace Alpha.Enemy
                 _ownsGameplayInputBlock = false;
             }
 
-            if (_isHudHidden)
-            {
-                _isHudHidden = false;
-                OnGameplayHudVisibilityRequested?.Invoke(true);
-            }
-        }
-
-        private void DisableBossTargetSearch()
-        {
-            if (_hasBossTargetSearchState ||
-                _boss?.TargetDetectionModule == null)
-            {
+            if (!_isHudHidden)
                 return;
-            }
 
-            _previousBossTargetSearchEnabled =
-                _boss.TargetDetectionModule.enabled;
-            _hasBossTargetSearchState = true;
-
-            _boss.TargetingFlow.ClearTarget();
-            _boss.TargetDetectionModule.enabled = false;
-        }
-
-        private void RestoreBossTargetSearch()
-        {
-            if (!_hasBossTargetSearchState ||
-                _boss?.TargetDetectionModule == null)
-            {
-                return;
-            }
-
-            _boss.TargetDetectionModule.enabled =
-                _previousBossTargetSearchEnabled;
-            _hasBossTargetSearchState = false;
+            _isHudHidden = false;
+            OnGameplayHudVisibilityRequested?.Invoke(true);
         }
 
         private void AcquireBossDormantState()
@@ -220,94 +181,6 @@ namespace Alpha.Enemy
                 _ownsBossInvulnerability =
                     _boss?.DamageReceiver?.BeginInvulnerability(this) == true;
             }
-        }
-
-        private void HandleIntroFinished(bool p_wasCancelled)
-        {
-            _introSkipAction?.Disable();
-            ReleaseIntroContext();
-
-            if (_isResetRequested || p_wasCancelled)
-            {
-                ResetEncounter();
-                return;
-            }
-
-            ReleaseBossDormantState();
-            ChangeState(ECrabBossEncounterState.Battle);
-        }
-
-        private void ResetEncounter()
-        {
-            if (CurrentState == ECrabBossEncounterState.Defeated ||
-                _boss == null)
-            {
-                return;
-            }
-
-            ChangeState(ECrabBossEncounterState.Resetting);
-            ReleaseIntroContext();
-
-            _boss.ActionFlow?.ResetForEncounter();
-            _boss.LocomotionModule?.CancelKnockback();
-            _boss.LocomotionModule?.Stop();
-            RestoreInitialPose();
-
-            if (_boss.HealthModule?.IsDead == false)
-                _boss.HealthModule.ResetHealth();
-
-            AcquireBossDormantState();
-            _isResetRequested = false;
-            ChangeState(ECrabBossEncounterState.Dormant);
-            SetIntroTriggerArmed(true);
-        }
-
-        private void CaptureInitialPose()
-        {
-            if (_boss == null || _hasInitialPose)
-                return;
-
-            _bossRigidbody = _boss.GetComponent<Rigidbody>();
-            _initialPosition = _boss.transform.position;
-            _initialRotation = _boss.transform.rotation;
-            _hasInitialPose = true;
-        }
-
-        private void RestoreInitialPose()
-        {
-            if (!_hasInitialPose || _boss == null)
-                return;
-
-            if (_bossRigidbody != null)
-            {
-                _bossRigidbody.linearVelocity = Vector3.zero;
-                _bossRigidbody.angularVelocity = Vector3.zero;
-                _bossRigidbody.position = _initialPosition;
-                _bossRigidbody.rotation = _initialRotation;
-                return;
-            }
-
-            _boss.transform.SetPositionAndRotation(
-                _initialPosition,
-                _initialRotation);
-        }
-
-        private void HandleBossDefeated()
-        {
-            _isResetRequested = false;
-            SetIntroTriggerArmed(false);
-            ReleaseIntroContext();
-            ReleaseBossDormantState();
-            ChangeState(ECrabBossEncounterState.Defeated);
-        }
-
-        private void ReleasePlayerBlock()
-        {
-            if (!_isPlayerBlocked)
-                return;
-
-            _player?.ActionFlow?.EndExternalBlock(this);
-            _isPlayerBlocked = false;
         }
 
         private void ReleaseBossDormantState()
@@ -348,7 +221,6 @@ namespace Alpha.Enemy
             if (_introSkipAction != null)
                 return;
 
-            // Gameplay Action Map이 차단된 동안에도 Intro Skip만 독립적으로 받는다.
             _introSkipAction = new InputAction(
                 "SkipCrabBossIntro",
                 InputActionType.Button);
@@ -368,28 +240,22 @@ namespace Alpha.Enemy
 
         private void OnDisable()
         {
+            _isShuttingDown = true;
             _introSkipAction?.Disable();
-
-            if (CurrentState == ECrabBossEncounterState.Intro)
-            {
-                _isResetRequested = true;
-                _intro?.Cancel();
-            }
-
+            _intro?.Cancel();
             ReleaseIntroContext();
+            _boss?.EndTargetLock(this);
+            ReleaseBossDormantState();
         }
 
         private void OnDestroy()
         {
-            if (_boss?.HealthModule != null)
-                _boss.HealthModule.OnDeath -= HandleBossDefeated;
+            if (_introSkipAction == null)
+                return;
 
-            if (_introSkipAction != null)
-            {
-                _introSkipAction.performed -= HandleIntroSkip;
-                _introSkipAction.Dispose();
-                _introSkipAction = null;
-            }
+            _introSkipAction.performed -= HandleIntroSkip;
+            _introSkipAction.Dispose();
+            _introSkipAction = null;
         }
     }
 }

@@ -1,4 +1,5 @@
 using Alpha.Detection;
+using Alpha.Projectile;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -211,7 +212,9 @@ namespace Alpha.Enemy.View
                 p_pattern.ProjectileLaunchSettings.Prefab;
 
             float collisionRadius = projectilePrefab != null
-                ? Mathf.Max(0.01f, projectilePrefab.CollisionRadius)
+                ? Mathf.Max(
+                    0.01f,
+                    projectilePrefab.CollisionPreviewRadius)
                 : 0.01f;
 
             Gizmos.color = p_color;
@@ -219,12 +222,15 @@ namespace Alpha.Enemy.View
             DrawArrow(launchPosition, endPosition, p_color);
             Gizmos.DrawWireSphere(endPosition, collisionRadius);
 
+            ProjectileImpactSettings impactSettings =
+                p_pattern.ProjectileLaunchSettings.ImpactSettings;
+
             if (projectilePrefab != null &&
-                projectilePrefab.ImpactSettings.IsRadial)
+                impactSettings.IsRadial)
             {
                 DrawRadialDamageArea(
                     endPosition,
-                    projectilePrefab.ImpactSettings.DamageRadius,
+                    impactSettings.DamageRadius,
                     p_radialDamageColor);
             }
         }
