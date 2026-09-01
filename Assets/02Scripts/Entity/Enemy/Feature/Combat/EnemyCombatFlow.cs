@@ -3,10 +3,15 @@ using UnityEngine;
 
 namespace Alpha.Enemy
 {
-    // ActionFlow가 허용한 동안 공격 패턴의 준비·실행·회복 상태를 조정한다.
+    // ActionFlow가 허용한 동안 공격 패턴의 준비·실행·대기 상태를 조정한다.
     [DisallowMultipleComponent]
     public sealed class EnemyCombatFlow : MonoBehaviour
     {
+        [Header("Attack Cycle")]
+        [Tooltip("공격 애니메이션이 끝난 뒤 다음 타겟 위치 확인까지 기다릴 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _nextAttackDelay = 1f;
+
         private readonly EnemyAttackPatternSelector _patternSelector = new();
 
         private EnemyCore _core;
@@ -20,8 +25,6 @@ namespace Alpha.Enemy
         public bool IsBusy => CurrentState != EEnemyCombatState.Idle;
 
         public event Action<EEnemyCombatState> OnStateChanged;
-        // View가 같은 공격 타입의 복수 애니메이션을 구분할 수 있도록 인덱스를 함께 전달한다.
-        public event Action<EEnemyAttackType, int> OnAttackWaitStarted;
         public event Action<EEnemyAttackType, int> OnAttackStarted;
 
         public void Bind(EnemyCore p_core)
@@ -46,7 +49,7 @@ namespace Alpha.Enemy
                 return false;
 
             return CurrentState is EEnemyCombatState.Attack or
-                       EEnemyCombatState.Recovery ||
+                       EEnemyCombatState.Wait ||
                    combat.CanEngageTarget(p_target);
         }
 
@@ -84,11 +87,11 @@ namespace Alpha.Enemy
                     break;
 
                 case EEnemyCombatState.Attack:
-                    TickAttack(p_target, p_deltaTime);
+                    TickAttack(p_deltaTime);
                     break;
 
-                case EEnemyCombatState.Recovery:
-                    TickRecovery(p_target, p_deltaTime);
+                case EEnemyCombatState.Wait:
+                    TickWait(p_target, p_deltaTime);
                     break;
             }
         }
@@ -112,10 +115,16 @@ namespace Alpha.Enemy
         {
             EnemyCombatModule combat = _core.CombatModule;
 
-            if (!TryPreparePattern(combat, p_target))
+            if (_preparedPatternIndex < 0 ||
+                !combat.CanStartPattern(
+                    _preparedPatternIndex,
+                    p_target))
             {
-                CancelCombat();
-                return;
+                if (!TryPreparePattern(combat, p_target))
+                {
+                    CancelCombat();
+                    return;
+                }
             }
 
             EnemyLocomotionModule locomotion =
@@ -130,11 +139,10 @@ namespace Alpha.Enemy
                     p_deltaTime);
             }
 
-            if (!isFacingTarget ||
-                !combat.CanStartPattern(
-                    _preparedPatternIndex,
-                    p_target) ||
-                !combat.TryBeginAttack(
+            if (!isFacingTarget)
+                return;
+
+            if (!combat.TryBeginAttack(
                     _preparedPatternIndex,
                     p_target,
                     out EnemyAttackPatternSetting pattern))
@@ -142,16 +150,16 @@ namespace Alpha.Enemy
                 return;
             }
 
+            ChangeState(EEnemyCombatState.Attack);
             OnAttackStarted?.Invoke(
                 pattern.AttackType,
                 pattern.AnimationIndex);
-            ChangeState(EEnemyCombatState.Attack);
-            TickAttack(p_target, p_deltaTime);
+
+            if (!combat.ActivateAttack(p_target))
+                CancelCombat();
         }
 
-        private void TickAttack(
-            Transform p_target,
-            float p_deltaTime)
+        private void TickAttack(float p_deltaTime)
         {
             EnemyCombatModule combat = _core.CombatModule;
             EnemyAttackPatternSetting pattern = combat.CurrentPattern;
@@ -162,77 +170,57 @@ namespace Alpha.Enemy
                 return;
             }
 
-            float deltaTime = Mathf.Max(0f, p_deltaTime);
-            _stateElapsedTime += deltaTime;
-
-            if (!combat.IsAttackActivated)
-            {
-                EnemyLocomotionModule locomotion =
-                    _core.LocomotionModule;
-
-                if (locomotion != null)
-                {
-                    locomotion.Stop();
-                    locomotion.RotateTo(
-                        p_target.position,
-                        deltaTime);
-                }
-
-                if (_stateElapsedTime < pattern.WindupDuration)
-                    return;
-
-                if (!combat.ActivateAttack(p_target))
-                {
-                    CancelCombat();
-                    return;
-                }
-
-                if (pattern.AttackType != EEnemyAttackType.Rush)
-                {
-                    ChangeState(EEnemyCombatState.Recovery);
-                    return;
-                }
-            }
-
-            float activeEndTime =
-                pattern.WindupDuration + pattern.RushDuration;
-
-            if (_stateElapsedTime <= activeEndTime)
+            if (pattern.AttackType == EEnemyAttackType.Rush)
             {
                 combat.TickActiveAttack(
                     _core.LocomotionModule,
-                    deltaTime);
+                    Mathf.Max(0f, p_deltaTime));
+            }
+        }
+
+        // Animation View의 현재 진행률을 실행 중인 패턴의 복수 타이밍에 전달한다.
+        public void NotifyAttackAnimationProgress(
+            float p_normalizedTime)
+        {
+            if (CurrentState != EEnemyCombatState.Attack ||
+                _core?.CombatModule == null)
+            {
                 return;
             }
 
-            combat.EndAttackExecution(
-                _core.LocomotionModule);
-            ChangeState(EEnemyCombatState.Recovery);
+            _core.CombatModule.UpdateAttackAnimationProgress(
+                p_normalizedTime);
         }
 
-        private void TickRecovery(
+        // Animation View가 실제 공격 상태의 마지막 프레임을 확인한 뒤 호출한다.
+        public void NotifyAttackAnimationCompleted()
+        {
+            if (CurrentState != EEnemyCombatState.Attack ||
+                _core?.CombatModule == null)
+            {
+                return;
+            }
+
+            _core.CombatModule.CompleteAttack(
+                _core.LocomotionModule);
+            ClearPreparedPattern();
+            ChangeState(EEnemyCombatState.Wait);
+        }
+
+        private void TickWait(
             Transform p_target,
             float p_deltaTime)
         {
-            EnemyCombatModule combat = _core.CombatModule;
-            EnemyAttackPatternSetting pattern = combat.CurrentPattern;
-
-            if (pattern == null)
-            {
-                CancelCombat();
-                return;
-            }
-
             _stateElapsedTime += Mathf.Max(0f, p_deltaTime);
 
-            if (_stateElapsedTime < pattern.RecoveryDuration)
+            if (_stateElapsedTime < _nextAttackDelay)
                 return;
 
-            combat.CompleteAttack(
-                _core.LocomotionModule);
             ClearPreparedPattern();
 
-            if (!TryPreparePattern(combat, p_target))
+            if (!TryPreparePattern(
+                    _core.CombatModule,
+                    p_target))
             {
                 ChangeState(EEnemyCombatState.Idle);
                 return;
@@ -241,39 +229,11 @@ namespace Alpha.Enemy
             ChangeState(EEnemyCombatState.Prepare);
         }
 
-        // 유효한 패턴을 예약하고 타입에 맞는 공격 대기 표현을 요청한다.
+        // 대기가 끝난 현재 타겟 거리에서 실행 가능한 패턴 하나를 예약한다.
         private bool TryPreparePattern(
             EnemyCombatModule p_combat,
             Transform p_target)
         {
-            if (_preparedPatternIndex >= 0)
-            {
-                if (p_combat.CanStartPattern(
-                        _preparedPatternIndex,
-                        p_target))
-                {
-                    return true;
-                }
-
-                // 대기 중 다른 패턴이 먼저 준비되면 해당 패턴으로 교체한다.
-                if (_patternSelector.TrySelectReadyPattern(
-                        p_combat,
-                        p_target,
-                        out int readyPatternIndex))
-                {
-                    return PreparePattern(
-                        p_combat,
-                        readyPatternIndex);
-                }
-
-                if (p_combat.CanPreparePattern(
-                        _preparedPatternIndex,
-                        p_target))
-                {
-                    return true;
-                }
-            }
-
             ClearPreparedPattern();
 
             if (!_patternSelector.TrySelectPattern(
@@ -284,25 +244,7 @@ namespace Alpha.Enemy
                 return false;
             }
 
-            return PreparePattern(
-                p_combat,
-                patternIndex);
-        }
-
-        private bool PreparePattern(
-            EnemyCombatModule p_combat,
-            int p_patternIndex)
-        {
-            EnemyAttackPatternSetting pattern =
-                p_combat.GetPattern(p_patternIndex);
-
-            if (pattern == null)
-                return false;
-
-            _preparedPatternIndex = p_patternIndex;
-            OnAttackWaitStarted?.Invoke(
-                pattern.AttackType,
-                pattern.AnimationIndex);
+            _preparedPatternIndex = patternIndex;
             return true;
         }
 
@@ -325,6 +267,11 @@ namespace Alpha.Enemy
         private void OnDisable()
         {
             CancelCombat();
+        }
+
+        private void OnValidate()
+        {
+            _nextAttackDelay = Mathf.Max(0f, _nextAttackDelay);
         }
     }
 }

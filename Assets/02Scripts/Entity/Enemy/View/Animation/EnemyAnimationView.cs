@@ -16,10 +16,6 @@ namespace Alpha.Enemy.Animation
         [SerializeField, Min(-1)]
         private int _animationIndex = -1;
 
-        [Tooltip("비워 두면 공격 대기 중 현재 애니메이션을 유지합니다.")]
-        [SerializeField]
-        private string _waitStatePath;
-
         [Tooltip("공격 시작 시 재생할 Base Layer 상태 경로입니다.")]
         [SerializeField]
         private string _attackStatePath;
@@ -29,7 +25,6 @@ namespace Alpha.Enemy.Animation
 
         public EEnemyAttackType AttackType => _attackType;
         public int AnimationIndex => _animationIndex;
-        public string WaitStatePath => _waitStatePath;
         public string AttackStatePath => _attackStatePath;
         public float TransitionDuration => _transitionDuration;
 
@@ -40,19 +35,16 @@ namespace Alpha.Enemy.Animation
         public EnemyAttackAnimationBinding(
             EEnemyAttackType p_attackType,
             int p_animationIndex,
-            string p_waitStatePath,
             string p_attackStatePath)
         {
             _attackType = p_attackType;
             _animationIndex = Mathf.Max(-1, p_animationIndex);
-            _waitStatePath = p_waitStatePath;
             _attackStatePath = p_attackStatePath;
         }
 
         public void Validate()
         {
             _animationIndex = Mathf.Max(-1, _animationIndex);
-            _waitStatePath ??= string.Empty;
             _attackStatePath ??= string.Empty;
             _transitionDuration = Mathf.Max(0f, _transitionDuration);
         }
@@ -91,18 +83,23 @@ namespace Alpha.Enemy.Animation
             new EnemyAttackAnimationBinding(
                 EEnemyAttackType.Melee,
                 -1,
-                "Base Layer.MeleeWait",
                 "Base Layer.MeleeAttack"),
             new EnemyAttackAnimationBinding(
                 EEnemyAttackType.Range,
                 -1,
-                "Base Layer.Aiming",
                 "Base Layer.RangeAttack"),
             new EnemyAttackAnimationBinding(
                 EEnemyAttackType.Rush,
                 -1,
-                "Base Layer.RushWait",
-                "Base Layer.RushAttack")
+                "Base Layer.RushAttack"),
+            new EnemyAttackAnimationBinding(
+                EEnemyAttackType.Area,
+                -1,
+                "Base Layer.AreaAttack"),
+            new EnemyAttackAnimationBinding(
+                EEnemyAttackType.Arena,
+                -1,
+                "Base Layer.ArenaAttack")
         };
 
         [Header("Action States")]
@@ -137,6 +134,9 @@ namespace Alpha.Enemy.Animation
         private float _pendingTransitionDuration;
         private bool _pendingRestart;
         private bool _hasPendingBaseState;
+        private int _trackedAttackState;
+        private bool _hasEnteredTrackedAttackState;
+        private bool _isTrackingAttackAnimation;
         private EnemyActionFlow _actionFlow;
         private EnemyLocomotionFlow _locomotionFlow;
         private EnemyCombatFlow _combatFlow;
@@ -144,6 +144,8 @@ namespace Alpha.Enemy.Animation
         private bool _isLocomotionSubscribed;
         private bool _isCombatSubscribed;
 
+        public event Action<float> OnAttackAnimationProgress;
+        public event Action OnAttackAnimationCompleted;
         public event Action OnDeathAnimationCompleted;
 
         private void Awake()
@@ -175,29 +177,14 @@ namespace Alpha.Enemy.Animation
             UnsubscribeFromAction();
             UnsubscribeFromLocomotion();
             UnsubscribeFromCombat();
+            CancelAttackAnimationTracking();
 
             _actionFlow = null;
             _locomotionFlow = null;
             _combatFlow = null;
         }
 
-        // 공격 타입과 인덱스에 연결된 쿨타임 대기 상태를 재생한다.
-        public bool PlayAttackWait(
-            EEnemyAttackType p_attackType,
-            int p_animationIndex)
-        {
-            if (!TryFindAttackAnimation(
-                    p_attackType,
-                    p_animationIndex,
-                    out EnemyAttackAnimationBinding binding))
-                return false;
-
-            // 전용 Wait 상태가 없으면 현재 표현을 유지하고 실제 공격 시작을 기다린다.
-            return string.IsNullOrWhiteSpace(binding.WaitStatePath) ||
-                   CrossFadeBase(binding.WaitStatePath);
-        }
-
-        // 쿨타임이 끝난 공격 타입과 인덱스의 실행 상태를 처음부터 재생한다.
+        // 공격 상태를 처음부터 재생하고 실제 종료 프레임까지 추적한다.
         public bool PlayAttack(
             EEnemyAttackType p_attackType,
             int p_animationIndex)
@@ -217,10 +204,26 @@ namespace Alpha.Enemy.Animation
                 return false;
             }
 
-            return CrossFadeBase(
+            int attackState =
+                Animator.StringToHash(binding.AttackStatePath);
+
+            bool didRequest = CrossFadeBase(
+                attackState,
                 binding.AttackStatePath,
                 binding.TransitionDuration,
                 true);
+
+            bool wasQueued =
+                _hasPendingBaseState &&
+                _pendingBaseState == attackState;
+
+            if (!didRequest && !wasQueued)
+                return false;
+
+            _trackedAttackState = attackState;
+            _hasEnteredTrackedAttackState = false;
+            _isTrackingAttackAnimation = true;
+            return true;
         }
 
         // 순찰 이동 상태를 직접 재생한다.
@@ -332,12 +335,16 @@ namespace Alpha.Enemy.Animation
             EEnemyActionState p_state)
         {
             if (p_state == EEnemyActionState.Dead)
+            {
+                CancelAttackAnimationTracking();
                 PlayDeath();
+            }
         }
 
         private void HandleHitReactionStateChanged(
             EHitReactionState p_state)
         {
+            CancelAttackAnimationTracking();
             PlayHitReaction(p_state);
         }
 
@@ -406,8 +413,6 @@ namespace Alpha.Enemy.Animation
                 return;
             }
 
-            _combatFlow.OnAttackWaitStarted +=
-                HandleAttackWaitStarted;
             _combatFlow.OnAttackStarted +=
                 HandleAttackStarted;
             _isCombatSubscribed = true;
@@ -420,22 +425,11 @@ namespace Alpha.Enemy.Animation
 
             if (_combatFlow != null)
             {
-                _combatFlow.OnAttackWaitStarted -=
-                    HandleAttackWaitStarted;
                 _combatFlow.OnAttackStarted -=
                     HandleAttackStarted;
             }
 
             _isCombatSubscribed = false;
-        }
-
-        private void HandleAttackWaitStarted(
-            EEnemyAttackType p_attackType,
-            int p_animationIndex)
-        {
-            PlayAttackWait(
-                p_attackType,
-                p_animationIndex);
         }
 
         private void HandleAttackStarted(
@@ -616,16 +610,83 @@ namespace Alpha.Enemy.Animation
             _hasPendingBaseState = true;
         }
 
+        // 현재 공격 상태가 한 사이클을 마치면 Flow에 정확한 종료 시점을 알린다.
+        private void TrackAttackAnimationCompletion()
+        {
+            if (!_isTrackingAttackAnimation ||
+                !ResolveAnimator() ||
+                !_animator.isInitialized ||
+                _animator.layerCount <= BaseLayer)
+            {
+                return;
+            }
+
+            AnimatorStateInfo currentState =
+                _animator.GetCurrentAnimatorStateInfo(BaseLayer);
+
+            bool isInTransition =
+                _animator.IsInTransition(BaseLayer);
+            bool isCurrentAttack =
+                currentState.fullPathHash == _trackedAttackState;
+            bool isNextAttack =
+                isInTransition &&
+                _animator.GetNextAnimatorStateInfo(BaseLayer)
+                    .fullPathHash == _trackedAttackState;
+
+            if (!_hasEnteredTrackedAttackState)
+            {
+                if (!isCurrentAttack && !isNextAttack)
+                    return;
+
+                _hasEnteredTrackedAttackState = true;
+            }
+
+            if (isCurrentAttack)
+            {
+                OnAttackAnimationProgress?.Invoke(
+                    Mathf.Clamp01(currentState.normalizedTime));
+            }
+
+            bool completedInAttackState =
+                isCurrentAttack &&
+                !isInTransition &&
+                currentState.normalizedTime >= 1f;
+            bool exitedAttackState =
+                !isCurrentAttack &&
+                !isNextAttack;
+
+            if (!completedInAttackState && !exitedAttackState)
+            {
+                return;
+            }
+
+            if (exitedAttackState)
+                OnAttackAnimationProgress?.Invoke(1f);
+
+            CancelAttackAnimationTracking();
+            OnAttackAnimationCompleted?.Invoke();
+            PlayIdle();
+        }
+
+        private void CancelAttackAnimationTracking()
+        {
+            _trackedAttackState = 0;
+            _hasEnteredTrackedAttackState = false;
+            _isTrackingAttackAnimation = false;
+        }
+
         private void LateUpdate()
         {
-            if (!_hasPendingBaseState)
-                return;
+            if (_hasPendingBaseState)
+            {
+                CrossFadeBase(
+                    _pendingBaseState,
+                    _pendingBaseStatePath,
+                    _pendingTransitionDuration,
+                    _pendingRestart);
+            }
 
-            CrossFadeBase(
-                _pendingBaseState,
-                _pendingBaseStatePath,
-                _pendingTransitionDuration,
-                _pendingRestart);
+            TrackAttackAnimationCompletion();
         }
 
         private void OnEnable()
@@ -645,6 +706,7 @@ namespace Alpha.Enemy.Animation
             _currentBaseState = 0;
             _hasCurrentBaseState = false;
             _hasPendingBaseState = false;
+            CancelAttackAnimationTracking();
         }
 
         private void OnValidate()

@@ -10,19 +10,12 @@ namespace Alpha.Item.Weapon.Range
         public bool Execute(
             in RangeAttackRequest p_request,
             ProjectileAttackSettings p_settings,
-            LayerMask p_hitMask,
             System.Action<ProjectileEntity> p_publishProjectile)
         {
             if (p_settings == null || !p_settings.IsValid)
             {
                 return false;
             }
-
-            ProjectileLaunchSettings launchSettings =
-                p_settings.CreateLaunchSettings(p_hitMask);
-
-            if (!launchSettings.Prefab.IsConfigurationValid)
-                return false;
 
             float damagePerProjectile =
                 p_request.Damage / p_request.TrajectoryCount;
@@ -40,11 +33,11 @@ namespace Alpha.Item.Weapon.Range
                         damagePerProjectile);
 
                 ProjectileEntity projectile = Object.Instantiate(
-                    launchSettings.Prefab,
+                    p_settings.ProjectilePrefab,
                     p_request.Origin,
                     Quaternion.LookRotation(launchDirection));
 
-                if (projectile.Initialize(launchRequest, launchSettings))
+                if (projectile.Initialize(launchRequest))
                 {
                     didLaunch = true;
                     p_publishProjectile?.Invoke(projectile);

@@ -68,7 +68,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d460671cdc02df4cb96c011b719f555, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _speed: 120
+  _gravityScale: 3
+  _hitMask:
+    serializedVersion: 2
+    m_Bits: 65
   _collisionShape: {fileID: 6654812379043182765}
+  _damageArea: {fileID: 0}
   _logLifecycle: 0
 --- !u!114 &9100000000000000001
 MonoBehaviour:

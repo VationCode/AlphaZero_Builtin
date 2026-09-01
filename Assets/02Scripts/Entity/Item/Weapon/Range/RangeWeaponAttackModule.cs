@@ -147,7 +147,6 @@ namespace Alpha.Item.Weapon.Range
                     _projectile.Execute(
                         p_request,
                         _attackSettings.Projectile,
-                        _attackSettings.HitMask,
                         _publishProjectile),
                 _ => false
             };

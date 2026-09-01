@@ -83,6 +83,18 @@ namespace Alpha.Enemy
             _audioView ??= GetComponentInChildren<EnemyAudioView>(true);
             _damageEffectView ??= GetComponentInChildren<DamageEffectView>(true);
 
+            if (_animationView != null && _combatFlow != null)
+            {
+                _animationView.OnAttackAnimationProgress -=
+                    _combatFlow.NotifyAttackAnimationProgress;
+                _animationView.OnAttackAnimationProgress +=
+                    _combatFlow.NotifyAttackAnimationProgress;
+                _animationView.OnAttackAnimationCompleted -=
+                    _combatFlow.NotifyAttackAnimationCompleted;
+                _animationView.OnAttackAnimationCompleted +=
+                    _combatFlow.NotifyAttackAnimationCompleted;
+            }
+
             if (_healthModule != null)
             {
                 _healthModule.Bind(HealthContext);
@@ -146,6 +158,14 @@ namespace Alpha.Enemy
 
         private void OnDestroy()
         {
+            if (_animationView != null && _combatFlow != null)
+            {
+                _animationView.OnAttackAnimationProgress -=
+                    _combatFlow.NotifyAttackAnimationProgress;
+                _animationView.OnAttackAnimationCompleted -=
+                    _combatFlow.NotifyAttackAnimationCompleted;
+            }
+
             _animationView?.Unbind();
             _audioView?.Unbind();
             _damageEffectView?.Unbind();

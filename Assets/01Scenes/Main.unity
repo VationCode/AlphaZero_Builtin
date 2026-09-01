@@ -1823,10 +1823,10 @@ MonoBehaviour:
         z: 13.57892
       Rotation:
         value:
-          x: 0.061516553
-          y: 0.65749407
-          z: 0.0856688
-          w: 0.74604166
+          x: 0.061516542
+          y: 0.65749395
+          z: 0.08566881
+          w: 0.7460417
     - Position:
         x: 22.808002
         y: 3.5
@@ -6356,17 +6356,14 @@ MonoBehaviour:
   _attackAnimations:
   - _attackType: 0
     _animationIndex: -1
-    _waitStatePath: Base Layer.MeleeWait
     _attackStatePath: Base Layer.MeleeAttack
     _transitionDuration: 0.05
   - _attackType: 1
     _animationIndex: -1
-    _waitStatePath: Base Layer.Aiming
     _attackStatePath: Base Layer.RangeAttack
     _transitionDuration: 0.05
   - _attackType: 2
     _animationIndex: -1
-    _waitStatePath: Base Layer.RushWait
     _attackStatePath: Base Layer.RushAttack
     _transitionDuration: 0.05
   _lightHitStatePath: Base Layer.LightHit
@@ -8645,6 +8642,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1145588353}
+  - component: {fileID: 8701000000000099}
   - component: {fileID: 8701000000000011}
   - component: {fileID: 8701000000000012}
   - component: {fileID: 8701000000000013}
@@ -11094,10 +11092,37 @@ MonoBehaviour:
   _chaseStatePath: Base Layer.Chase
   _returnStatePath: Base Layer.Patrol
   _attackAnimations:
+  - _attackType: 0
+    _animationIndex: 0
+    _attackStatePath: Base Layer.MeleeAttack
+    _transitionDuration: 0.05
+  - _attackType: 0
+    _animationIndex: 1
+    _attackStatePath: Base Layer.MeleeAttack2
+    _transitionDuration: 0.05
+  - _attackType: 0
+    _animationIndex: 2
+    _attackStatePath: Base Layer.MeleeAttack3
+    _transitionDuration: 0.05
+  - _attackType: 3
+    _animationIndex: 0
+    _attackStatePath: Base Layer.AreaAttack
+    _transitionDuration: 0.05
+  - _attackType: 4
+    _animationIndex: 0
+    _attackStatePath: Base Layer.ArenaAttack
+    _transitionDuration: 0.05
   - _attackType: 1
-    _animationIndex: -1
-    _waitStatePath: Base Layer.Aiming
+    _animationIndex: 0
     _attackStatePath: Base Layer.RangeAttack
+    _transitionDuration: 0.05
+  - _attackType: 1
+    _animationIndex: 1
+    _attackStatePath: Base Layer.RangeAttack2
+    _transitionDuration: 0.05
+  - _attackType: 2
+    _animationIndex: 0
+    _attackStatePath: Base Layer.RushAttack
     _transitionDuration: 0.05
   _lightHitStatePath: Base Layer.LightHit
   _heavyHitStatePath: Base Layer.HeavyHit
@@ -16382,70 +16407,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _owner: {fileID: 1355682912}
-  _attackPatterns:
-  - _patternName: RangeAttack1
-    _attackType: 1
+  _patternSettings: {fileID: 8701000000000099}
+  _legacyAttackPatterns: []
+  _distancePatterns:
+  - _rangeName: RangeAttack
     _minimumDistance: 20
     _maximumDistance: 55
-    _cooldown: 3
+    _patternIndex: 0
     _selectionWeight: 0.5
-    _animationIndex: -1
-    _windupDuration: 1.2
-    _attackDelay: 3
-    _damageProfile:
-      _damage: 10
-      _impactSettings:
-        _hitType: 2
-        _lightKnockback:
-          _distance: 0.5
-          _duration: 0.2
-        _heavyKnockback:
-          _distance: 2
-          _duration: 1.5
-        _knockdownKnockback:
-          _distance: 0
-          _duration: 0
-        _launchKnockback:
-          _distance: 0
-          _duration: 0
-        _knockbackDistance: 0.5
-        _knockbackDuration: 0.2
-        _knockbackSettingsVersion: 1
-        _recoveryDuration: 2
-    _meleeArea:
-      _shape: 1
-      _localOffset: {x: 0, y: 2, z: 0}
-      _yawOffset: 0
-      _width: 6
-      _length: 6
-      _radius: 6
-      _angle: 120
-      _height: 4
-      _targetLayers:
-        serializedVersion: 2
-        m_Bits: 64
-    _projectileSpawnPoint: {fileID: 1204729097}
-    _projectileLaunchSettings:
-      _projectile: {fileID: 11400000, guid: d55e16cf26a449d6992c3fe05555c768, type: 2}
-      _speed: 15
-      _hitMask:
-        serializedVersion: 2
-        m_Bits: 65
-    _rushSpeed: 8
-    _rushDistance: 5
-    _rushDuration: 0.5
-    _rushArea:
-      _shape: 0
-      _localOffset: {x: 0, y: 2, z: 0}
-      _yawOffset: 0
-      _width: 6
-      _length: 6
-      _radius: 6
-      _angle: 120
-      _height: 4
-      _targetLayers:
-        serializedVersion: 2
-        m_Bits: 64
 --- !u!114 &8701000000000012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16458,6 +16427,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73e5342afcbe459bb502e975da438f1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _nextAttackDelay: 3
 --- !u!114 &8701000000000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16477,10 +16447,13 @@ MonoBehaviour:
   _showDistance: 1
   _showActualArea: 1
   _showPatternLabel: 1
-  _patternVisibility: 01
+  _attackPatternVisibility: 0001010101010101
+  _distancePatternVisibility: 00
   _meleeColor: {r: 1, g: 0.2, b: 0.15, a: 1}
   _rangeColor: {r: 0, g: 0.85, b: 1, a: 1}
   _rushColor: {r: 1, g: 0.75, b: 0, a: 1}
+  _areaAttackColor: {r: 0.65, g: 0.25, b: 1, a: 1}
+  _arenaAttackColor: {r: 1, g: 0.15, b: 0.65, a: 1}
   _radialDamageColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
 --- !u!114 &8701000000000015
 MonoBehaviour:
@@ -16555,6 +16528,659 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1355682912}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8701000000000099
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1145588352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9f3a7ac9208485f895f7122affbb2bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _patterns:
+  - _patternName: RangeAttack
+    _attackType: 1
+    _legacyMinimumDistance: 20
+    _legacySelectionWeight: 0.5
+    _animationIndex: 0
+    _attackTimings:
+    - _eventType: 0
+      _startNormalizedTime: 0.5
+      _attackCollider: {fileID: 0}
+      _endNormalizedTime: 0.65
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 2
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 1
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: RangeAttack2
+    _attackType: 1
+    _legacyMinimumDistance: 20
+    _legacySelectionWeight: 0.5
+    _animationIndex: 1
+    _attackTimings:
+    - _eventType: 0
+      _startNormalizedTime: 0.5
+      _attackCollider: {fileID: 0}
+      _endNormalizedTime: 0.65
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 2
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 1
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: RushAttack
+    _attackType: 2
+    _legacyMinimumDistance: 20
+    _legacySelectionWeight: 0.5
+    _animationIndex: 0
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 3
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 1
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: MeleeAttack
+    _attackType: 0
+    _legacyMinimumDistance: 0
+    _legacySelectionWeight: 1
+    _animationIndex: 0
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 2
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 1
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: MeleeAttack2
+    _attackType: 0
+    _legacyMinimumDistance: 0
+    _legacySelectionWeight: 1
+    _animationIndex: 1
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 2
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 8
+      _length: 8
+      _radius: 8
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: MeleeAttack3
+    _attackType: 0
+    _legacyMinimumDistance: 0
+    _legacySelectionWeight: 1
+    _animationIndex: 2
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 2
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 1
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 10
+      _length: 10
+      _radius: 10
+      _angle: 180
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: AreaAttack
+    _attackType: 3
+    _legacyMinimumDistance: 0
+    _legacySelectionWeight: 1
+    _animationIndex: 0
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 3
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 2
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 12
+      _length: 12
+      _radius: 12
+      _angle: 360
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _arenaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+  - _patternName: ArenaAttack
+    _attackType: 4
+    _legacyMinimumDistance: 0
+    _legacySelectionWeight: 1
+    _animationIndex: 0
+    _attackTimings: []
+    _damageProfile:
+      _damage: 10
+      _impactSettings:
+        _hitType: 3
+        _lightKnockback:
+          _distance: 0.5
+          _duration: 0.2
+        _heavyKnockback:
+          _distance: 2
+          _duration: 1.5
+        _knockdownKnockback:
+          _distance: 0
+          _duration: 0
+        _launchKnockback:
+          _distance: 0
+          _duration: 0
+        _knockbackDistance: 0.5
+        _knockbackDuration: 0.2
+        _knockbackSettingsVersion: 1
+        _recoveryDuration: 2
+    _meleeArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _projectileSpawnPoint: {fileID: 1204729097}
+    _projectileMaximumDistance: 55
+    _projectilePrefab: {fileID: 0}
+    _rushSpeed: 8
+    _rushDistance: 5
+    _rushArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 6
+      _length: 6
+      _radius: 6
+      _angle: 120
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
+    _areaAttackArea:
+      _shape: 0
+      _localOffset: {x: 0, y: 0.9, z: 0}
+      _yawOffset: 0
+      _width: 2
+      _length: 2.5
+      _radius: 2.5
+      _angle: 90
+      _height: 1.8
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+    _arenaAttackArea:
+      _shape: 2
+      _localOffset: {x: 0, y: 2, z: 0}
+      _yawOffset: 0
+      _width: 20
+      _length: 20
+      _radius: 20
+      _angle: 360
+      _height: 4
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 64
 --- !u!224 &301374375682271876
 RectTransform:
   m_ObjectHideFlags: 0

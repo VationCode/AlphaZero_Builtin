@@ -5,6 +5,8 @@ namespace Alpha.Enemy
     {
         Melee = 0,
         Range = 1,
-        Rush = 2
+        Rush = 2,
+        Area = 3,
+        Arena = 4
     }
 }

@@ -22,8 +22,7 @@ namespace Alpha.Item.Weapon.Range.Editor
 
         private static readonly string[] ProjectilePropertyNames =
         {
-            "_projectile",
-            "_speed"
+            "_projectilePrefab"
         };
 
         public override void OnGUI(
@@ -66,7 +65,13 @@ namespace Alpha.Item.Weapon.Range.Editor
             DrawProperty(p_position, attackType, ref currentY);
             bool didChangeType = EditorGUI.EndChangeCheck();
 
-            DrawProperty(p_position, hitMask, ref currentY);
+            bool showHitMask = attackType == null ||
+                               attackType.hasMultipleDifferentValues ||
+                               (ERangeAttackType)attackType.enumValueIndex !=
+                               ERangeAttackType.Projectile;
+
+            if (showHitMask)
+                DrawProperty(p_position, hitMask, ref currentY);
 
             if (!attackType.hasMultipleDifferentValues)
             {
@@ -125,7 +130,14 @@ namespace Alpha.Item.Weapon.Range.Editor
 
             AddTitleHeight(ref height);
             AddPropertyHeight(attackType, ref height);
-            AddPropertyHeight(hitMask, ref height);
+
+            bool showHitMask = attackType == null ||
+                               attackType.hasMultipleDifferentValues ||
+                               (ERangeAttackType)attackType.enumValueIndex !=
+                               ERangeAttackType.Projectile;
+
+            if (showHitMask)
+                AddPropertyHeight(hitMask, ref height);
 
             if (attackType == null ||
                 attackType.hasMultipleDifferentValues ||

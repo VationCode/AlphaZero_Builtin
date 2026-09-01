@@ -739,6 +739,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8899348429106543343}
+  - component: {fileID: 8618119088870011299}
   - component: {fileID: 8618119088870011267}
   - component: {fileID: 928699017801547103}
   - component: {fileID: 6119652853815812119}
@@ -766,7 +767,7 @@ Transform:
   - {fileID: 6471633248284953907}
   m_Father: {fileID: 8107772672699007014}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8618119088870011267
+--- !u!114 &8618119088870011299
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -775,20 +776,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 7085920893873414206}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7f6bac6d99346f3bef66a40afbef2fe, type: 3}
+  m_Script: {fileID: 11500000, guid: c9f3a7ac9208485f895f7122affbb2bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _owner: {fileID: 8107772672699007014}
-  _attackPatterns:
+  _patterns:
   - _patternName: Range Attack
     _attackType: 1
-    _minimumDistance: 5
-    _maximumDistance: 12
-    _cooldown: 1.5
-    _selectionWeight: 1
+    _legacyMinimumDistance: 5
+    _legacySelectionWeight: 1
     _animationIndex: 0
-    _windupDuration: 0.2
-    _attackDelay: 0.5
+    _attackTimings:
+    - _eventType: 0
+      _startNormalizedTime: 0.5
+      _attackCollider: {fileID: 0}
+      _endNormalizedTime: 0.65
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -822,15 +823,10 @@ MonoBehaviour:
         serializedVersion: 2
         m_Bits: 64
     _projectileSpawnPoint: {fileID: 6471633248284953907}
-    _projectileLaunchSettings:
-      _projectile: {fileID: 11400000, guid: d01151f023ab4dc3b988a1b1c5b707a9, type: 2}
-      _speed: 20
-      _hitMask:
-        serializedVersion: 2
-        m_Bits: 65
+    _projectileMaximumDistance: 12
+    _projectilePrefab: {fileID: 6091277785713086067, guid: 14008581ef8e9a14e928709b57f90da2, type: 3}
     _rushSpeed: 8
     _rushDistance: 5
-    _rushDuration: 0.5
     _rushArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -843,6 +839,27 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+--- !u!114 &8618119088870011267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7085920893873414206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7f6bac6d99346f3bef66a40afbef2fe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _owner: {fileID: 8107772672699007014}
+  _patternSettings: {fileID: 8618119088870011299}
+  _legacyAttackPatterns: []
+  _distancePatterns:
+  - _rangeName: Range Attack
+    _minimumDistance: 5
+    _maximumDistance: 12
+    _patternIndex: 0
+    _selectionWeight: 1
 --- !u!114 &928699017801547103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -855,6 +872,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73e5342afcbe459bb502e975da438f1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _nextAttackDelay: 0.5
 --- !u!114 &6119652853815812119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -874,10 +892,13 @@ MonoBehaviour:
   _showDistance: 1
   _showActualArea: 1
   _showPatternLabel: 1
-  _patternVisibility: 01
+  _attackPatternVisibility: 01
+  _distancePatternVisibility: 01
   _meleeColor: {r: 1, g: 0.2, b: 0.15, a: 1}
   _rangeColor: {r: 0, g: 0.85, b: 1, a: 1}
   _rushColor: {r: 1, g: 0.75, b: 0, a: 1}
+  _areaAttackColor: {r: 0.65, g: 0.25, b: 1, a: 1}
+  _arenaAttackColor: {r: 1, g: 0.15, b: 0.65, a: 1}
   _radialDamageColor: {r: 1, g: 0.25, b: 0.1, a: 0.2}
 --- !u!114 &6119652853815812116
 MonoBehaviour:
@@ -3043,7 +3064,6 @@ MonoBehaviour:
   _attackAnimations:
   - _attackType: 1
     _animationIndex: -1
-    _waitStatePath: Base Layer.Aiming
     _attackStatePath: Base Layer.RangeAttack
     _transitionDuration: 0.05
   _lightHitStatePath: Base Layer.LightHit

@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Alpha.Combat;
 using Alpha.Item.Weapon.Range;
-using Alpha.Utility;
 using UnityEngine;
 
 namespace Alpha.Projectile
@@ -30,27 +28,39 @@ namespace Alpha.Projectile
     {
         public event Action<ProjectileImpactResult> OnImpacted;
 
-        private const int ImpactBufferCapacity = 32;
         private const int MaximumPredictionSteps = 2048;
 
         // 공격 대상의 Trigger 피격 영역도 항상 충돌 검색에 포함한다.
         private const QueryTriggerInteraction TargetTriggerInteraction =
             QueryTriggerInteraction.Collide;
 
+        [Header("Movement")]
+        [Tooltip("Prefab이 소유하는 초당 이동 속도입니다.")]
+        [SerializeField, Min(0.01f)]
+        private float _speed = 20f;
+
+        [Tooltip("Physics.gravity에 적용할 배율입니다.")]
+        [SerializeField, Min(0f)]
+        private float _gravityScale;
+
         [Header("Collision")]
+        [Tooltip("비행 중 충돌을 검색할 Layer입니다.")]
+        [SerializeField]
+        private LayerMask _hitMask = 65;
+
         [Tooltip("비행 Cast 형상으로 사용할 Sphere, Box 또는 Capsule Collider입니다. 실제 물리 충돌에는 사용하지 않습니다.")]
         [SerializeField]
         private Collider _collisionShape;
+
+        [Header("Impact")]
+        [Tooltip("명중 시 활성화할 자식 피해 Collider입니다. 비어 있으면 직접 명중 피해를 적용합니다.")]
+        [SerializeField]
+        private ProjectileDamageArea _damageArea;
 
         [Header("Debug")]
         [Tooltip("발사, 충돌 대상, 피해 적용 결과와 종료 사유를 Console에 출력합니다.")]
         [SerializeField]
         private bool _logLifecycle;
-
-        private readonly Collider[] _impactBuffer =
-            new Collider[ImpactBufferCapacity];
-
-        private readonly HashSet<IDamageable> _damagedTargets = new();
 
         private Transform _attacker;
         private Vector3 _launchOrigin;
@@ -59,33 +69,44 @@ namespace Alpha.Projectile
 
         private float _damage;
         private AttackImpactInfo _attackImpact;
-        private ProjectileImpactSettings _activeImpactSettings;
         private float _maximumDistance;
-
-        private LayerMask _activeHitMask;
+        private float _damageAreaRemainingTime;
 
         private bool _isActive;
+        private bool _isWaitingForDamageArea;
 
+        public float Speed => Mathf.Max(0.01f, _speed);
+        public float GravityScale => Mathf.Max(0f, _gravityScale);
+        public Vector3 Gravity => Physics.gravity * GravityScale;
+        public LayerMask HitMask => _hitMask;
         public float CollisionPreviewRadius =>
             TryCalculateCollisionPreviewRadius(out float radius)
                 ? radius
                 : 0f;
+        public float DamageAreaPreviewRadius =>
+            _damageArea != null
+                ? _damageArea.PreviewRadius
+                : 0f;
+        public bool HasDamageArea =>
+            _damageArea != null &&
+            _damageArea.IsConfigurationValid;
         public bool IsConfigurationValid =>
-            TryCalculateCollisionPreviewRadius(out _);
+            Speed > 0f &&
+            TryCalculateCollisionPreviewRadius(out _) &&
+            (_damageArea == null ||
+             _damageArea.IsConfigurationValid);
 
         // 포물선은 표시하지 않고 실제 비행식과 Collider Cast로 최종 폭발점만 계산한다.
         public bool TryPredictImpact(
             Vector3 p_origin,
             Vector3 p_direction,
-            in ProjectileLaunchSettings p_launchSettings,
             float p_maximumDistance,
             float p_simulationStep,
             out ProjectileImpactResult p_result)
         {
             p_result = default;
 
-            if (!p_launchSettings.IsValid ||
-                !IsConfigurationValid ||
+            if (!IsConfigurationValid ||
                 p_direction.sqrMagnitude <= 0.0001f ||
                 p_maximumDistance <= 0f)
             {
@@ -94,8 +115,8 @@ namespace Alpha.Projectile
 
             Vector3 position = p_origin;
             Vector3 velocity =
-                p_direction.normalized * p_launchSettings.Speed;
-            Vector3 gravity = p_launchSettings.Gravity;
+                p_direction.normalized * Speed;
+            Vector3 gravity = Gravity;
             Quaternion rotation =
                 Quaternion.LookRotation(velocity.normalized);
             float simulationStep = Mathf.Max(
@@ -143,7 +164,7 @@ namespace Alpha.Projectile
                         rotation,
                         moveDirection,
                         moveDistance,
-                        p_launchSettings.HitMask,
+                        _hitMask,
                         out RaycastHit hit))
                 {
                     p_result = new ProjectileImpactResult(
@@ -171,13 +192,10 @@ namespace Alpha.Projectile
             return false;
         }
 
-        // 발사 주체가 소유한 공용 설정을 런타임 이동·충돌 상태로 복사한다.
-        public bool Initialize(
-            in RangeAttackRequest p_request,
-            in ProjectileLaunchSettings p_launchSettings)
+        // 공격 요청과 Prefab 자체 설정으로 런타임 비행 상태를 시작한다.
+        public bool Initialize(in RangeAttackRequest p_request)
         {
             if (!p_request.IsValid ||
-                !p_launchSettings.IsValid ||
                 !IsConfigurationValid)
             {
                 return false;
@@ -185,13 +203,16 @@ namespace Alpha.Projectile
 
             _attacker = p_request.Attacker;
             _launchOrigin = p_request.Origin;
-            _velocity = p_request.Direction * p_launchSettings.Speed;
-            _gravity = p_launchSettings.Gravity;
+            _velocity = p_request.Direction * Speed;
+            _gravity = Gravity;
             _damage = p_request.Damage;
             _attackImpact = p_request.Impact;
-            _activeImpactSettings = p_launchSettings.ImpactSettings;
             _maximumDistance = p_request.MaxDistance;
-            _activeHitMask = p_launchSettings.HitMask;
+            _damageAreaRemainingTime = 0f;
+            _isWaitingForDamageArea = false;
+
+            if (_damageArea != null)
+                _damageArea.Deactivate();
 
             // Collider는 Cast 형상 데이터로만 사용해 자기 자신과의 중복 물리 판정을 막는다.
             _collisionShape.enabled = false;
@@ -205,10 +226,10 @@ namespace Alpha.Projectile
 
             LogLifecycle(
                 $"Launch | Attacker={_attacker.name}, " +
-                $"Damage={_damage}, Speed={p_launchSettings.Speed}, " +
+                $"Damage={_damage}, Speed={Speed}, " +
                 $"MaxDistance={_maximumDistance}, " +
-                $"GravityScale={p_launchSettings.GravityScale}, " +
-                $"HitMask={_activeHitMask.value}, " +
+                $"GravityScale={GravityScale}, " +
+                $"HitMask={_hitMask.value}, " +
                 $"Origin={transform.position}, Direction={p_request.Direction}");
 
             return true;
@@ -217,10 +238,20 @@ namespace Alpha.Projectile
         private void OnValidate()
         {
             _collisionShape ??= GetComponent<Collider>();
+            _damageArea ??=
+                GetComponentInChildren<ProjectileDamageArea>(true);
+            _speed = Mathf.Max(0.01f, _speed);
+            _gravityScale = Mathf.Max(0f, _gravityScale);
         }
 
         private void Update()
         {
+            if (_isWaitingForDamageArea)
+            {
+                TickDamageArea();
+                return;
+            }
+
             if (!_isActive)
                 return;
 
@@ -307,7 +338,7 @@ namespace Alpha.Projectile
                 transform.rotation,
                 p_moveDirection,
                 p_moveDistance,
-                _activeHitMask,
+                _hitMask,
                 out p_hit);
         }
 
@@ -723,22 +754,11 @@ namespace Alpha.Projectile
         {
             transform.position = p_hit.point;
 
-            int damagedTargetCount;
-
-            if (_activeImpactSettings.IsRadial)
-            {
-                damagedTargetCount = ApplyRadialDamage(
-                    p_hit.point,
-                    p_direction);
-            }
-            else
-            {
-                damagedTargetCount = ApplyDirectDamage(
+            bool didApplyDirectDamage =
+                _damageArea == null &&
+                ApplyDirectDamage(
                     p_hit,
-                    p_direction)
-                    ? 1
-                    : 0;
-            }
+                    p_direction);
 
             string layerName = LayerMask.LayerToName(
                 p_hit.collider.gameObject.layer);
@@ -751,7 +771,8 @@ namespace Alpha.Projectile
                 $"Hit | Collider={p_hit.collider.name}, " +
                 $"Layer={layerName}({p_hit.collider.gameObject.layer}), " +
                 $"Damageable={damageable?.GetType().Name ?? "None"}, " +
-                $"DamageApplied={damagedTargetCount > 0}, " +
+                $"DirectDamageApplied={didApplyDirectDamage}, " +
+                $"DamageArea={_damageArea != null}, " +
                 $"Point={p_hit.point}, " +
                 $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, p_hit.point)}");
 
@@ -762,7 +783,7 @@ namespace Alpha.Projectile
                 "Impact");
         }
 
-        // 충돌 대상이 없는 최대 사거리에서도 Radial 피해와 폭발 표현을 동일하게 실행한다.
+        // 충돌 대상이 없는 최대 사거리에서도 자식 피해 Collider와 폭발 표현을 실행한다.
         private void DetonateAtMaximumDistance(
             Vector3 p_fallbackDirection)
         {
@@ -771,16 +792,9 @@ namespace Alpha.Projectile
                     ? p_fallbackDirection.normalized
                     : transform.forward;
 
-            int damagedTargetCount =
-                _activeImpactSettings.IsRadial
-                    ? ApplyRadialDamage(
-                        transform.position,
-                        direction)
-                    : 0;
-
             LogLifecycle(
                 $"Detonate | Reason=MaximumDistance, " +
-                $"DamageApplied={damagedTargetCount > 0}, " +
+                $"DamageArea={_damageArea != null}, " +
                 $"Point={transform.position}, " +
                 $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, transform.position)}");
 
@@ -798,6 +812,19 @@ namespace Alpha.Projectile
             OnImpacted?.Invoke(new ProjectileImpactResult(
                 p_point,
                 p_normal));
+
+            if (_damageArea != null &&
+                _damageArea.Activate(
+                    _attacker,
+                    _damage,
+                    _attackImpact))
+            {
+                _isActive = false;
+                _isWaitingForDamageArea = true;
+                _damageAreaRemainingTime =
+                    _damageArea.ActiveDuration;
+                return;
+            }
 
             Release(p_releaseReason);
         }
@@ -826,66 +853,20 @@ namespace Alpha.Projectile
             return true;
         }
 
-        private int ApplyRadialDamage(
-            Vector3 p_impactPoint,
-            Vector3 p_fallbackDirection)
+        private void TickDamageArea()
         {
-            Physics.SyncTransforms();
+            float deltaTime = Time.deltaTime;
 
-            int hitCount = Physics.OverlapSphereNonAlloc(
-                p_impactPoint,
-                _activeImpactSettings.DamageRadius,
-                _impactBuffer,
-                _activeHitMask,
-                TargetTriggerInteraction);
+            if (deltaTime <= 0f)
+                return;
 
-            _damagedTargets.Clear();
+            _damageAreaRemainingTime -= deltaTime;
 
-            int damagedTargetCount = 0;
+            if (_damageAreaRemainingTime > 0f)
+                return;
 
-            for (int index = 0; index < hitCount; index++)
-            {
-                Collider targetCollider = _impactBuffer[index];
-                // 하나의 대상이 여러 Collider를 가져도 폭발당 피해는 한 번만 적용한다.
-                if (!DamageSystem.TryGetDamageable(
-                        targetCollider,
-                        out IDamageable damageable) ||
-                    !_damagedTargets.Add(damageable))
-                {
-                    continue;
-                }
-
-                Vector3 hitPoint =
-                    ColliderPointUtility.GetClosestPoint(
-                        targetCollider,
-                        p_impactPoint);
-
-                Vector3 direction = hitPoint - p_impactPoint;
-
-                if (direction.sqrMagnitude <= 0.0001f)
-                    direction = p_fallbackDirection;
-
-                direction.Normalize();
-
-                DamageInfo damageInfo = new(
-                    _attacker,
-                    _damage,
-                    hitPoint,
-                    -direction,
-                    direction,
-                    p_impact: _attackImpact,
-                    p_deliveryType:
-                        EDamageDeliveryType.Ranged);
-
-                if (DamageSystem.TryApply(
-                        targetCollider,
-                        damageInfo))
-                {
-                    damagedTargetCount++;
-                }
-            }
-
-            return damagedTargetCount;
+            _damageArea?.Deactivate();
+            Release("DamageAreaCompleted");
         }
 
         // 이후 ObjectPool을 적용할 때 이 메서드만 반환 처리로 교체한다.
@@ -898,6 +879,9 @@ namespace Alpha.Projectile
                 $"MaxDistance={_maximumDistance}");
 
             _isActive = false;
+            _isWaitingForDamageArea = false;
+            _damageAreaRemainingTime = 0f;
+            _damageArea?.Deactivate();
             Destroy(gameObject);
         }
 

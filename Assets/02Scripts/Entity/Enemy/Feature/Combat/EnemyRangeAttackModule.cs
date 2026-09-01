@@ -38,26 +38,21 @@ namespace Alpha.Enemy
 
             direction.Normalize();
 
-            ProjectileLaunchSettings launchSettings =
-                p_pattern.ProjectileLaunchSettings;
-
             RangeAttackRequest request = new(
                 p_owner,
                 origin,
                 origin,
                 direction,
                 p_pattern.DamageProfile.Damage,
-                p_pattern.MaximumDistance,
+                p_pattern.ProjectileMaximumDistance,
                 p_pattern.DamageProfile.Impact);
 
             ProjectileEntity projectile = UnityEngine.Object.Instantiate(
-                launchSettings.Prefab,
+                p_pattern.ProjectilePrefab,
                 origin,
                 Quaternion.LookRotation(direction));
 
-            bool initialized = projectile.Initialize(
-                request,
-                launchSettings);
+            bool initialized = projectile.Initialize(request);
 
             if (initialized)
                 return true;

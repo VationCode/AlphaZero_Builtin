@@ -54,7 +54,8 @@ namespace Alpha.Enemy
             Transform p_owner,
             EnemyLocomotionModule p_locomotion,
             EnemyAttackPatternSetting p_pattern,
-            float p_deltaTime)
+            float p_deltaTime,
+            bool p_applyBuiltInDamage)
         {
             if (!IsActive ||
                 p_owner == null ||
@@ -69,7 +70,8 @@ namespace Alpha.Enemy
                 p_deltaTime,
                 p_pattern.RushSpeed);
 
-            ApplyDamage(p_owner, p_pattern);
+            if (p_applyBuiltInDamage)
+                ApplyDamage(p_owner, p_pattern);
         }
 
         public void End()

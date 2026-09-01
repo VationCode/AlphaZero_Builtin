@@ -1,6 +1,7 @@
 using Alpha.Detection;
 using Alpha.Projectile;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -38,9 +39,16 @@ namespace Alpha.Enemy.View
         [SerializeField]
         private bool _showPatternLabel = true;
 
-        // Attack Patterns Inspector가 관리하는 패턴별 Scene Preview 상태다.
+        // Pattern Settings Inspector가 관리하는 공격 원본별 Preview 상태다.
         [SerializeField, HideInInspector]
-        private bool[] _patternVisibility = System.Array.Empty<bool>();
+        private bool[] _attackPatternVisibility =
+            System.Array.Empty<bool>();
+
+        // Combat Inspector가 관리하는 거리 규칙별 Preview 상태다.
+        [FormerlySerializedAs("_patternVisibility")]
+        [SerializeField, HideInInspector]
+        private bool[] _distancePatternVisibility =
+            System.Array.Empty<bool>();
 
         [Header("Type Colors")]
         [SerializeField]
@@ -51,6 +59,14 @@ namespace Alpha.Enemy.View
 
         [SerializeField]
         private Color _rushColor = new(1f, 0.75f, 0f, 1f);
+
+        [SerializeField]
+        private Color _areaAttackColor =
+            new(0.65f, 0.25f, 1f, 1f);
+
+        [SerializeField]
+        private Color _arenaAttackColor =
+            new(1f, 0.15f, 0.65f, 1f);
 
         [Tooltip("Range Projectile의 Radial 피해 범위를 표시할 색상")]
         [SerializeField]
@@ -86,33 +102,43 @@ namespace Alpha.Enemy.View
 
             Color previousColor = Gizmos.color;
 
-            for (int index = 0; index < combat.PatternCount; index++)
+            DrawAttackPatternPreviews(combat, origin);
+            DrawDistancePatternPreviews(combat, origin);
+
+            Gizmos.color = previousColor;
+        }
+
+        // 거리 규칙에 연결하기 전에도 각 Pattern Setting의 실제 범위를 표시한다.
+        private void DrawAttackPatternPreviews(
+            EnemyCombatModule p_combat,
+            Transform p_origin)
+        {
+            for (int index = 0;
+                 index < p_combat.PatternCount;
+                 index++)
             {
-                if (!IsPatternVisible(index))
+                if (!IsAttackPatternVisible(index))
                     continue;
 
                 EnemyAttackPatternSetting pattern =
-                    combat.GetPattern(index);
+                    p_combat.GetPattern(index);
 
                 if (pattern == null)
                     continue;
 
                 bool isCurrentPattern =
                     Application.isPlaying &&
-                    ReferenceEquals(combat.CurrentPattern, pattern);
+                    ReferenceEquals(p_combat.CurrentPattern, pattern);
 
                 Color color = ResolvePatternColor(
                     pattern.AttackType,
                     index,
                     isCurrentPattern);
 
-                if (_showDistance)
-                    DrawAttackDistance(origin.position, pattern, color);
-
                 if (_showActualArea)
                 {
                     DrawTypeArea(
-                        origin,
+                        p_origin,
                         pattern,
                         color,
                         _radialDamageColor);
@@ -120,44 +146,107 @@ namespace Alpha.Enemy.View
 
 #if UNITY_EDITOR
                 if (_showPatternLabel)
-                    DrawPatternLabel(origin, pattern, index, color);
+                {
+                    DrawAttackPatternLabel(
+                        p_origin,
+                        pattern,
+                        index,
+                        color);
+                }
 #endif
             }
+        }
 
-            Gizmos.color = previousColor;
+        // CombatModule이 소유한 거리별 선택 범위만 별도로 표시한다.
+        private void DrawDistancePatternPreviews(
+            EnemyCombatModule p_combat,
+            Transform p_origin)
+        {
+
+            for (int index = 0;
+                 index < p_combat.DistancePatternCount;
+                 index++)
+            {
+                if (!IsDistancePatternVisible(index))
+                    continue;
+
+                EnemyDistancePatternSetting distancePattern =
+                    p_combat.GetDistancePattern(index);
+                EnemyAttackPatternSetting pattern =
+                    p_combat.GetPattern(
+                        distancePattern?.PatternIndex ?? -1);
+
+                if (distancePattern == null || pattern == null)
+                    continue;
+
+                Color color = ResolvePatternColor(
+                    pattern.AttackType,
+                    index,
+                    false);
+
+                if (_showDistance)
+                {
+                    DrawAttackDistance(
+                        p_origin.position,
+                        distancePattern,
+                        color);
+                }
+
+#if UNITY_EDITOR
+                if (_showPatternLabel)
+                {
+                    DrawDistancePatternLabel(
+                        p_origin,
+                        distancePattern,
+                        pattern,
+                        index,
+                        color);
+                }
+#endif
+            }
         }
 
         // 아직 표시 설정이 생성되지 않은 Pattern은 기본적으로 표시한다.
-        public bool IsPatternVisible(int p_patternIndex)
+        public bool IsAttackPatternVisible(int p_patternIndex)
         {
             if (p_patternIndex < 0)
                 return false;
 
-            return _patternVisibility == null ||
-                   p_patternIndex >= _patternVisibility.Length ||
-                   _patternVisibility[p_patternIndex];
+            return _attackPatternVisibility == null ||
+                   p_patternIndex >= _attackPatternVisibility.Length ||
+                   _attackPatternVisibility[p_patternIndex];
+        }
+
+        public bool IsDistancePatternVisible(int p_patternIndex)
+        {
+            if (p_patternIndex < 0)
+                return false;
+
+            return _distancePatternVisibility == null ||
+                   p_patternIndex >= _distancePatternVisibility.Length ||
+                   _distancePatternVisibility[p_patternIndex];
         }
 
         private void DrawAttackDistance(
             Vector3 p_center,
-            EnemyAttackPatternSetting p_pattern,
+            EnemyDistancePatternSetting p_distancePattern,
             Color p_color)
         {
-            if (p_pattern.MinimumDistance > 0f)
+            if (p_distancePattern.MinimumDistance > 0f)
             {
                 Color minimumColor = p_color;
                 minimumColor.a *= 0.55f;
 
                 DrawHorizontalCircle(
                     p_center,
-                    p_pattern.MinimumDistance,
+                    p_distancePattern.MinimumDistance,
                     minimumColor,
                     true);
             }
 
             DrawHorizontalCircle(
                 p_center,
-                p_pattern.MaximumDistance,
+                p_distancePattern.MaximumDistance,
                 p_color,
                 false);
         }
@@ -168,14 +257,21 @@ namespace Alpha.Enemy.View
             Color p_color,
             Color p_radialDamageColor)
         {
+            bool usesColliderTiming = DrawTimingColliders(
+                p_pattern,
+                p_color);
+
             switch (p_pattern.AttackType)
             {
                 case EEnemyAttackType.Melee:
-                    DrawDetectionArea(
-                        p_origin.position,
-                        p_origin,
-                        p_pattern.MeleeArea,
-                        p_color);
+                    if (!usesColliderTiming)
+                    {
+                        DrawDetectionArea(
+                            p_origin.position,
+                            p_origin,
+                            p_pattern.MeleeArea,
+                            p_color);
+                    }
                     break;
 
                 case EEnemyAttackType.Range:
@@ -187,9 +283,107 @@ namespace Alpha.Enemy.View
                     break;
 
                 case EEnemyAttackType.Rush:
-                    DrawRushPath(p_origin, p_pattern, p_color);
+                    DrawRushPath(
+                        p_origin,
+                        p_pattern,
+                        p_color,
+                        !usesColliderTiming);
+                    break;
+
+                case EEnemyAttackType.Area:
+                    if (!usesColliderTiming)
+                    {
+                        DrawDetectionArea(
+                            p_origin.position,
+                            p_origin,
+                            p_pattern.AreaAttackArea,
+                            p_color);
+                    }
+                    break;
+
+                case EEnemyAttackType.Arena:
+                    if (!usesColliderTiming)
+                    {
+                        DrawDetectionArea(
+                            p_origin.position,
+                            p_origin,
+                            p_pattern.ArenaAttackArea,
+                            p_color);
+                    }
                     break;
             }
+        }
+
+        // Collider 타이밍을 사용하면 실제 참조된 Collider와 활성 구간을 표시한다.
+        private static bool DrawTimingColliders(
+            EnemyAttackPatternSetting p_pattern,
+            Color p_color)
+        {
+            bool hasColliderTiming = false;
+            Matrix4x4 previousMatrix = Gizmos.matrix;
+
+            for (int index = 0;
+                 index < p_pattern.AttackTimingCount;
+                 index++)
+            {
+                EnemyAttackTimingSetting timing =
+                    p_pattern.GetAttackTiming(index);
+
+                if (timing == null ||
+                    timing.EventType !=
+                        EEnemyAttackTimingType.Collider ||
+                    !timing.IsExecutable(p_pattern.AttackType))
+                {
+                    continue;
+                }
+
+                Collider attackCollider = timing.AttackCollider;
+                hasColliderTiming = true;
+                Gizmos.color = p_color;
+                Gizmos.matrix =
+                    attackCollider.transform.localToWorldMatrix;
+
+                switch (attackCollider)
+                {
+                    case BoxCollider boxCollider:
+                        Gizmos.DrawWireCube(
+                            boxCollider.center,
+                            boxCollider.size);
+                        break;
+
+                    case SphereCollider sphereCollider:
+                        Gizmos.DrawWireSphere(
+                            sphereCollider.center,
+                            sphereCollider.radius);
+                        break;
+
+                    case CapsuleCollider capsuleCollider:
+                        Vector3 capsuleSize = Vector3.one *
+                                              capsuleCollider.radius * 2f;
+                        capsuleSize[capsuleCollider.direction] =
+                            capsuleCollider.height;
+                        Gizmos.DrawWireCube(
+                            capsuleCollider.center,
+                            capsuleSize);
+                        break;
+
+                    case MeshCollider meshCollider
+                        when meshCollider.sharedMesh != null:
+                        Gizmos.DrawWireMesh(meshCollider.sharedMesh);
+                        break;
+                }
+
+#if UNITY_EDITOR
+                Handles.color = p_color;
+                Handles.Label(
+                    attackCollider.transform.position,
+                    $"Collider {timing.StartNormalizedTime:0.00}" +
+                    $" - {timing.EndNormalizedTime:0.00}");
+#endif
+            }
+
+            Gizmos.matrix = previousMatrix;
+            return hasColliderTiming;
         }
 
         private static void DrawRangePath(
@@ -206,10 +400,10 @@ namespace Alpha.Enemy.View
 
             Vector3 endPosition = launchPosition +
                                   p_origin.forward *
-                                  p_pattern.MaximumDistance;
+                                  p_pattern.ProjectileMaximumDistance;
 
             var projectilePrefab =
-                p_pattern.ProjectileLaunchSettings.Prefab;
+                p_pattern.ProjectilePrefab;
 
             float collisionRadius = projectilePrefab != null
                 ? Mathf.Max(
@@ -222,15 +416,12 @@ namespace Alpha.Enemy.View
             DrawArrow(launchPosition, endPosition, p_color);
             Gizmos.DrawWireSphere(endPosition, collisionRadius);
 
-            ProjectileImpactSettings impactSettings =
-                p_pattern.ProjectileLaunchSettings.ImpactSettings;
-
             if (projectilePrefab != null &&
-                impactSettings.IsRadial)
+                projectilePrefab.HasDamageArea)
             {
                 DrawRadialDamageArea(
                     endPosition,
-                    impactSettings.DamageRadius,
+                    projectilePrefab.DamageAreaPreviewRadius,
                     p_radialDamageColor);
             }
         }
@@ -256,7 +447,8 @@ namespace Alpha.Enemy.View
         private void DrawRushPath(
             Transform p_origin,
             EnemyAttackPatternSetting p_pattern,
-            Color p_color)
+            Color p_color,
+            bool p_drawDamageArea)
         {
             Vector3 startPosition = p_origin.position;
             Vector3 endPosition = startPosition +
@@ -267,6 +459,9 @@ namespace Alpha.Enemy.View
 
             Color destinationColor = p_color;
             destinationColor.a *= 0.45f;
+
+            if (!p_drawDamageArea)
+                return;
 
             DrawDetectionArea(
                 startPosition,
@@ -310,6 +505,8 @@ namespace Alpha.Enemy.View
                 EEnemyAttackType.Melee => _meleeColor,
                 EEnemyAttackType.Range => _rangeColor,
                 EEnemyAttackType.Rush => _rushColor,
+                EEnemyAttackType.Area => _areaAttackColor,
+                EEnemyAttackType.Arena => _arenaAttackColor,
                 _ => Color.white
             };
 
@@ -424,7 +621,7 @@ namespace Alpha.Enemy.View
         }
 
 #if UNITY_EDITOR
-        private static void DrawPatternLabel(
+        private static void DrawAttackPatternLabel(
             Transform p_origin,
             EnemyAttackPatternSetting p_pattern,
             int p_patternIndex,
@@ -438,9 +635,28 @@ namespace Alpha.Enemy.View
             Handles.Label(
                 labelPosition,
                 $"Pattern {p_patternIndex + 1}: " +
+                $"{p_pattern.PatternName} [{p_pattern.AttackType}]");
+        }
+
+        private static void DrawDistancePatternLabel(
+            Transform p_origin,
+            EnemyDistancePatternSetting p_distancePattern,
+            EnemyAttackPatternSetting p_pattern,
+            int p_patternIndex,
+            Color p_color)
+        {
+            Vector3 labelPosition = p_origin.position +
+                                    Vector3.up *
+                                    (3.2f + p_patternIndex * 0.35f);
+
+            Handles.color = p_color;
+            Handles.Label(
+                labelPosition,
+                $"Distance {p_patternIndex + 1}: " +
+                $"{p_distancePattern.RangeName} → " +
                 $"{p_pattern.PatternName} [{p_pattern.AttackType}]\n" +
-                $"Distance {p_pattern.MinimumDistance:0.##} - " +
-                $"{p_pattern.MaximumDistance:0.##}");
+                $"Range {p_distancePattern.MinimumDistance:0.##} - " +
+                $"{p_distancePattern.MaximumDistance:0.##}");
         }
 #endif
     }

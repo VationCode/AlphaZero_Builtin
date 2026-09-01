@@ -37,40 +37,41 @@ namespace Alpha.Enemy.Editor
             float currentY = foldoutRect.yMax + VerticalSpacing;
             EditorGUI.indentLevel++;
 
+            DrawSectionHeader(p_position, "Pattern", ref currentY);
             DrawProperty(p_position, p_property, "_patternName", ref currentY);
             DrawProperty(p_position, p_property, "_attackType", ref currentY);
+            DrawProperty(p_position, p_property, "_animationIndex", ref currentY);
 
             SerializedProperty attackType =
                 p_property.FindPropertyRelative("_attackType");
 
-            DrawProperty(p_position, p_property, "_minimumDistance", ref currentY);
+            DrawSectionHeader(
+                p_position,
+                "Animation Timing Events",
+                ref currentY);
+            DrawProperty(
+                p_position,
+                p_property,
+                "_attackTimings",
+                ref currentY);
 
-            if (attackType != null &&
-                (attackType.hasMultipleDifferentValues ||
-                (EEnemyAttackType)attackType.enumValueIndex !=
-                EEnemyAttackType.Melee))
-            {
-                DrawProperty(
-                    p_position,
-                    p_property,
-                    "_maximumDistance",
-                    ref currentY);
-            }
-
-            DrawProperty(p_position, p_property, "_cooldown", ref currentY);
-            DrawProperty(p_position, p_property, "_selectionWeight", ref currentY);
-            DrawProperty(p_position, p_property, "_animationIndex", ref currentY);
-            DrawProperty(p_position, p_property, "_windupDuration", ref currentY);
-            DrawProperty(p_position, p_property, "_attackDelay", ref currentY);
+            DrawSectionHeader(p_position, "Damage", ref currentY);
             DrawProperty(p_position, p_property, "_damageProfile", ref currentY);
 
             if (attackType != null &&
                 !attackType.hasMultipleDifferentValues)
             {
+                EEnemyAttackType selectedType =
+                    (EEnemyAttackType)attackType.enumValueIndex;
+
+                DrawSectionHeader(
+                    p_position,
+                    $"{selectedType} Attack",
+                    ref currentY);
                 DrawTypeProperties(
                     p_position,
                     p_property,
-                    (EEnemyAttackType)attackType.enumValueIndex,
+                    selectedType,
                     ref currentY);
             }
 
@@ -87,35 +88,24 @@ namespace Alpha.Enemy.Editor
 
             float height = EditorGUIUtility.singleLineHeight;
 
+            AddSectionHeaderHeight(ref height);
             AddPropertyHeight(p_property, "_patternName", ref height);
             AddPropertyHeight(p_property, "_attackType", ref height);
+            AddPropertyHeight(p_property, "_animationIndex", ref height);
 
             SerializedProperty attackType =
                 p_property.FindPropertyRelative("_attackType");
 
-            AddPropertyHeight(p_property, "_minimumDistance", ref height);
+            AddSectionHeaderHeight(ref height);
+            AddPropertyHeight(p_property, "_attackTimings", ref height);
 
-            if (attackType != null &&
-                (attackType.hasMultipleDifferentValues ||
-                (EEnemyAttackType)attackType.enumValueIndex !=
-                EEnemyAttackType.Melee))
-            {
-                AddPropertyHeight(
-                    p_property,
-                    "_maximumDistance",
-                    ref height);
-            }
-
-            AddPropertyHeight(p_property, "_cooldown", ref height);
-            AddPropertyHeight(p_property, "_selectionWeight", ref height);
-            AddPropertyHeight(p_property, "_animationIndex", ref height);
-            AddPropertyHeight(p_property, "_windupDuration", ref height);
-            AddPropertyHeight(p_property, "_attackDelay", ref height);
+            AddSectionHeaderHeight(ref height);
             AddPropertyHeight(p_property, "_damageProfile", ref height);
 
             if (attackType != null &&
                 !attackType.hasMultipleDifferentValues)
             {
+                AddSectionHeaderHeight(ref height);
                 AddTypePropertyHeights(
                     p_property,
                     (EEnemyAttackType)attackType.enumValueIndex,
@@ -123,6 +113,32 @@ namespace Alpha.Enemy.Editor
             }
 
             return height;
+        }
+
+        private static void DrawSectionHeader(
+            Rect p_position,
+            string p_title,
+            ref float p_currentY)
+        {
+            Rect headerRect = new(
+                p_position.x,
+                p_currentY,
+                p_position.width,
+                EditorGUIUtility.singleLineHeight);
+
+            EditorGUI.LabelField(
+                headerRect,
+                p_title,
+                EditorStyles.boldLabel);
+
+            p_currentY +=
+                EditorGUIUtility.singleLineHeight + VerticalSpacing;
+        }
+
+        private static void AddSectionHeaderHeight(ref float p_height)
+        {
+            p_height +=
+                VerticalSpacing + EditorGUIUtility.singleLineHeight;
         }
 
         private static void DrawTypeProperties(
@@ -143,14 +159,30 @@ namespace Alpha.Enemy.Editor
 
                 case EEnemyAttackType.Range:
                     DrawProperty(p_position, p_property, "_projectileSpawnPoint", ref p_currentY);
-                    DrawProperty(p_position, p_property, "_projectileLaunchSettings", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_projectileMaximumDistance", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_projectilePrefab", ref p_currentY);
                     break;
 
                 case EEnemyAttackType.Rush:
                     DrawProperty(p_position, p_property, "_rushSpeed", ref p_currentY);
                     DrawProperty(p_position, p_property, "_rushDistance", ref p_currentY);
-                    DrawProperty(p_position, p_property, "_rushDuration", ref p_currentY);
                     DrawProperty(p_position, p_property, "_rushArea", ref p_currentY);
+                    break;
+
+                case EEnemyAttackType.Area:
+                    DrawProperty(
+                        p_position,
+                        p_property,
+                        "_areaAttackArea",
+                        ref p_currentY);
+                    break;
+
+                case EEnemyAttackType.Arena:
+                    DrawProperty(
+                        p_position,
+                        p_property,
+                        "_arenaAttackArea",
+                        ref p_currentY);
                     break;
             }
         }
@@ -168,14 +200,28 @@ namespace Alpha.Enemy.Editor
 
                 case EEnemyAttackType.Range:
                     AddPropertyHeight(p_property, "_projectileSpawnPoint", ref p_height);
-                    AddPropertyHeight(p_property, "_projectileLaunchSettings", ref p_height);
+                    AddPropertyHeight(p_property, "_projectileMaximumDistance", ref p_height);
+                    AddPropertyHeight(p_property, "_projectilePrefab", ref p_height);
                     break;
 
                 case EEnemyAttackType.Rush:
                     AddPropertyHeight(p_property, "_rushSpeed", ref p_height);
                     AddPropertyHeight(p_property, "_rushDistance", ref p_height);
-                    AddPropertyHeight(p_property, "_rushDuration", ref p_height);
                     AddPropertyHeight(p_property, "_rushArea", ref p_height);
+                    break;
+
+                case EEnemyAttackType.Area:
+                    AddPropertyHeight(
+                        p_property,
+                        "_areaAttackArea",
+                        ref p_height);
+                    break;
+
+                case EEnemyAttackType.Arena:
+                    AddPropertyHeight(
+                        p_property,
+                        "_arenaAttackArea",
+                        ref p_height);
                     break;
             }
         }

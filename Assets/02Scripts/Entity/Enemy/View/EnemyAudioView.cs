@@ -27,7 +27,7 @@ namespace Alpha.Enemy.Audio
         public float Volume => _volume;
     }
 
-    // 공격 타입별 대기와 실제 실행 SFX를 각각 보관한다.
+    // 공격 타입별 실제 실행 SFX를 보관한다.
     [Serializable]
     public sealed class EnemyAttackSfxSetting
     {
@@ -35,21 +35,13 @@ namespace Alpha.Enemy.Audio
         private EEnemyAttackType _attackType;
 
         [SerializeField]
-        private AudioClip[] _waitClips;
-
-        [SerializeField]
         private AudioClip[] _attackClips;
-
-        [SerializeField, Range(0f, 1f)]
-        private float _waitVolume = 1f;
 
         [SerializeField, Range(0f, 1f)]
         private float _attackVolume = 1f;
 
         public EEnemyAttackType AttackType => _attackType;
-        public AudioClip[] WaitClips => _waitClips;
         public AudioClip[] AttackClips => _attackClips;
-        public float WaitVolume => _waitVolume;
         public float AttackVolume => _attackVolume;
     }
 
@@ -160,7 +152,6 @@ namespace Alpha.Enemy.Audio
             }
 
             _actionFlow.OnStateChanged += PlayActionState;
-            _combatFlow.OnAttackWaitStarted += HandleAttackWaitStarted;
             _combatFlow.OnAttackStarted += HandleAttackStarted;
             _damageReceiver.OnDamaged += HandleDamaged;
             _healthModule.OnDeath += PlayDeath;
@@ -177,7 +168,6 @@ namespace Alpha.Enemy.Audio
 
             if (_combatFlow != null)
             {
-                _combatFlow.OnAttackWaitStarted -= HandleAttackWaitStarted;
                 _combatFlow.OnAttackStarted -= HandleAttackStarted;
             }
 
@@ -223,19 +213,6 @@ namespace Alpha.Enemy.Audio
             _audioSource.Play();
         }
 
-        public void PlayAttackWait(EEnemyAttackType p_attackType)
-        {
-            EnemyAttackSfxSetting setting =
-                FindAttackSetting(p_attackType);
-
-            if (setting != null)
-            {
-                PlayRandomOneShot(
-                    setting.WaitClips,
-                    setting.WaitVolume);
-            }
-        }
-
         public void PlayAttack(EEnemyAttackType p_attackType)
         {
             EnemyAttackSfxSetting setting =
@@ -247,14 +224,6 @@ namespace Alpha.Enemy.Audio
                     setting.AttackClips,
                     setting.AttackVolume);
             }
-        }
-
-        private void HandleAttackWaitStarted(
-            EEnemyAttackType p_attackType,
-            int p_animationIndex)
-        {
-            // Audio는 AnimationIndex와 무관하게 공격 타입 설정을 사용한다.
-            PlayAttackWait(p_attackType);
         }
 
         private void HandleAttackStarted(

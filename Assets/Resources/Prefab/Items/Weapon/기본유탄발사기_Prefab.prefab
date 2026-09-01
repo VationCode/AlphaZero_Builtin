@@ -294,8 +294,7 @@ MonoBehaviour:
     - rid: 720000000000000005
       type: {class: ProjectileAttackSettings, ns: Alpha.Item.Weapon.Range, asm: Assembly-CSharp}
       data:
-        _projectile: {fileID: 11400000, guid: 4edb85f68a9a4de5adaf554880ee8060, type: 2}
-        _speed: 50
+        _projectilePrefab: {fileID: 2853060138587645021, guid: 87c9fc9390752bd4d855cb7502da44fd, type: 3}
 --- !u!4 &7708700338529141487 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

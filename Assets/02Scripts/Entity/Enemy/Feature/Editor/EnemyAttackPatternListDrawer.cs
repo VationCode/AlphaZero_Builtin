@@ -11,15 +11,18 @@ namespace Alpha.Enemy.Editor
         private const float PreviewToggleWidth = 64f;
 
         private readonly SerializedProperty _patterns;
+        private readonly SerializedProperty _distancePatterns;
         private readonly SerializedProperty _patternVisibility;
         private readonly ReorderableList _list;
 
         public EnemyAttackPatternListDrawer(
             SerializedObject p_serializedObject,
             SerializedProperty p_patterns,
+            SerializedProperty p_distancePatterns,
             SerializedProperty p_patternVisibility)
         {
             _patterns = p_patterns;
+            _distancePatterns = p_distancePatterns;
             _patternVisibility = p_patternVisibility;
             _list = new ReorderableList(
                 p_serializedObject,
@@ -35,7 +38,7 @@ namespace Alpha.Enemy.Editor
             _list.onCanRemoveCallback = CanRemove;
             _list.onRemoveCallback = Remove;
             _list.onAddCallback = Add;
-            _list.onReorderCallbackWithDetails = ReorderVisibility;
+            _list.onReorderCallbackWithDetails = HandleReorder;
         }
 
         public void Draw()
@@ -47,7 +50,7 @@ namespace Alpha.Enemy.Editor
 
         private static void DrawHeader(Rect p_rect)
         {
-            EditorGUI.LabelField(p_rect, "Attack Patterns");
+            EditorGUI.LabelField(p_rect, "Pattern Settings");
         }
 
         private float GetElementHeight(int p_index)
@@ -102,7 +105,7 @@ namespace Alpha.Enemy.Editor
 
             GUIContent content = new(
                 "Preview",
-                "Scene View에 이 Attack Pattern의 범위를 표시합니다.");
+                "Scene View에 이 Pattern Setting의 실제 공격 범위를 표시합니다.");
 
             visibility.boolValue = GUI.Toggle(
                 p_rect,
@@ -124,6 +127,8 @@ namespace Alpha.Enemy.Editor
 
             int removeIndex = p_list.index;
 
+            RemapDistancePatternIndicesAfterRemoval(removeIndex);
+
             if (HasPatternVisibility &&
                 removeIndex >= 0 &&
                 removeIndex < _patternVisibility.arraySize)
@@ -142,19 +147,107 @@ namespace Alpha.Enemy.Editor
             ReorderableList.defaultBehaviours.DoAddButton(p_list);
             EnsureVisibilityCount();
 
-            if (!HasPatternVisibility ||
-                _patterns.arraySize <= previousCount)
+            if (HasPatternVisibility &&
+                _patterns.arraySize > previousCount)
+            {
+                _patternVisibility
+                    .GetArrayElementAtIndex(_patterns.arraySize - 1)
+                    .boolValue = true;
+            }
+        }
+
+        private void HandleReorder(
+            ReorderableList p_list,
+            int p_oldIndex,
+            int p_newIndex)
+        {
+            RemapDistancePatternIndicesAfterReorder(
+                p_list,
+                p_oldIndex,
+                p_newIndex);
+            ReorderVisibility(p_oldIndex, p_newIndex);
+        }
+
+        private void RemapDistancePatternIndicesAfterReorder(
+            ReorderableList p_list,
+            int p_oldIndex,
+            int p_newIndex)
+        {
+            if (!HasDistancePatterns ||
+                p_oldIndex < 0 || p_newIndex < 0)
             {
                 return;
             }
 
-            _patternVisibility
-                .GetArrayElementAtIndex(_patterns.arraySize - 1)
-                .boolValue = true;
+            for (int index = 0;
+                 index < _distancePatterns.arraySize;
+                 index++)
+            {
+                SerializedProperty patternIndex =
+                    _distancePatterns
+                        .GetArrayElementAtIndex(index)
+                        .FindPropertyRelative("_patternIndex");
+
+                if (patternIndex == null)
+                    continue;
+
+                int currentIndex = patternIndex.intValue;
+
+                if (currentIndex == p_oldIndex)
+                {
+                    patternIndex.intValue = p_newIndex;
+                }
+                else if (p_oldIndex < p_newIndex &&
+                         currentIndex > p_oldIndex &&
+                         currentIndex <= p_newIndex)
+                {
+                    patternIndex.intValue--;
+                }
+                else if (p_newIndex < p_oldIndex &&
+                         currentIndex >= p_newIndex &&
+                         currentIndex < p_oldIndex)
+                {
+                    patternIndex.intValue++;
+                }
+            }
+        }
+
+        private void RemapDistancePatternIndicesAfterRemoval(
+            int p_removeIndex)
+        {
+            if (!HasDistancePatterns || p_removeIndex < 0)
+                return;
+
+            for (int index = 0;
+                 index < _distancePatterns.arraySize;
+                 index++)
+            {
+                SerializedProperty patternIndex =
+                    _distancePatterns
+                        .GetArrayElementAtIndex(index)
+                        .FindPropertyRelative("_patternIndex");
+
+                if (patternIndex == null)
+                    continue;
+
+                if (patternIndex.intValue == p_removeIndex)
+                    patternIndex.intValue = -1;
+                else if (patternIndex.intValue > p_removeIndex)
+                    patternIndex.intValue--;
+            }
+        }
+
+        private void EnsureMinimumCount()
+        {
+            while (_patterns.arraySize <
+                   EnemyCombatModule.MinimumPatternCount)
+            {
+                _patterns.InsertArrayElementAtIndex(
+                    _patterns.arraySize);
+            }
         }
 
         private void ReorderVisibility(
-            ReorderableList p_list,
             int p_oldIndex,
             int p_newIndex)
         {
@@ -170,16 +263,6 @@ namespace Alpha.Enemy.Editor
             _patternVisibility.MoveArrayElement(
                 p_oldIndex,
                 p_newIndex);
-        }
-
-        private void EnsureMinimumCount()
-        {
-            while (_patterns.arraySize <
-                   EnemyCombatModule.MinimumPatternCount)
-            {
-                _patterns.InsertArrayElementAtIndex(
-                    _patterns.arraySize);
-            }
         }
 
         private void EnsureVisibilityCount()
@@ -199,6 +282,10 @@ namespace Alpha.Enemy.Editor
                     .boolValue = true;
             }
         }
+
+        private bool HasDistancePatterns =>
+            _distancePatterns != null &&
+            _distancePatterns.isArray;
 
         private bool HasPatternVisibility =>
             _patternVisibility != null &&

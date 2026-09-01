@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Alpha.Enemy
 {
-    // Melee 패턴의 공간 탐지와 대상별 1회 피해 적용을 수행한다.
+    // Melee, Area, Arena가 공유하는 직접 범위 판정과 1회 피해를 수행한다.
     public sealed class EnemyMeleeAttackModule
     {
         private const int HitBufferCapacity = 32;
@@ -22,9 +22,22 @@ namespace Alpha.Enemy
             Transform p_owner,
             EnemyAttackPatternSetting p_pattern)
         {
+            return Execute(
+                p_owner,
+                p_pattern,
+                p_pattern?.MeleeArea);
+        }
+
+        public bool Execute(
+            Transform p_owner,
+            EnemyAttackPatternSetting p_pattern,
+            DetectionAreaSettings p_area)
+        {
             if (p_owner == null ||
                 p_pattern == null ||
-                !p_pattern.IsExecutable)
+                !p_pattern.IsExecutable ||
+                p_area == null ||
+                !p_area.IsValid)
             {
                 return false;
             }
@@ -36,7 +49,7 @@ namespace Alpha.Enemy
                 p_owner.forward,
                 p_owner.up,
                 p_owner,
-                p_pattern.MeleeArea);
+                p_area);
 
             int hitCount = DetectionAreaSystem.CollectHits(
                 request,

@@ -192,14 +192,9 @@ namespace Alpha.Item.Weapon.Range
                 return false;
             }
 
-            ProjectileLaunchSettings launchSettings =
-                projectileSettings.CreateLaunchSettings(
-                    _attackSettings.HitMask);
-
-            return launchSettings.Prefab.TryPredictImpact(
+            return projectileSettings.ProjectilePrefab.TryPredictImpact(
                 p_origin,
                 p_direction,
-                launchSettings,
                 MaxDistance,
                 p_simulationStep,
                 out p_result);
@@ -211,17 +206,17 @@ namespace Alpha.Item.Weapon.Range
         {
             p_damageRadius = 0f;
 
-            ProjectileDefinition definition =
-                _attackSettings?.Projectile?.Projectile;
+            ProjectileEntity projectilePrefab =
+                _attackSettings?.Projectile?.ProjectilePrefab;
 
             if (AttackType != ERangeAttackType.Projectile ||
-                definition == null ||
-                !definition.ImpactSettings.IsRadial)
+                projectilePrefab == null ||
+                !projectilePrefab.HasDamageArea)
             {
                 return false;
             }
 
-            p_damageRadius = definition.ImpactSettings.DamageRadius;
+            p_damageRadius = projectilePrefab.DamageAreaPreviewRadius;
             return p_damageRadius > 0f;
         }
 
