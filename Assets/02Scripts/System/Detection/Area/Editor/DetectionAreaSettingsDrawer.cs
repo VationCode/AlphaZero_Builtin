@@ -112,6 +112,19 @@ namespace Alpha.Detection.Editor
                 null,
                 ref lineIndex);
 
+            DrawOptionalProperty(
+                p_position,
+                p_property,
+                "_activationTimeSeconds",
+                new GUIContent("Activation Time (Seconds)"),
+                ref lineIndex);
+            DrawOptionalProperty(
+                p_position,
+                p_property,
+                "_deactivationTimeSeconds",
+                new GUIContent("Deactivation Time (Seconds)"),
+                ref lineIndex);
+
             EditorGUI.indentLevel--;
             EditorGUI.EndProperty();
         }
@@ -141,6 +154,18 @@ namespace Alpha.Detection.Editor
 
             int totalLineCount = childLineCount + 1;
 
+            if (p_property.FindPropertyRelative(
+                    "_activationTimeSeconds") != null)
+            {
+                totalLineCount++;
+            }
+
+            if (p_property.FindPropertyRelative(
+                    "_deactivationTimeSeconds") != null)
+            {
+                totalLineCount++;
+            }
+
             return totalLineCount * EditorGUIUtility.singleLineHeight +
                    (totalLineCount - 1) * VerticalSpacing;
         }
@@ -161,6 +186,27 @@ namespace Alpha.Detection.Editor
                 EditorGUI.PropertyField(lineRect, p_property, p_label);
 
             p_lineIndex++;
+        }
+
+        // 파생 Area가 소유한 추가 설정만 존재할 때 이어서 표시한다.
+        private static void DrawOptionalProperty(
+            Rect p_position,
+            SerializedProperty p_parent,
+            string p_relativeName,
+            GUIContent p_label,
+            ref int p_lineIndex)
+        {
+            SerializedProperty property =
+                p_parent.FindPropertyRelative(p_relativeName);
+
+            if (property == null)
+                return;
+
+            DrawProperty(
+                p_position,
+                property,
+                p_label,
+                ref p_lineIndex);
         }
 
         private static Rect CreateLineRect(

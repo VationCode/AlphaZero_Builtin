@@ -257,21 +257,14 @@ namespace Alpha.Enemy.View
             Color p_color,
             Color p_radialDamageColor)
         {
-            bool usesColliderTiming = DrawTimingColliders(
-                p_pattern,
-                p_color);
-
             switch (p_pattern.AttackType)
             {
                 case EEnemyAttackType.Melee:
-                    if (!usesColliderTiming)
-                    {
-                        DrawDetectionArea(
-                            p_origin.position,
-                            p_origin,
-                            p_pattern.MeleeArea,
-                            p_color);
-                    }
+                    DrawDetectionArea(
+                        p_origin.position,
+                        p_origin,
+                        p_pattern.MeleeArea,
+                        p_color);
                     break;
 
                 case EEnemyAttackType.Range:
@@ -286,104 +279,25 @@ namespace Alpha.Enemy.View
                     DrawRushPath(
                         p_origin,
                         p_pattern,
-                        p_color,
-                        !usesColliderTiming);
+                        p_color);
                     break;
 
                 case EEnemyAttackType.Area:
-                    if (!usesColliderTiming)
-                    {
-                        DrawDetectionArea(
-                            p_origin.position,
-                            p_origin,
-                            p_pattern.AreaAttackArea,
-                            p_color);
-                    }
+                    DrawDetectionArea(
+                        p_origin.position,
+                        p_origin,
+                        p_pattern.AreaAttackArea,
+                        p_color);
                     break;
 
                 case EEnemyAttackType.Arena:
-                    if (!usesColliderTiming)
-                    {
-                        DrawDetectionArea(
-                            p_origin.position,
-                            p_origin,
-                            p_pattern.ArenaAttackArea,
-                            p_color);
-                    }
+                    DrawDetectionArea(
+                        p_origin.position,
+                        p_origin,
+                        p_pattern.ArenaAttackArea,
+                        p_color);
                     break;
             }
-        }
-
-        // Collider 타이밍을 사용하면 실제 참조된 Collider와 활성 구간을 표시한다.
-        private static bool DrawTimingColliders(
-            EnemyAttackPatternSetting p_pattern,
-            Color p_color)
-        {
-            bool hasColliderTiming = false;
-            Matrix4x4 previousMatrix = Gizmos.matrix;
-
-            for (int index = 0;
-                 index < p_pattern.AttackTimingCount;
-                 index++)
-            {
-                EnemyAttackTimingSetting timing =
-                    p_pattern.GetAttackTiming(index);
-
-                if (timing == null ||
-                    timing.EventType !=
-                        EEnemyAttackTimingType.Collider ||
-                    !timing.IsExecutable(p_pattern.AttackType))
-                {
-                    continue;
-                }
-
-                Collider attackCollider = timing.AttackCollider;
-                hasColliderTiming = true;
-                Gizmos.color = p_color;
-                Gizmos.matrix =
-                    attackCollider.transform.localToWorldMatrix;
-
-                switch (attackCollider)
-                {
-                    case BoxCollider boxCollider:
-                        Gizmos.DrawWireCube(
-                            boxCollider.center,
-                            boxCollider.size);
-                        break;
-
-                    case SphereCollider sphereCollider:
-                        Gizmos.DrawWireSphere(
-                            sphereCollider.center,
-                            sphereCollider.radius);
-                        break;
-
-                    case CapsuleCollider capsuleCollider:
-                        Vector3 capsuleSize = Vector3.one *
-                                              capsuleCollider.radius * 2f;
-                        capsuleSize[capsuleCollider.direction] =
-                            capsuleCollider.height;
-                        Gizmos.DrawWireCube(
-                            capsuleCollider.center,
-                            capsuleSize);
-                        break;
-
-                    case MeshCollider meshCollider
-                        when meshCollider.sharedMesh != null:
-                        Gizmos.DrawWireMesh(meshCollider.sharedMesh);
-                        break;
-                }
-
-#if UNITY_EDITOR
-                Handles.color = p_color;
-                Handles.Label(
-                    attackCollider.transform.position,
-                    $"Collider {timing.StartTimeSeconds:0.00}s" +
-                    $" - {timing.EndTimeSeconds:0.00}s");
-#endif
-            }
-
-            Gizmos.matrix = previousMatrix;
-            return hasColliderTiming;
         }
 
         private static void DrawRangePath(
@@ -502,8 +416,7 @@ namespace Alpha.Enemy.View
         private void DrawRushPath(
             Transform p_origin,
             EnemyAttackPatternSetting p_pattern,
-            Color p_color,
-            bool p_drawDamageArea)
+            Color p_color)
         {
             Vector3 startPosition = p_origin.position;
             Vector3 endPosition = startPosition +
@@ -514,9 +427,6 @@ namespace Alpha.Enemy.View
 
             Color destinationColor = p_color;
             destinationColor.a *= 0.45f;
-
-            if (!p_drawDamageArea)
-                return;
 
             DrawDetectionArea(
                 startPosition,

@@ -1885,10 +1885,10 @@ MonoBehaviour:
         z: 13.57892
       Rotation:
         value:
-          x: 0.061516542
-          y: 0.65749395
-          z: 0.08566881
-          w: 0.7460417
+          x: 0.061516553
+          y: 0.65749407
+          z: 0.0856688
+          w: 0.74604166
     - Position:
         x: 22.808002
         y: 3.5
@@ -16747,11 +16747,6 @@ MonoBehaviour:
     _legacyMinimumDistance: 20
     _legacySelectionWeight: 0.5
     _animationIndex: 0
-    _attackTimings:
-    - _eventType: 0
-      _startTimeSeconds: 0.5
-      _attackCollider: {fileID: 0}
-      _endTimeSeconds: 0.65
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -16784,11 +16779,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 3545723848553843725, guid: 8b883644dc831174db6b2b3d7c005949, type: 3}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -16828,6 +16826,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -16840,6 +16840,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -16852,24 +16854,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: RangeAttack2
     _attackType: 1
     _legacyMinimumDistance: 20
     _legacySelectionWeight: 0.5
     _animationIndex: 1
-    _attackTimings:
-    - _eventType: 0
-      _startTimeSeconds: 0.8
-      _attackCollider: {fileID: 0}
-      _endTimeSeconds: 1.01
-    - _eventType: 0
-      _startTimeSeconds: 1.41
-      _attackCollider: {fileID: 0}
-      _endTimeSeconds: 1.46
-    - _eventType: 0
-      _startTimeSeconds: 2.64
-      _attackCollider: {fileID: 0}
-      _endTimeSeconds: 2.64
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -16902,6 +16893,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 1
     _projectileSpawnPoint: {fileID: 1167160728}
     _additionalProjectileSpawnPoints:
@@ -16911,6 +16904,7 @@ MonoBehaviour:
     - {fileID: 147359179}
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 7522389857617393212, guid: 12c83bd752481a14e833d264d7edcf41, type: 3}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -16950,6 +16944,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -16962,6 +16958,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -16974,16 +16972,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: RushAttack
     _attackType: 2
     _legacyMinimumDistance: 20
     _legacySelectionWeight: 0.5
     _animationIndex: 0
-    _attackTimings:
-    - _eventType: 1
-      _startTimeSeconds: 0
-      _attackCollider: {fileID: 0}
-      _endTimeSeconds: 0
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -16995,7 +16990,7 @@ MonoBehaviour:
           _distance: 2
           _duration: 1.5
         _knockdownKnockback:
-          _distance: 10
+          _distance: 15
           _duration: 1
         _launchKnockback:
           _distance: 0
@@ -17016,11 +17011,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 1.9
     _rushMovementCurve:
@@ -17060,6 +17058,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 2
+      _deactivationTimeSeconds: 2.3
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17072,6 +17072,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17084,12 +17086,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: MeleeAttack
     _attackType: 0
     _legacyMinimumDistance: 0
     _legacySelectionWeight: 1
     _animationIndex: 0
-    _attackTimings: []
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -17122,11 +17125,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -17166,6 +17172,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17178,6 +17186,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17190,12 +17200,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: MeleeAttack2
     _attackType: 0
     _legacyMinimumDistance: 0
     _legacySelectionWeight: 1
     _animationIndex: 1
-    _attackTimings: []
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -17228,11 +17239,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -17272,6 +17286,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17284,6 +17300,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17296,12 +17314,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: MeleeAttack3
     _attackType: 0
     _legacyMinimumDistance: 0
     _legacySelectionWeight: 1
     _animationIndex: 2
-    _attackTimings: []
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -17334,11 +17353,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -17378,6 +17400,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17390,6 +17414,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17402,12 +17428,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: AreaAttack
     _attackType: 3
     _legacyMinimumDistance: 0
     _legacySelectionWeight: 1
     _animationIndex: 0
-    _attackTimings: []
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -17440,11 +17467,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -17484,6 +17514,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 2
       _localOffset: {x: 0, y: 2, z: 0}
@@ -17496,6 +17528,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17508,12 +17542,13 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
   - _patternName: ArenaAttack
     _attackType: 4
     _legacyMinimumDistance: 0
     _legacySelectionWeight: 1
     _animationIndex: 0
-    _attackTimings: []
     _damageProfile:
       _damage: 10
       _impactSettings:
@@ -17546,11 +17581,14 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _rangeDirectionType: 0
     _projectileSpawnPoint: {fileID: 1204729097}
     _additionalProjectileSpawnPoints: []
     _projectileMaximumDistance: 55
     _projectilePrefab: {fileID: 0}
+    _projectileFireTimesSeconds: []
     _rushJumpStartTimeSeconds: 0.53
     _rushLandingTimeSeconds: 2.1
     _rushMovementCurve:
@@ -17590,6 +17628,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _areaAttackArea:
       _shape: 0
       _localOffset: {x: 0, y: 0.9, z: 0}
@@ -17602,6 +17642,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 4294967295
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
     _arenaAttackArea:
       _shape: 2
       _localOffset: {x: 0, y: 2, z: 0}
@@ -17614,6 +17656,8 @@ MonoBehaviour:
       _targetLayers:
         serializedVersion: 2
         m_Bits: 64
+      _activationTimeSeconds: 0
+      _deactivationTimeSeconds: 0.1
 --- !u!65 &8701000000000200
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -17627,9 +17671,9 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3

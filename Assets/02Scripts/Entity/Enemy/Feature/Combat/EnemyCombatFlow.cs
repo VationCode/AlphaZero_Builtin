@@ -192,7 +192,7 @@ namespace Alpha.Enemy
             }
         }
 
-        // Animation View의 경과 초를 실행 중인 패턴의 복수 타이밍에 전달한다.
+        // Animation View의 경과 초를 Area 활성 구간과 Projectile 발사 시점에 전달한다.
         public void NotifyAttackAnimationElapsed(
             float p_elapsedSeconds,
             float p_durationSeconds)

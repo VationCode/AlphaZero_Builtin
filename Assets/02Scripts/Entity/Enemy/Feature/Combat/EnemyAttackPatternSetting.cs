@@ -1,6 +1,5 @@
 using System;
 using Alpha.Combat;
-using Alpha.Detection;
 using UnityEngine;
 using UnityEngine.Serialization;
 using ProjectileEntity = Alpha.Projectile.Projectile;
@@ -39,17 +38,11 @@ namespace Alpha.Enemy
         [SerializeField, Min(-1)]
         private int _animationIndex = -1;
 
-        [Tooltip(
-            "공격 애니메이션 진행 중 발사체 또는 공격 Collider를 실행할 복수 타이밍입니다.")]
-        [SerializeField]
-        private EnemyAttackTimingSetting[] _attackTimings =
-            Array.Empty<EnemyAttackTimingSetting>();
-
         [SerializeField]
         private DamageProfile _damageProfile = new();
 
         [SerializeField]
-        private DetectionAreaSettings _meleeArea = new();
+        private EnemyAttackAreaSetting _meleeArea = new();
 
         [Tooltip(
             "Target은 각 FirePos에서 현재 타겟을 조준하고, " +
@@ -78,6 +71,12 @@ namespace Alpha.Enemy
         private ProjectileEntity _projectilePrefab;
 
         [Tooltip(
+            "공격 애니메이션 시작 후 Projectile을 발사할 시간 목록입니다. " +
+            "비어 있으면 공격 시작 시 한 번 발사합니다.")]
+        [SerializeField]
+        private float[] _projectileFireTimesSeconds = Array.Empty<float>();
+
+        [Tooltip(
             "Rush 애니메이션 시작 후 수평 이동을 시작할 점프 시점(초)입니다. " +
             "이 시점 전에는 제자리에서 준비 동작을 재생합니다.")]
         [SerializeField, Min(0f)]
@@ -104,15 +103,15 @@ namespace Alpha.Enemy
         private float _rushPreviewDistance = 5f;
 
         [SerializeField]
-        private DetectionAreaSettings _rushArea = new();
+        private EnemyAttackAreaSetting _rushArea = new();
 
         [Tooltip("보스 중심에서 즉시 판정할 Area 공격 범위입니다.")]
         [SerializeField]
-        private DetectionAreaSettings _areaAttackArea = new();
+        private EnemyAttackAreaSetting _areaAttackArea = new();
 
         [Tooltip("전장 규모로 판정할 Arena 공격 범위입니다.")]
         [SerializeField]
-        private DetectionAreaSettings _arenaAttackArea = new();
+        private EnemyAttackAreaSetting _arenaAttackArea = new();
 
         public string PatternName => _patternName;
         public EEnemyAttackType AttackType => _attackType;
@@ -121,9 +120,8 @@ namespace Alpha.Enemy
         public float LegacySelectionWeight =>
             _legacySelectionWeight;
         public int AnimationIndex => _animationIndex;
-        public int AttackTimingCount => _attackTimings?.Length ?? 0;
         public DamageProfile DamageProfile => _damageProfile;
-        public DetectionAreaSettings MeleeArea => _meleeArea;
+        public EnemyAttackAreaSetting MeleeArea => _meleeArea;
         public EEnemyRangeDirectionType RangeDirectionType =>
             _rangeDirectionType;
         public Transform ProjectileSpawnPoint => _projectileSpawnPoint;
@@ -132,6 +130,8 @@ namespace Alpha.Enemy
         public float ProjectileMaximumDistance =>
             _projectileMaximumDistance;
         public ProjectileEntity ProjectilePrefab => _projectilePrefab;
+        public int ProjectileFireTimeCount =>
+            _projectileFireTimesSeconds?.Length ?? 0;
         public float RushJumpStartTimeSeconds =>
             Mathf.Max(0f, _rushJumpStartTimeSeconds);
         public float RushLandingTimeSeconds =>
@@ -139,17 +139,17 @@ namespace Alpha.Enemy
                 ? _rushLandingTimeSeconds
                 : 2.1f;
         public float RushPreviewDistance => _rushPreviewDistance;
-        public DetectionAreaSettings RushArea => _rushArea;
-        public DetectionAreaSettings AreaAttackArea =>
+        public EnemyAttackAreaSetting RushArea => _rushArea;
+        public EnemyAttackAreaSetting AreaAttackArea =>
             _areaAttackArea;
-        public DetectionAreaSettings ArenaAttackArea =>
+        public EnemyAttackAreaSetting ArenaAttackArea =>
             _arenaAttackArea;
 
-        public EnemyAttackTimingSetting GetAttackTiming(int p_index)
+        public float GetProjectileFireTime(int p_index)
         {
-            return p_index >= 0 && p_index < AttackTimingCount
-                ? _attackTimings[p_index]
-                : null;
+            return p_index >= 0 && p_index < ProjectileFireTimeCount
+                ? Mathf.Max(0f, _projectileFireTimesSeconds[p_index])
+                : 0f;
         }
 
         // 첫 슬롯은 기존 SpawnPoint이며 이후 슬롯은 추가 FirePos 배열을 반환한다.
@@ -165,25 +165,6 @@ namespace Alpha.Enemy
                        (_additionalProjectileSpawnPoints?.Length ?? 0)
                 ? _additionalProjectileSpawnPoints[additionalIndex]
                 : null;
-        }
-
-        public bool HasExecutableTiming(
-            EEnemyAttackTimingType p_eventType)
-        {
-            for (int index = 0; index < AttackTimingCount; index++)
-            {
-                EnemyAttackTimingSetting timing =
-                    _attackTimings[index];
-
-                if (timing != null &&
-                    timing.EventType == p_eventType &&
-                    timing.IsExecutable(_attackType))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         // Rush 애니메이션 진행률에 대응하는 이동 진행률을 반환한다.
@@ -213,9 +194,7 @@ namespace Alpha.Enemy
             (_attackType switch
             {
                 EEnemyAttackType.Melee =>
-                    HasExecutableTiming(
-                        EEnemyAttackTimingType.Collider) ||
-                    (_meleeArea != null && _meleeArea.IsValid),
+                    _meleeArea?.IsExecutable == true,
 
                 EEnemyAttackType.Range =>
                     _projectileMaximumDistance > 0f &&
@@ -223,21 +202,13 @@ namespace Alpha.Enemy
                     _projectilePrefab.IsConfigurationValid,
 
                 EEnemyAttackType.Rush =>
-                    (HasExecutableTiming(
-                         EEnemyAttackTimingType.Collider) ||
-                     (_rushArea != null && _rushArea.IsValid)),
+                    _rushArea?.IsExecutable == true,
 
                 EEnemyAttackType.Area =>
-                    HasExecutableTiming(
-                        EEnemyAttackTimingType.Collider) ||
-                    (_areaAttackArea != null &&
-                     _areaAttackArea.IsValid),
+                    _areaAttackArea?.IsExecutable == true,
 
                 EEnemyAttackType.Arena =>
-                    HasExecutableTiming(
-                        EEnemyAttackTimingType.Collider) ||
-                    (_arenaAttackArea != null &&
-                     _arenaAttackArea.IsValid),
+                    _arenaAttackArea?.IsExecutable == true,
 
                 _ => false
             });
@@ -247,25 +218,24 @@ namespace Alpha.Enemy
         {
             _patternName ??= string.Empty;
             _animationIndex = Mathf.Max(-1, _animationIndex);
-            _attackTimings ??=
-                Array.Empty<EnemyAttackTimingSetting>();
             _additionalProjectileSpawnPoints ??=
                 Array.Empty<Transform>();
+            _projectileFireTimesSeconds ??= Array.Empty<float>();
 
             for (int index = 0;
-                 index < _attackTimings.Length;
+                 index < _projectileFireTimesSeconds.Length;
                  index++)
             {
-                _attackTimings[index] ??=
-                    new EnemyAttackTimingSetting();
-                _attackTimings[index].Validate();
+                _projectileFireTimesSeconds[index] = Mathf.Max(
+                    0f,
+                    _projectileFireTimesSeconds[index]);
             }
 
             _damageProfile ??= new DamageProfile();
-            _meleeArea ??= new DetectionAreaSettings();
-            _rushArea ??= new DetectionAreaSettings();
-            _areaAttackArea ??= new DetectionAreaSettings();
-            _arenaAttackArea ??= new DetectionAreaSettings();
+            _meleeArea ??= new EnemyAttackAreaSetting();
+            _rushArea ??= new EnemyAttackAreaSetting();
+            _areaAttackArea ??= new EnemyAttackAreaSetting();
+            _arenaAttackArea ??= new EnemyAttackAreaSetting();
 
             _damageProfile.Validate();
             _meleeArea.Validate();

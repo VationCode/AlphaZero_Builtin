@@ -803,11 +803,8 @@ MonoBehaviour:
     _legacyMinimumDistance: 5
     _legacySelectionWeight: 1
     _animationIndex: 0
-    _attackTimings:
-    - _eventType: 0
-      _startNormalizedTime: 0.5
-      _attackCollider: {fileID: 0}
-      _endNormalizedTime: 0.65
+    _projectileFireTimesSeconds:
+    - 0.5
     _damageProfile:
       _damage: 10
       _impactSettings:

@@ -14,7 +14,7 @@ namespace Alpha.Detection
 
     // Entity 종류와 관계없이 영역 형태와 Physics 검색 조건을 보관한다.
     [Serializable]
-    public sealed class DetectionAreaSettings
+    public class DetectionAreaSettings
     {
         [SerializeField]
         private EDetectionAreaShape _shape =
@@ -77,7 +77,7 @@ namespace Alpha.Detection
         };
 
         // 모든 Shape 값을 보정해 형태 변경 후에도 안전한 설정을 유지한다.
-        public void Validate()
+        public virtual void Validate()
         {
             _yawOffset = Mathf.Clamp(_yawOffset, -180f, 180f);
             _width = Mathf.Max(0.01f, _width);

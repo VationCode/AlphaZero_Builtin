@@ -45,16 +45,6 @@ namespace Alpha.Enemy.Editor
             SerializedProperty attackType =
                 p_property.FindPropertyRelative("_attackType");
 
-            DrawSectionHeader(
-                p_position,
-                "Animation Timing Events",
-                ref currentY);
-            DrawProperty(
-                p_position,
-                p_property,
-                "_attackTimings",
-                ref currentY);
-
             DrawSectionHeader(p_position, "Damage", ref currentY);
             DrawProperty(p_position, p_property, "_damageProfile", ref currentY);
 
@@ -95,9 +85,6 @@ namespace Alpha.Enemy.Editor
 
             SerializedProperty attackType =
                 p_property.FindPropertyRelative("_attackType");
-
-            AddSectionHeaderHeight(ref height);
-            AddPropertyHeight(p_property, "_attackTimings", ref height);
 
             AddSectionHeaderHeight(ref height);
             AddPropertyHeight(p_property, "_damageProfile", ref height);
@@ -163,6 +150,7 @@ namespace Alpha.Enemy.Editor
                     DrawProperty(p_position, p_property, "_additionalProjectileSpawnPoints", ref p_currentY);
                     DrawProperty(p_position, p_property, "_projectileMaximumDistance", ref p_currentY);
                     DrawProperty(p_position, p_property, "_projectilePrefab", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_projectileFireTimesSeconds", ref p_currentY);
                     break;
 
                 case EEnemyAttackType.Rush:
@@ -208,6 +196,7 @@ namespace Alpha.Enemy.Editor
                     AddPropertyHeight(p_property, "_additionalProjectileSpawnPoints", ref p_height);
                     AddPropertyHeight(p_property, "_projectileMaximumDistance", ref p_height);
                     AddPropertyHeight(p_property, "_projectilePrefab", ref p_height);
+                    AddPropertyHeight(p_property, "_projectileFireTimesSeconds", ref p_height);
                     break;
 
                 case EEnemyAttackType.Rush:

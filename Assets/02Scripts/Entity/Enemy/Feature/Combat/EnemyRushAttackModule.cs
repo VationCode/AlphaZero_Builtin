@@ -61,8 +61,7 @@ namespace Alpha.Enemy
             Transform p_owner,
             EnemyLocomotionModule p_locomotion,
             EnemyAttackPatternSetting p_pattern,
-            float p_deltaTime,
-            bool p_applyBuiltInDamage)
+            float p_deltaTime)
         {
             if (!IsActive ||
                 p_owner == null ||
@@ -103,8 +102,11 @@ namespace Alpha.Enemy
 
             _appliedMovementProgress = movementProgress;
 
-            if (p_applyBuiltInDamage)
+            if (p_pattern.RushArea.IsActive(
+                    _animationElapsedTime))
+            {
                 ApplyDamage(p_owner, p_pattern);
+            }
         }
 
         // 실제 Animation 시간 중 점프 시작부터 착지 시점까지만 이동 구간으로 사용한다.

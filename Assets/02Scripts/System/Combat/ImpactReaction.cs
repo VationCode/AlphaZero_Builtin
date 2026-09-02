@@ -27,7 +27,7 @@ namespace Alpha.Combat
     [Serializable]
     public sealed class HitTypeKnockbackSettings
     {
-        private const float MaximumDistance = 10f;
+        private const float MaximumDistance = 20f;
         private const float MaximumDuration = 2f;
 
         [Tooltip("이 공격이 피격자를 밀어낼 거리입니다.")]

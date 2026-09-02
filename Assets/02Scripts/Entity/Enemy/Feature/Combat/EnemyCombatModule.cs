@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Alpha.Combat;
 using Alpha.Utility;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -35,18 +33,12 @@ namespace Alpha.Enemy
         private readonly EnemyMeleeAttackModule _meleeAttack = new();
         private readonly EnemyRangeAttackModule _rangeAttack = new();
         private readonly EnemyRushAttackModule _rushAttack = new();
-        private readonly Dictionary<Collider, int>
-            _activeTimingColliderCounts = new();
-        private readonly Dictionary<Collider, EnemyAttackColliderSource>
-            _activeTimingColliderSources = new();
 
         private Transform _currentTarget;
         private EnemyAttackPatternSetting _currentPattern;
         private bool _didActivateAttack;
-        private bool[] _startedAttackTimings = Array.Empty<bool>();
-        private bool[] _completedAttackTimings = Array.Empty<bool>();
+        private bool[] _firedProjectileTimes = Array.Empty<bool>();
         private float _lastAttackElapsedTime = -1f;
-        private int _nextAttackId = 1;
 
         public int PatternCount => _patternSettings?.Count ?? 0;
         public int DistancePatternCount =>
@@ -64,7 +56,6 @@ namespace Alpha.Enemy
             _owner = p_owner;
             EnsureSettings();
             CancelAttack(null);
-            DisableAllConfiguredAttackColliders();
         }
 
         public EnemyAttackPatternSetting GetPattern(int p_index)
@@ -227,7 +218,7 @@ namespace Alpha.Enemy
             _currentPattern = p_pattern;
             _currentTarget = p_target;
             _didActivateAttack = false;
-            PrepareAttackTimingExecution();
+            PrepareAttackExecution();
 
             return true;
         }
@@ -261,12 +252,10 @@ namespace Alpha.Enemy
                 ResolveOwner(),
                 p_locomotion,
                 _currentPattern,
-                p_deltaTime,
-                !_currentPattern.HasExecutableTiming(
-                    EEnemyAttackTimingType.Collider));
+                p_deltaTime);
         }
 
-        // Animation View가 전달한 경과 초에서 아직 실행하지 않은 타이밍을 처리한다.
+        // Animation View가 전달한 경과 초에서 Area와 Projectile 실행 시점을 처리한다.
         public void UpdateAttackAnimationTime(
             float p_elapsedSeconds,
             float p_durationSeconds)
@@ -274,7 +263,14 @@ namespace Alpha.Enemy
             if (!IsAttackActivated)
                 return;
 
-            ProcessAttackTimings(Mathf.Max(0f, p_elapsedSeconds));
+            float elapsedSeconds = Mathf.Max(0f, p_elapsedSeconds);
+
+            ProcessProjectileFireTimes(elapsedSeconds);
+            ProcessAttackArea(elapsedSeconds);
+
+            _lastAttackElapsedTime = Mathf.Max(
+                _lastAttackElapsedTime,
+                elapsedSeconds);
 
             if (_currentPattern.AttackType == EEnemyAttackType.Rush)
             {
@@ -301,7 +297,7 @@ namespace Alpha.Enemy
         public void EndAttackExecution(
             EnemyLocomotionModule p_locomotion)
         {
-            ResetAttackTimingExecution();
+            ResetAttackExecution();
             _rushAttack.End();
 
             if (_currentPattern != null &&
@@ -370,20 +366,17 @@ namespace Alpha.Enemy
         private void BeginCurrentAttack()
         {
             Transform owner = ResolveOwner();
-            bool usesColliderTiming =
-                _currentPattern.HasExecutableTiming(
-                    EEnemyAttackTimingType.Collider);
 
             switch (_currentPattern.AttackType)
             {
                 case EEnemyAttackType.Melee:
-                    if (!usesColliderTiming)
-                        _meleeAttack.Execute(owner, _currentPattern);
+                case EEnemyAttackType.Area:
+                case EEnemyAttackType.Arena:
+                    _meleeAttack.Begin();
                     break;
 
                 case EEnemyAttackType.Range:
-                    if (!_currentPattern.HasExecutableTiming(
-                            EEnemyAttackTimingType.Projectile))
+                    if (_currentPattern.ProjectileFireTimeCount == 0)
                     {
                         _rangeAttack.Execute(
                             owner,
@@ -398,114 +391,88 @@ namespace Alpha.Enemy
                         _currentTarget,
                         _currentPattern);
                     break;
-
-                case EEnemyAttackType.Area:
-                    if (!usesColliderTiming)
-                    {
-                        _meleeAttack.Execute(
-                            owner,
-                            _currentPattern,
-                            _currentPattern.AreaAttackArea);
-                    }
-                    break;
-
-                case EEnemyAttackType.Arena:
-                    if (!usesColliderTiming)
-                    {
-                        _meleeAttack.Execute(
-                            owner,
-                            _currentPattern,
-                            _currentPattern.ArenaAttackArea);
-                    }
-                    break;
             }
         }
 
-        private void PrepareAttackTimingExecution()
+        private void PrepareAttackExecution()
         {
-            ResetAttackTimingExecution();
+            ResetAttackExecution();
 
-            int timingCount = _currentPattern?.AttackTimingCount ?? 0;
+            int fireTimeCount =
+                _currentPattern?.ProjectileFireTimeCount ?? 0;
 
-            if (_startedAttackTimings.Length != timingCount)
+            if (_firedProjectileTimes.Length != fireTimeCount)
             {
-                _startedAttackTimings = new bool[timingCount];
-                _completedAttackTimings = new bool[timingCount];
+                _firedProjectileTimes = new bool[fireTimeCount];
             }
             else
             {
-                Array.Clear(_startedAttackTimings, 0, timingCount);
-                Array.Clear(_completedAttackTimings, 0, timingCount);
+                Array.Clear(
+                    _firedProjectileTimes,
+                    0,
+                    fireTimeCount);
             }
 
             _lastAttackElapsedTime = -1f;
         }
 
-        private void ProcessAttackTimings(float p_elapsedSeconds)
+        private void ProcessProjectileFireTimes(float p_elapsedSeconds)
         {
-            int timingCount = _currentPattern.AttackTimingCount;
+            if (_currentPattern.AttackType != EEnemyAttackType.Range)
+                return;
 
-            for (int index = 0; index < timingCount; index++)
+            int fireTimeCount = _currentPattern.ProjectileFireTimeCount;
+
+            for (int index = 0; index < fireTimeCount; index++)
             {
-                EnemyAttackTimingSetting timing =
-                    _currentPattern.GetAttackTiming(index);
-
-                if (timing == null ||
-                    !timing.IsExecutable(_currentPattern.AttackType))
-                {
-                    continue;
-                }
-
-                bool startedThisUpdate = false;
-
-                if (!_startedAttackTimings[index] &&
-                    HasReachedTiming(
-                        timing.StartTimeSeconds,
+                if (_firedProjectileTimes[index] ||
+                    !HasReachedTime(
+                        _currentPattern.GetProjectileFireTime(index),
                         p_elapsedSeconds))
                 {
-                    _startedAttackTimings[index] = true;
-                    startedThisUpdate = true;
-
-                    switch (timing.EventType)
-                    {
-                        case EEnemyAttackTimingType.Projectile:
-                            _rangeAttack.Execute(
-                                ResolveOwner(),
-                                _currentTarget,
-                                _currentPattern);
-                            _completedAttackTimings[index] = true;
-                            break;
-
-                        case EEnemyAttackTimingType.Collider:
-                            if (!ActivateTimingCollider(
-                                    timing.AttackCollider))
-                            {
-                                _completedAttackTimings[index] = true;
-                            }
-                            break;
-                    }
-                }
-
-                if (timing.EventType !=
-                        EEnemyAttackTimingType.Collider ||
-                    !_startedAttackTimings[index] ||
-                    _completedAttackTimings[index] ||
-                    startedThisUpdate ||
-                    p_elapsedSeconds < timing.EndTimeSeconds)
-                {
                     continue;
                 }
 
-                DeactivateTimingCollider(timing.AttackCollider);
-                _completedAttackTimings[index] = true;
+                _firedProjectileTimes[index] = true;
+                _rangeAttack.Execute(
+                    ResolveOwner(),
+                    _currentTarget,
+                    _currentPattern);
             }
 
-            _lastAttackElapsedTime = Mathf.Max(
-                _lastAttackElapsedTime,
-                p_elapsedSeconds);
         }
 
-        private bool HasReachedTiming(
+        private void ProcessAttackArea(float p_elapsedSeconds)
+        {
+            Transform owner = ResolveOwner();
+            EnemyAttackAreaSetting area =
+                _currentPattern.AttackType switch
+                {
+                    EEnemyAttackType.Melee =>
+                        _currentPattern.MeleeArea,
+                    EEnemyAttackType.Area =>
+                        _currentPattern.AreaAttackArea,
+                    EEnemyAttackType.Arena =>
+                        _currentPattern.ArenaAttackArea,
+                    _ => null
+                };
+
+            if (area == null ||
+                (!area.IsActive(p_elapsedSeconds) &&
+                 !HasReachedTime(
+                     area.ActivationTimeSeconds,
+                     p_elapsedSeconds)))
+            {
+                return;
+            }
+
+            _meleeAttack.Execute(
+                owner,
+                _currentPattern,
+                area);
+        }
+
+        private bool HasReachedTime(
             float p_timingSeconds,
             float p_currentElapsedTime)
         {
@@ -514,127 +481,14 @@ namespace Alpha.Enemy
                     _lastAttackElapsedTime < p_timingSeconds);
         }
 
-        private bool ActivateTimingCollider(Collider p_collider)
+        private void ResetAttackExecution()
         {
-            if (p_collider == null)
-                return false;
-
-            if (_activeTimingColliderCounts.TryGetValue(
-                    p_collider,
-                    out int activeCount))
-            {
-                _activeTimingColliderCounts[p_collider] =
-                    activeCount + 1;
-                return true;
-            }
-
-            EnemyAttackColliderSource source =
-                p_collider.GetComponent<EnemyAttackColliderSource>() ??
-                p_collider.gameObject.AddComponent<
-                    EnemyAttackColliderSource>();
-
-            AttackSession session = new(
-                GetNextAttackId(),
-                ResolveOwner(),
-                _currentPattern.DamageProfile);
-
-            if (!source.Activate(p_collider, session))
-                return false;
-
-            if (!p_collider.isTrigger)
-            {
-                Debug.LogWarning(
-                    $"[{name}] 공격 Collider는 Trigger 설정이 필요합니다: " +
-                    p_collider.name,
-                    p_collider);
-            }
-
-            _activeTimingColliderCounts.Add(p_collider, 1);
-            _activeTimingColliderSources.Add(p_collider, source);
-            return true;
-        }
-
-        private void DeactivateTimingCollider(Collider p_collider)
-        {
-            if (p_collider == null ||
-                !_activeTimingColliderCounts.TryGetValue(
-                    p_collider,
-                    out int activeCount))
-            {
-                return;
-            }
-
-            activeCount--;
-
-            if (activeCount > 0)
-            {
-                _activeTimingColliderCounts[p_collider] = activeCount;
-                return;
-            }
-
-            if (_activeTimingColliderSources.TryGetValue(
-                    p_collider,
-                    out EnemyAttackColliderSource source))
-            {
-                source.Deactivate();
-            }
-            else
-            {
-                p_collider.enabled = false;
-            }
-
-            _activeTimingColliderCounts.Remove(p_collider);
-            _activeTimingColliderSources.Remove(p_collider);
-        }
-
-        private void ResetAttackTimingExecution()
-        {
-            foreach (EnemyAttackColliderSource source in
-                     _activeTimingColliderSources.Values)
-            {
-                source?.Deactivate();
-            }
-
-            _activeTimingColliderCounts.Clear();
-            _activeTimingColliderSources.Clear();
+            _meleeAttack.End();
+            Array.Clear(
+                _firedProjectileTimes,
+                0,
+                _firedProjectileTimes.Length);
             _lastAttackElapsedTime = -1f;
-        }
-
-        private void DisableAllConfiguredAttackColliders()
-        {
-            for (int patternIndex = 0;
-                 patternIndex < PatternCount;
-                 patternIndex++)
-            {
-                EnemyAttackPatternSetting pattern =
-                    GetPattern(patternIndex);
-
-                for (int timingIndex = 0;
-                     timingIndex < (pattern?.AttackTimingCount ?? 0);
-                     timingIndex++)
-                {
-                    Collider attackCollider = pattern
-                        .GetAttackTiming(timingIndex)
-                        ?.AttackCollider;
-
-                    if (attackCollider == null)
-                        continue;
-
-                    attackCollider
-                        .GetComponent<EnemyAttackColliderSource>()
-                        ?.Deactivate();
-                    attackCollider.enabled = false;
-                }
-            }
-        }
-
-        private int GetNextAttackId()
-        {
-            int attackId = _nextAttackId;
-            _nextAttackId = _nextAttackId == int.MaxValue
-                ? 1
-                : _nextAttackId + 1;
-            return attackId;
         }
 
         private void ClearCurrentAttack()

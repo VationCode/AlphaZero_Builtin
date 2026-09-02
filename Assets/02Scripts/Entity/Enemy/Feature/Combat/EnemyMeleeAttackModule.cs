@@ -18,6 +18,16 @@ namespace Alpha.Enemy
 
         private readonly HashSet<IDamageable> _damagedTargets = new();
 
+        public void Begin()
+        {
+            _damagedTargets.Clear();
+        }
+
+        public void End()
+        {
+            _damagedTargets.Clear();
+        }
+
         public bool Execute(
             Transform p_owner,
             EnemyAttackPatternSetting p_pattern)
@@ -57,7 +67,6 @@ namespace Alpha.Enemy
                 _hitBuffer);
 
             bool hasAppliedDamage = false;
-            _damagedTargets.Clear();
 
             for (int index = 0; index < hitCount; index++)
             {
