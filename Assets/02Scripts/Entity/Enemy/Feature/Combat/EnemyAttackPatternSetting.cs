@@ -77,11 +77,31 @@ namespace Alpha.Enemy
         [SerializeField]
         private ProjectileEntity _projectilePrefab;
 
-        [SerializeField, Min(0.01f)]
-        private float _rushSpeed = 8f;
+        [Tooltip(
+            "Rush 애니메이션 시작 후 수평 이동을 시작할 점프 시점(초)입니다. " +
+            "이 시점 전에는 제자리에서 준비 동작을 재생합니다.")]
+        [SerializeField, Min(0f)]
+        private float _rushJumpStartTimeSeconds = 0.53f;
 
+        [Tooltip(
+            "Rush 애니메이션 시작 후 목표 위치에 도착할 착지 시점(초)입니다. " +
+            "실제 애니메이션 길이보다 길면 애니메이션 종료 시점으로 제한됩니다.")]
         [SerializeField, Min(0.01f)]
-        private float _rushDistance = 5f;
+        private float _rushLandingTimeSeconds = 2.1f;
+
+        [Tooltip(
+            "Rush 시작부터 착지 시점까지의 진행률을 실제 이동 진행률로 변환합니다. " +
+            "X는 착지 진행률, Y는 이동 진행률입니다.")]
+        [SerializeField]
+        private AnimationCurve _rushMovementCurve =
+            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [FormerlySerializedAs("_rushDistance")]
+        [Tooltip(
+            "타겟이 없는 Editor Gizmo에서 Rush 경로를 표시할 거리입니다. " +
+            "실제 이동 목적지는 공격 시작 시점의 타겟 위치입니다.")]
+        [SerializeField, Min(0.01f)]
+        private float _rushPreviewDistance = 5f;
 
         [SerializeField]
         private DetectionAreaSettings _rushArea = new();
@@ -112,8 +132,13 @@ namespace Alpha.Enemy
         public float ProjectileMaximumDistance =>
             _projectileMaximumDistance;
         public ProjectileEntity ProjectilePrefab => _projectilePrefab;
-        public float RushSpeed => _rushSpeed;
-        public float RushDistance => _rushDistance;
+        public float RushJumpStartTimeSeconds =>
+            Mathf.Max(0f, _rushJumpStartTimeSeconds);
+        public float RushLandingTimeSeconds =>
+            _rushLandingTimeSeconds > 0f
+                ? _rushLandingTimeSeconds
+                : 2.1f;
+        public float RushPreviewDistance => _rushPreviewDistance;
         public DetectionAreaSettings RushArea => _rushArea;
         public DetectionAreaSettings AreaAttackArea =>
             _areaAttackArea;
@@ -161,6 +186,27 @@ namespace Alpha.Enemy
             return false;
         }
 
+        // Rush 애니메이션 진행률에 대응하는 이동 진행률을 반환한다.
+        public float EvaluateRushMovement(float p_normalizedTime)
+        {
+            float normalizedTime = Mathf.Clamp01(p_normalizedTime);
+
+            if (normalizedTime <= 0f)
+                return 0f;
+
+            if (normalizedTime >= 1f)
+                return 1f;
+
+            if (_rushMovementCurve == null ||
+                _rushMovementCurve.length == 0)
+            {
+                return Mathf.SmoothStep(0f, 1f, normalizedTime);
+            }
+
+            return Mathf.Clamp01(
+                _rushMovementCurve.Evaluate(normalizedTime));
+        }
+
         public bool IsExecutable =>
             _damageProfile != null &&
             _damageProfile.IsValid &&
@@ -177,8 +223,6 @@ namespace Alpha.Enemy
                     _projectilePrefab.IsConfigurationValid,
 
                 EEnemyAttackType.Rush =>
-                    _rushSpeed > 0f &&
-                    _rushDistance > 0f &&
                     (HasExecutableTiming(
                          EEnemyAttackTimingType.Collider) ||
                      (_rushArea != null && _rushArea.IsValid)),
@@ -233,8 +277,22 @@ namespace Alpha.Enemy
                 0.01f,
                 _projectileMaximumDistance);
 
-            _rushSpeed = Mathf.Max(0.01f, _rushSpeed);
-            _rushDistance = Mathf.Max(0.01f, _rushDistance);
+            _rushMovementCurve ??=
+                AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+            _rushJumpStartTimeSeconds = Mathf.Max(
+                0f,
+                _rushJumpStartTimeSeconds);
+
+            if (_rushLandingTimeSeconds <= 0f)
+                _rushLandingTimeSeconds = 2.1f;
+
+            _rushLandingTimeSeconds = Mathf.Max(
+                _rushJumpStartTimeSeconds + 0.01f,
+                _rushLandingTimeSeconds);
+
+            _rushPreviewDistance = Mathf.Max(
+                0.01f,
+                _rushPreviewDistance);
         }
 
     }

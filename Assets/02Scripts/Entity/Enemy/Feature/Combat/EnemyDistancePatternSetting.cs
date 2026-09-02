@@ -7,9 +7,6 @@ namespace Alpha.Enemy
     [Serializable]
     public sealed class EnemyDistancePatternSetting
     {
-        [SerializeField]
-        private string _rangeName = "Distance";
-
         [SerializeField, Min(0f)]
         private float _minimumDistance;
 
@@ -26,7 +23,6 @@ namespace Alpha.Enemy
         [SerializeField, Min(0.01f)]
         private float _selectionWeight = 1f;
 
-        public string RangeName => _rangeName;
         public float MinimumDistance => _minimumDistance;
         public float MaximumDistance => _maximumDistance;
         public int PatternIndex => _patternIndex;
@@ -37,13 +33,11 @@ namespace Alpha.Enemy
         }
 
         public EnemyDistancePatternSetting(
-            string p_rangeName,
             float p_minimumDistance,
             float p_maximumDistance,
             int p_patternIndex,
             float p_selectionWeight)
         {
-            _rangeName = p_rangeName;
             _minimumDistance = p_minimumDistance;
             _maximumDistance = p_maximumDistance;
             _patternIndex = p_patternIndex;
@@ -66,7 +60,6 @@ namespace Alpha.Enemy
         // 중첩 직렬화 데이터는 소유 MonoBehaviour의 OnValidate에서 보정한다.
         public void Validate(int p_patternCount)
         {
-            _rangeName ??= string.Empty;
             _minimumDistance = Mathf.Max(0f, _minimumDistance);
             _maximumDistance = Mathf.Max(
                 Mathf.Max(0.01f, _minimumDistance),

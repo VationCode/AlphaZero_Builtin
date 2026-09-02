@@ -146,7 +146,7 @@ namespace Alpha.Enemy.Animation
         private bool _isLocomotionSubscribed;
         private bool _isCombatSubscribed;
 
-        public event Action<float> OnAttackAnimationElapsed;
+        public event Action<float, float> OnAttackAnimationElapsed;
         public event Action OnAttackAnimationCompleted;
         public event Action OnDeathAnimationCompleted;
 
@@ -669,7 +669,8 @@ namespace Alpha.Enemy.Animation
                     elapsedTime);
 
                 OnAttackAnimationElapsed?.Invoke(
-                    _lastPublishedAttackElapsedTime);
+                    _lastPublishedAttackElapsedTime,
+                    _trackedAttackDuration);
             }
 
             bool completedInAttackState =
@@ -692,7 +693,8 @@ namespace Alpha.Enemy.Animation
                     _trackedAttackDuration);
 
                 OnAttackAnimationElapsed?.Invoke(
-                    completedElapsedTime);
+                    completedElapsedTime,
+                    _trackedAttackDuration);
             }
 
             CancelAttackAnimationTracking();

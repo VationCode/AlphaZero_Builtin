@@ -3,6 +3,7 @@ using Alpha.Detection;
 using Alpha.Living;
 using Alpha.Enemy.Audio;
 using Alpha.Enemy.Animation;
+using Alpha.Enemy.Effect;
 using Alpha.Living.Effect;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -45,6 +46,9 @@ namespace Alpha.Enemy
         private EnemyAudioView _audioView;
 
         [SerializeField]
+        private EnemyAttackEffectView _attackEffectView;
+
+        [SerializeField]
         private DamageEffectView _damageEffectView;
 
         public HealthContext HealthContext { get; } = new();
@@ -63,6 +67,7 @@ namespace Alpha.Enemy
         public EnemyCombatFlow CombatFlow => _combatFlow;
         public EnemyActionFlow ActionFlow => _actionFlow;
         public EnemyAudioView AudioView => _audioView;
+        public EnemyAttackEffectView AttackEffectView => _attackEffectView;
         public DamageEffectView DamageEffectView => _damageEffectView;
 
         private void Awake()
@@ -81,6 +86,8 @@ namespace Alpha.Enemy
 
             _animationView ??= GetComponentInChildren<EnemyAnimationView>(true);
             _audioView ??= GetComponentInChildren<EnemyAudioView>(true);
+            _attackEffectView ??=
+                GetComponentInChildren<EnemyAttackEffectView>(true);
             _damageEffectView ??= GetComponentInChildren<DamageEffectView>(true);
 
             if (_animationView != null && _combatFlow != null)
@@ -124,6 +131,9 @@ namespace Alpha.Enemy
                 _combatFlow,
                 _damageReceiver,
                 _healthModule);
+            _attackEffectView?.Bind(
+                _animationView,
+                _combatFlow);
             _damageEffectView?.Bind(_damageReceiver);
             _actionFlow?.Bind(this);
         }
@@ -168,6 +178,7 @@ namespace Alpha.Enemy
 
             _animationView?.Unbind();
             _audioView?.Unbind();
+            _attackEffectView?.Unbind();
             _damageEffectView?.Unbind();
 
             if (_damageReceiver != null)

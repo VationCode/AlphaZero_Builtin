@@ -142,6 +142,37 @@ namespace Alpha.Enemy
             return false;
         }
 
+        // 애니메이션 진행률로 계산된 이번 물리 Frame의 수평 이동량을 적용한다.
+        public void MoveByAnimation(
+            Vector3 p_displacement,
+            Vector3 p_facingDestination,
+            float p_deltaTime)
+        {
+            if (IsKnockbackActive ||
+                !TryGetRigidbody(out Rigidbody body))
+            {
+                return;
+            }
+
+            float deltaTime = Mathf.Max(0f, p_deltaTime);
+
+            if (deltaTime <= 0f)
+                return;
+
+            Vector3 horizontalDisplacement =
+                Vector3.ProjectOnPlane(p_displacement, Vector3.up);
+            Vector3 facingDirection = Vector3.ProjectOnPlane(
+                p_facingDestination - body.position,
+                Vector3.up);
+
+            RotateDirection(body, facingDirection, deltaTime);
+
+            Vector3 velocity = body.linearVelocity;
+            velocity.x = horizontalDisplacement.x / deltaTime;
+            velocity.z = horizontalDisplacement.z / deltaTime;
+            body.linearVelocity = velocity;
+        }
+
         // 위치는 변경하지 않고 목적지 방향으로만 회전한다.
         public bool RotateTo(
             Vector3 p_destination,

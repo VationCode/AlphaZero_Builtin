@@ -191,6 +191,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4946357698843301124}
   - component: {fileID: 4946357698843301125}
+  - component: {fileID: 4946357698843301126}
   m_Layer: 7
   m_Name: Effect
   m_TagString: Untagged
@@ -227,6 +228,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _effectPrefab: {fileID: 4709844674621904195, guid: f0dcb29c0d669184387ce2c2a6384a22, type: 3}
   _lifetime: 1
+--- !u!114 &4946357698843301126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4946357698843301127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 915d449f09f04d68819c76ef08322c4a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _attackEffects:
+  - _attackType: 1
+    _animationIndex: 0
+    _effectTimings: []
 --- !u!1 &4990770888551286956
 GameObject:
   m_ObjectHideFlags: 0
@@ -585,6 +602,7 @@ MonoBehaviour:
   _actionFlow: {fileID: 4990770888551286955}
   _animationView: {fileID: 8840238435943024568}
   _audioView: {fileID: 0}
+  _attackEffectView: {fileID: 4946357698843301126}
   _damageEffectView: {fileID: 4946357698843301125}
 --- !u!114 &5234987524635677959
 MonoBehaviour:
@@ -855,8 +873,7 @@ MonoBehaviour:
   _patternSettings: {fileID: 8618119088870011299}
   _legacyAttackPatterns: []
   _distancePatterns:
-  - _rangeName: Range Attack
-    _minimumDistance: 5
+  - _minimumDistance: 5
     _maximumDistance: 12
     _patternIndex: 0
     _selectionWeight: 1

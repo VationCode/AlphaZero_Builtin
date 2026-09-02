@@ -508,7 +508,7 @@ namespace Alpha.Enemy.View
             Vector3 startPosition = p_origin.position;
             Vector3 endPosition = startPosition +
                                   p_origin.forward *
-                                  p_pattern.RushDistance;
+                                  p_pattern.RushPreviewDistance;
 
             DrawArrow(startPosition, endPosition, p_color);
 
@@ -708,7 +708,6 @@ namespace Alpha.Enemy.View
             Handles.Label(
                 labelPosition,
                 $"Distance {p_patternIndex + 1}: " +
-                $"{p_distancePattern.RangeName} → " +
                 $"{p_pattern.PatternName} [{p_pattern.AttackType}]\n" +
                 $"Range {p_distancePattern.MinimumDistance:0.##} - " +
                 $"{p_distancePattern.MaximumDistance:0.##}");

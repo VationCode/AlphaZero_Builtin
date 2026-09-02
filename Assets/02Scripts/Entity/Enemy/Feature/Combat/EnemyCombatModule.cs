@@ -268,12 +268,34 @@ namespace Alpha.Enemy
 
         // Animation View가 전달한 경과 초에서 아직 실행하지 않은 타이밍을 처리한다.
         public void UpdateAttackAnimationTime(
-            float p_elapsedSeconds)
+            float p_elapsedSeconds,
+            float p_durationSeconds)
         {
             if (!IsAttackActivated)
                 return;
 
             ProcessAttackTimings(Mathf.Max(0f, p_elapsedSeconds));
+
+            if (_currentPattern.AttackType == EEnemyAttackType.Rush)
+            {
+                _rushAttack.SynchronizeAnimationTime(
+                    p_elapsedSeconds,
+                    p_durationSeconds,
+                    _currentPattern.RushJumpStartTimeSeconds,
+                    _currentPattern.RushLandingTimeSeconds);
+            }
+        }
+
+        // Rush 종료 직전 남은 이동량을 마지막 물리 Tick에서 적용할 수 있게 한다.
+        public void CompleteAttackAnimationTime()
+        {
+            if (!IsAttackActivated ||
+                _currentPattern.AttackType != EEnemyAttackType.Rush)
+            {
+                return;
+            }
+
+            _rushAttack.CompleteAnimationTime();
         }
 
         public void EndAttackExecution(
@@ -686,7 +708,6 @@ namespace Alpha.Enemy
 
                 _distancePatterns[index] =
                     new EnemyDistancePatternSetting(
-                        pattern.PatternName,
                         pattern.LegacyMinimumDistance,
                         pattern.ProjectileMaximumDistance,
                         index,

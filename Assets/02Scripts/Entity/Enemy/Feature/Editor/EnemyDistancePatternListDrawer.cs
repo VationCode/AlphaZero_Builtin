@@ -65,7 +65,6 @@ namespace Alpha.Enemy.Editor
             if (!element.isExpanded)
                 return height;
 
-            AddPropertyHeight(element, "_rangeName", ref height);
             AddPropertyHeight(element, "_minimumDistance", ref height);
             AddPropertyHeight(element, "_maximumDistance", ref height);
             height += VerticalSpacing +
@@ -110,7 +109,7 @@ namespace Alpha.Enemy.Editor
             element.isExpanded = EditorGUI.Foldout(
                 labelRect,
                 element.isExpanded,
-                CreateElementLabel(element, p_index),
+                CreateElementLabel(element),
                 true);
 
             if (!element.isExpanded)
@@ -119,7 +118,6 @@ namespace Alpha.Enemy.Editor
             float currentY = foldoutRect.yMax + VerticalSpacing;
             EditorGUI.indentLevel++;
 
-            DrawProperty(p_rect, element, "_rangeName", ref currentY);
             DrawProperty(
                 p_rect,
                 element,
@@ -211,22 +209,14 @@ namespace Alpha.Enemy.Editor
         }
 
         private GUIContent CreateElementLabel(
-            SerializedProperty p_element,
-            int p_index)
+            SerializedProperty p_element)
         {
-            SerializedProperty rangeName =
-                p_element.FindPropertyRelative("_rangeName");
             SerializedProperty minimumDistance =
                 p_element.FindPropertyRelative("_minimumDistance");
             SerializedProperty maximumDistance =
                 p_element.FindPropertyRelative("_maximumDistance");
             SerializedProperty patternIndex =
                 p_element.FindPropertyRelative("_patternIndex");
-
-            string name = rangeName != null &&
-                          !string.IsNullOrWhiteSpace(rangeName.stringValue)
-                ? rangeName.stringValue
-                : $"Distance {p_index + 1}";
 
             string patternName = ResolvePatternName(
                 patternIndex?.intValue ?? -1);
@@ -235,8 +225,7 @@ namespace Alpha.Enemy.Editor
             float maximum = maximumDistance?.floatValue ?? 0f;
 
             return new GUIContent(
-                $"{name} ({minimum:0.##} - {maximum:0.##}) → " +
-                patternName);
+                $"{patternName} ({minimum:0.##} - {maximum:0.##})");
         }
 
         private string ResolvePatternName(int p_patternIndex)
@@ -342,8 +331,6 @@ namespace Alpha.Enemy.Editor
             SerializedProperty element =
                 _distancePatterns.GetArrayElementAtIndex(p_index);
 
-            element.FindPropertyRelative("_rangeName").stringValue =
-                $"Distance {p_index + 1}";
             element.FindPropertyRelative("_minimumDistance").floatValue = 0f;
             element.FindPropertyRelative("_maximumDistance").floatValue = 2f;
             element.FindPropertyRelative("_patternIndex").intValue =

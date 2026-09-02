@@ -166,8 +166,10 @@ namespace Alpha.Enemy.Editor
                     break;
 
                 case EEnemyAttackType.Rush:
-                    DrawProperty(p_position, p_property, "_rushSpeed", ref p_currentY);
-                    DrawProperty(p_position, p_property, "_rushDistance", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_rushJumpStartTimeSeconds", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_rushLandingTimeSeconds", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_rushMovementCurve", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_rushPreviewDistance", ref p_currentY);
                     DrawProperty(p_position, p_property, "_rushArea", ref p_currentY);
                     break;
 
@@ -209,8 +211,10 @@ namespace Alpha.Enemy.Editor
                     break;
 
                 case EEnemyAttackType.Rush:
-                    AddPropertyHeight(p_property, "_rushSpeed", ref p_height);
-                    AddPropertyHeight(p_property, "_rushDistance", ref p_height);
+                    AddPropertyHeight(p_property, "_rushJumpStartTimeSeconds", ref p_height);
+                    AddPropertyHeight(p_property, "_rushLandingTimeSeconds", ref p_height);
+                    AddPropertyHeight(p_property, "_rushMovementCurve", ref p_height);
+                    AddPropertyHeight(p_property, "_rushPreviewDistance", ref p_height);
                     AddPropertyHeight(p_property, "_rushArea", ref p_height);
                     break;
 

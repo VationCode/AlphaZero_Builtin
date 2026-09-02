@@ -18,6 +18,8 @@ namespace Alpha.Enemy
         private int _preparedPatternIndex = -1;
         private float _stateElapsedTime;
         private bool _hasCurrentState;
+        private bool _isRushCompletionPending;
+        private bool _hasAppliedFinalRushMovement;
 
         public EEnemyCombatState CurrentState { get; private set; } =
             EEnemyCombatState.Idle;
@@ -99,6 +101,7 @@ namespace Alpha.Enemy
         public void CancelCombat()
         {
             ClearPreparedPattern();
+            ResetRushCompletion();
 
             if (_core != null)
             {
@@ -150,6 +153,7 @@ namespace Alpha.Enemy
                 return;
             }
 
+            ResetRushCompletion();
             ChangeState(EEnemyCombatState.Attack);
             OnAttackStarted?.Invoke(
                 pattern.AttackType,
@@ -172,15 +176,26 @@ namespace Alpha.Enemy
 
             if (pattern.AttackType == EEnemyAttackType.Rush)
             {
+                if (_isRushCompletionPending &&
+                    _hasAppliedFinalRushMovement)
+                {
+                    CompleteCurrentAttack();
+                    return;
+                }
+
                 combat.TickActiveAttack(
                     _core.LocomotionModule,
                     Mathf.Max(0f, p_deltaTime));
+
+                if (_isRushCompletionPending)
+                    _hasAppliedFinalRushMovement = true;
             }
         }
 
         // Animation View의 경과 초를 실행 중인 패턴의 복수 타이밍에 전달한다.
         public void NotifyAttackAnimationElapsed(
-            float p_elapsedSeconds)
+            float p_elapsedSeconds,
+            float p_durationSeconds)
         {
             if (CurrentState != EEnemyCombatState.Attack ||
                 _core?.CombatModule == null)
@@ -189,7 +204,8 @@ namespace Alpha.Enemy
             }
 
             _core.CombatModule.UpdateAttackAnimationTime(
-                p_elapsedSeconds);
+                p_elapsedSeconds,
+                p_durationSeconds);
         }
 
         // Animation View가 실제 공격 상태의 마지막 프레임을 확인한 뒤 호출한다.
@@ -201,9 +217,26 @@ namespace Alpha.Enemy
                 return;
             }
 
+            EnemyAttackPatternSetting pattern =
+                _core.CombatModule.CurrentPattern;
+
+            if (pattern?.AttackType == EEnemyAttackType.Rush)
+            {
+                _core.CombatModule.CompleteAttackAnimationTime();
+                _isRushCompletionPending = true;
+                _hasAppliedFinalRushMovement = false;
+                return;
+            }
+
+            CompleteCurrentAttack();
+        }
+
+        private void CompleteCurrentAttack()
+        {
             _core.CombatModule.CompleteAttack(
                 _core.LocomotionModule);
             ClearPreparedPattern();
+            ResetRushCompletion();
             ChangeState(EEnemyCombatState.Wait);
         }
 
@@ -262,6 +295,12 @@ namespace Alpha.Enemy
         private void ClearPreparedPattern()
         {
             _preparedPatternIndex = -1;
+        }
+
+        private void ResetRushCompletion()
+        {
+            _isRushCompletionPending = false;
+            _hasAppliedFinalRushMovement = false;
         }
 
         private void OnDisable()
