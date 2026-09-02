@@ -137,6 +137,8 @@ namespace Alpha.Enemy.Animation
         private int _trackedAttackState;
         private bool _hasEnteredTrackedAttackState;
         private bool _isTrackingAttackAnimation;
+        private float _trackedAttackDuration;
+        private float _lastPublishedAttackElapsedTime;
         private EnemyActionFlow _actionFlow;
         private EnemyLocomotionFlow _locomotionFlow;
         private EnemyCombatFlow _combatFlow;
@@ -144,7 +146,7 @@ namespace Alpha.Enemy.Animation
         private bool _isLocomotionSubscribed;
         private bool _isCombatSubscribed;
 
-        public event Action<float> OnAttackAnimationProgress;
+        public event Action<float> OnAttackAnimationElapsed;
         public event Action OnAttackAnimationCompleted;
         public event Action OnDeathAnimationCompleted;
 
@@ -223,6 +225,8 @@ namespace Alpha.Enemy.Animation
             _trackedAttackState = attackState;
             _hasEnteredTrackedAttackState = false;
             _isTrackingAttackAnimation = true;
+            _trackedAttackDuration = 0f;
+            _lastPublishedAttackElapsedTime = 0f;
             return true;
         }
 
@@ -610,7 +614,7 @@ namespace Alpha.Enemy.Animation
             _hasPendingBaseState = true;
         }
 
-        // 현재 공격 상태가 한 사이클을 마치면 Flow에 정확한 종료 시점을 알린다.
+        // 현재 공격 상태의 경과 초와 실제 종료 시점을 Flow에 알린다.
         private void TrackAttackAnimationCompletion()
         {
             if (!_isTrackingAttackAnimation ||
@@ -628,10 +632,12 @@ namespace Alpha.Enemy.Animation
                 _animator.IsInTransition(BaseLayer);
             bool isCurrentAttack =
                 currentState.fullPathHash == _trackedAttackState;
+            AnimatorStateInfo nextState = isInTransition
+                ? _animator.GetNextAnimatorStateInfo(BaseLayer)
+                : default;
             bool isNextAttack =
                 isInTransition &&
-                _animator.GetNextAnimatorStateInfo(BaseLayer)
-                    .fullPathHash == _trackedAttackState;
+                nextState.fullPathHash == _trackedAttackState;
 
             if (!_hasEnteredTrackedAttackState)
             {
@@ -639,12 +645,31 @@ namespace Alpha.Enemy.Animation
                     return;
 
                 _hasEnteredTrackedAttackState = true;
+
+                if (isNextAttack)
+                {
+                    _trackedAttackDuration = Mathf.Max(
+                        0f,
+                        nextState.length);
+                }
             }
 
             if (isCurrentAttack)
             {
-                OnAttackAnimationProgress?.Invoke(
-                    Mathf.Clamp01(currentState.normalizedTime));
+                _trackedAttackDuration = Mathf.Max(
+                    0f,
+                    currentState.length);
+
+                float elapsedTime =
+                    Mathf.Clamp01(currentState.normalizedTime) *
+                    _trackedAttackDuration;
+
+                _lastPublishedAttackElapsedTime = Mathf.Max(
+                    _lastPublishedAttackElapsedTime,
+                    elapsedTime);
+
+                OnAttackAnimationElapsed?.Invoke(
+                    _lastPublishedAttackElapsedTime);
             }
 
             bool completedInAttackState =
@@ -661,7 +686,14 @@ namespace Alpha.Enemy.Animation
             }
 
             if (exitedAttackState)
-                OnAttackAnimationProgress?.Invoke(1f);
+            {
+                float completedElapsedTime = Mathf.Max(
+                    _lastPublishedAttackElapsedTime,
+                    _trackedAttackDuration);
+
+                OnAttackAnimationElapsed?.Invoke(
+                    completedElapsedTime);
+            }
 
             CancelAttackAnimationTracking();
             OnAttackAnimationCompleted?.Invoke();
@@ -673,6 +705,8 @@ namespace Alpha.Enemy.Animation
             _trackedAttackState = 0;
             _hasEnteredTrackedAttackState = false;
             _isTrackingAttackAnimation = false;
+            _trackedAttackDuration = 0f;
+            _lastPublishedAttackElapsedTime = 0f;
         }
 
         private void LateUpdate()

@@ -7,6 +7,13 @@ using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Enemy
 {
+    // Range Projectile이 사용할 월드 발사 방향의 계산 기준이다.
+    public enum EEnemyRangeDirectionType
+    {
+        Target = 0,
+        FirePositionForward = 1
+    }
+
     // 하나의 공격 패턴이 애니메이션, 피해와 타입별 실행 설정을 보관한다.
     [Serializable]
     public sealed class EnemyAttackPatternSetting
@@ -44,8 +51,22 @@ namespace Alpha.Enemy
         [SerializeField]
         private DetectionAreaSettings _meleeArea = new();
 
+        [Tooltip(
+            "Target은 각 FirePos에서 현재 타겟을 조준하고, " +
+            "Fire Position Forward는 각 FirePos의 로컬 +Z 방향으로 발사합니다.")]
+        [SerializeField]
+        private EEnemyRangeDirectionType _rangeDirectionType =
+            EEnemyRangeDirectionType.Target;
+
+        [Tooltip("기존 단일 발사 위치이자 첫 번째 FirePos입니다.")]
         [SerializeField]
         private Transform _projectileSpawnPoint;
+
+        [Tooltip(
+            "기본 FirePos와 같은 공격 타이밍에 함께 발사할 추가 FirePos입니다.")]
+        [SerializeField]
+        private Transform[] _additionalProjectileSpawnPoints =
+            Array.Empty<Transform>();
 
         [Tooltip("Range Projectile이 발사점에서 이동할 수 있는 최대 거리입니다.")]
         [FormerlySerializedAs("_maximumDistance")]
@@ -83,7 +104,11 @@ namespace Alpha.Enemy
         public int AttackTimingCount => _attackTimings?.Length ?? 0;
         public DamageProfile DamageProfile => _damageProfile;
         public DetectionAreaSettings MeleeArea => _meleeArea;
+        public EEnemyRangeDirectionType RangeDirectionType =>
+            _rangeDirectionType;
         public Transform ProjectileSpawnPoint => _projectileSpawnPoint;
+        public int ProjectileSpawnPointSlotCount =>
+            1 + (_additionalProjectileSpawnPoints?.Length ?? 0);
         public float ProjectileMaximumDistance =>
             _projectileMaximumDistance;
         public ProjectileEntity ProjectilePrefab => _projectilePrefab;
@@ -99,6 +124,21 @@ namespace Alpha.Enemy
         {
             return p_index >= 0 && p_index < AttackTimingCount
                 ? _attackTimings[p_index]
+                : null;
+        }
+
+        // 첫 슬롯은 기존 SpawnPoint이며 이후 슬롯은 추가 FirePos 배열을 반환한다.
+        public Transform GetProjectileSpawnPoint(int p_index)
+        {
+            if (p_index == 0)
+                return _projectileSpawnPoint;
+
+            int additionalIndex = p_index - 1;
+
+            return additionalIndex >= 0 &&
+                   additionalIndex <
+                       (_additionalProjectileSpawnPoints?.Length ?? 0)
+                ? _additionalProjectileSpawnPoints[additionalIndex]
                 : null;
         }
 
@@ -165,6 +205,8 @@ namespace Alpha.Enemy
             _animationIndex = Mathf.Max(-1, _animationIndex);
             _attackTimings ??=
                 Array.Empty<EnemyAttackTimingSetting>();
+            _additionalProjectileSpawnPoints ??=
+                Array.Empty<Transform>();
 
             for (int index = 0;
                  index < _attackTimings.Length;

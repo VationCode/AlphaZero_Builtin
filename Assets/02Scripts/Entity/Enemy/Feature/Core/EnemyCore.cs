@@ -85,10 +85,10 @@ namespace Alpha.Enemy
 
             if (_animationView != null && _combatFlow != null)
             {
-                _animationView.OnAttackAnimationProgress -=
-                    _combatFlow.NotifyAttackAnimationProgress;
-                _animationView.OnAttackAnimationProgress +=
-                    _combatFlow.NotifyAttackAnimationProgress;
+                _animationView.OnAttackAnimationElapsed -=
+                    _combatFlow.NotifyAttackAnimationElapsed;
+                _animationView.OnAttackAnimationElapsed +=
+                    _combatFlow.NotifyAttackAnimationElapsed;
                 _animationView.OnAttackAnimationCompleted -=
                     _combatFlow.NotifyAttackAnimationCompleted;
                 _animationView.OnAttackAnimationCompleted +=
@@ -160,8 +160,8 @@ namespace Alpha.Enemy
         {
             if (_animationView != null && _combatFlow != null)
             {
-                _animationView.OnAttackAnimationProgress -=
-                    _combatFlow.NotifyAttackAnimationProgress;
+                _animationView.OnAttackAnimationElapsed -=
+                    _combatFlow.NotifyAttackAnimationElapsed;
                 _animationView.OnAttackAnimationCompleted -=
                     _combatFlow.NotifyAttackAnimationCompleted;
             }

@@ -178,9 +178,9 @@ namespace Alpha.Enemy
             }
         }
 
-        // Animation View의 현재 진행률을 실행 중인 패턴의 복수 타이밍에 전달한다.
-        public void NotifyAttackAnimationProgress(
-            float p_normalizedTime)
+        // Animation View의 경과 초를 실행 중인 패턴의 복수 타이밍에 전달한다.
+        public void NotifyAttackAnimationElapsed(
+            float p_elapsedSeconds)
         {
             if (CurrentState != EEnemyCombatState.Attack ||
                 _core?.CombatModule == null)
@@ -188,8 +188,8 @@ namespace Alpha.Enemy
                 return;
             }
 
-            _core.CombatModule.UpdateAttackAnimationProgress(
-                p_normalizedTime);
+            _core.CombatModule.UpdateAttackAnimationTime(
+                p_elapsedSeconds);
         }
 
         // Animation View가 실제 공격 상태의 마지막 프레임을 확인한 뒤 호출한다.

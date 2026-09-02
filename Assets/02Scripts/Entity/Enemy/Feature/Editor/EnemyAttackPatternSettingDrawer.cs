@@ -158,7 +158,9 @@ namespace Alpha.Enemy.Editor
                     break;
 
                 case EEnemyAttackType.Range:
+                    DrawProperty(p_position, p_property, "_rangeDirectionType", ref p_currentY);
                     DrawProperty(p_position, p_property, "_projectileSpawnPoint", ref p_currentY);
+                    DrawProperty(p_position, p_property, "_additionalProjectileSpawnPoints", ref p_currentY);
                     DrawProperty(p_position, p_property, "_projectileMaximumDistance", ref p_currentY);
                     DrawProperty(p_position, p_property, "_projectilePrefab", ref p_currentY);
                     break;
@@ -199,7 +201,9 @@ namespace Alpha.Enemy.Editor
                     break;
 
                 case EEnemyAttackType.Range:
+                    AddPropertyHeight(p_property, "_rangeDirectionType", ref p_height);
                     AddPropertyHeight(p_property, "_projectileSpawnPoint", ref p_height);
+                    AddPropertyHeight(p_property, "_additionalProjectileSpawnPoints", ref p_height);
                     AddPropertyHeight(p_property, "_projectileMaximumDistance", ref p_height);
                     AddPropertyHeight(p_property, "_projectilePrefab", ref p_height);
                     break;

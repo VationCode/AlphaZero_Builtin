@@ -46,8 +46,8 @@ namespace Alpha.Enemy.Editor
             DrawProperty(
                 p_position,
                 p_property,
-                "_startNormalizedTime",
-                "Start Normalized Time",
+                "_startTimeSeconds",
+                "Start Time (Seconds)",
                 ref currentY);
 
             SerializedProperty eventType =
@@ -67,8 +67,8 @@ namespace Alpha.Enemy.Editor
                 DrawProperty(
                     p_position,
                     p_property,
-                    "_endNormalizedTime",
-                    "End Normalized Time",
+                    "_endTimeSeconds",
+                    "End Time (Seconds)",
                     ref currentY);
             }
 
@@ -88,7 +88,7 @@ namespace Alpha.Enemy.Editor
             AddPropertyHeight(p_property, "_eventType", ref height);
             AddPropertyHeight(
                 p_property,
-                "_startNormalizedTime",
+                "_startTimeSeconds",
                 ref height);
 
             SerializedProperty eventType =
@@ -105,7 +105,7 @@ namespace Alpha.Enemy.Editor
                     ref height);
                 AddPropertyHeight(
                     p_property,
-                    "_endNormalizedTime",
+                    "_endTimeSeconds",
                     ref height);
             }
 
@@ -120,7 +120,7 @@ namespace Alpha.Enemy.Editor
                 p_property.FindPropertyRelative("_eventType");
             SerializedProperty startTime =
                 p_property.FindPropertyRelative(
-                    "_startNormalizedTime");
+                    "_startTimeSeconds");
 
             if (eventType == null || startTime == null)
                 return p_fallback;
@@ -130,7 +130,7 @@ namespace Alpha.Enemy.Editor
                 .ToString();
 
             return new GUIContent(
-                $"{eventName} @ {startTime.floatValue:0.00}");
+                $"{eventName} @ {startTime.floatValue:0.00}s");
         }
 
         private static void DrawProperty(

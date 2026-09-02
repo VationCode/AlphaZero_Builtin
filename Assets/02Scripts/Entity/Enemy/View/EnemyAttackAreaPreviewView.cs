@@ -377,8 +377,8 @@ namespace Alpha.Enemy.View
                 Handles.color = p_color;
                 Handles.Label(
                     attackCollider.transform.position,
-                    $"Collider {timing.StartNormalizedTime:0.00}" +
-                    $" - {timing.EndNormalizedTime:0.00}");
+                    $"Collider {timing.StartTimeSeconds:0.00}s" +
+                    $" - {timing.EndTimeSeconds:0.00}s");
 #endif
             }
 
@@ -392,16 +392,6 @@ namespace Alpha.Enemy.View
             Color p_color,
             Color p_radialDamageColor)
         {
-            Vector3 launchPosition =
-                p_pattern.ProjectileSpawnPoint != null
-                    ? p_pattern.ProjectileSpawnPoint.position
-                    : p_origin.TransformPoint(
-                        new Vector3(0f, 0.9f, 0.75f));
-
-            Vector3 endPosition = launchPosition +
-                                  p_origin.forward *
-                                  p_pattern.ProjectileMaximumDistance;
-
             var projectilePrefab =
                 p_pattern.ProjectilePrefab;
 
@@ -411,17 +401,82 @@ namespace Alpha.Enemy.View
                     projectilePrefab.CollisionPreviewRadius)
                 : 0.01f;
 
-            Gizmos.color = p_color;
-            Gizmos.DrawWireSphere(launchPosition, collisionRadius);
-            DrawArrow(launchPosition, endPosition, p_color);
-            Gizmos.DrawWireSphere(endPosition, collisionRadius);
+            bool hasConfiguredFirePosition = false;
 
-            if (projectilePrefab != null &&
-                projectilePrefab.HasDamageArea)
+            for (int index = 0;
+                 index < p_pattern.ProjectileSpawnPointSlotCount;
+                 index++)
+            {
+                Transform firePosition =
+                    p_pattern.GetProjectileSpawnPoint(index);
+
+                if (firePosition == null)
+                    continue;
+
+                hasConfiguredFirePosition = true;
+
+                Vector3 direction =
+                    p_pattern.RangeDirectionType ==
+                    EEnemyRangeDirectionType.FirePositionForward
+                        ? firePosition.forward
+                        : p_origin.forward;
+
+                DrawSingleRangePath(
+                    firePosition.position,
+                    direction,
+                    p_pattern.ProjectileMaximumDistance,
+                    collisionRadius,
+                    projectilePrefab,
+                    p_color,
+                    p_radialDamageColor);
+            }
+
+            if (hasConfiguredFirePosition)
+                return;
+
+            Vector3 fallbackPosition = p_origin.TransformPoint(
+                new Vector3(0f, 0.9f, 0.75f));
+
+            DrawSingleRangePath(
+                fallbackPosition,
+                p_origin.forward,
+                p_pattern.ProjectileMaximumDistance,
+                collisionRadius,
+                projectilePrefab,
+                p_color,
+                p_radialDamageColor);
+        }
+
+        // 하나의 FirePos가 생성할 Projectile 경로와 충돌 크기를 표시한다.
+        private static void DrawSingleRangePath(
+            Vector3 p_launchPosition,
+            Vector3 p_direction,
+            float p_maximumDistance,
+            float p_collisionRadius,
+            Alpha.Projectile.Projectile p_projectilePrefab,
+            Color p_color,
+            Color p_radialDamageColor)
+        {
+            if (p_direction.sqrMagnitude <= 0.0001f)
+                return;
+
+            Vector3 endPosition = p_launchPosition +
+                                  p_direction.normalized *
+                                  p_maximumDistance;
+
+            Gizmos.color = p_color;
+            Gizmos.DrawWireSphere(
+                p_launchPosition,
+                p_collisionRadius);
+            DrawArrow(p_launchPosition, endPosition, p_color);
+            Gizmos.DrawWireSphere(endPosition, p_collisionRadius);
+
+            if (p_projectilePrefab != null &&
+                p_projectilePrefab.HasDamageArea)
             {
                 DrawRadialDamageArea(
                     endPosition,
-                    projectilePrefab.DamageAreaPreviewRadius,
+                    p_projectilePrefab.DamageAreaPreviewRadius,
                     p_radialDamageColor);
             }
         }

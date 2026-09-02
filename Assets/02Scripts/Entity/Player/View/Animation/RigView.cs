@@ -3,7 +3,46 @@ using UnityEngine;
 
 namespace Alpha.Rig.Player
 {
-    // Player의 조준 상체 자세와 왼손 IK를 Animator Rig 표현으로 적용한다.
+    public enum EHandIKPolicy
+    {
+        Inherit = 0,
+        Enable = 1,
+        Disable = 2
+    }
+
+    [System.Serializable]
+    public sealed class HandIKAnimationRule
+    {
+        [SerializeField]
+        [Tooltip("Animator State의 전체 경로입니다. 예: Base Layer.Fast Run F")]
+        private string _stateFullPath;
+
+        [SerializeField]
+        private EHandIKPolicy _leftHand = EHandIKPolicy.Inherit;
+
+        [SerializeField]
+        private EHandIKPolicy _rightHand = EHandIKPolicy.Inherit;
+
+        public string StateFullPath => _stateFullPath;
+        public EHandIKPolicy LeftHand => _leftHand;
+        public EHandIKPolicy RightHand => _rightHand;
+
+        public HandIKAnimationRule()
+        {
+        }
+
+        public HandIKAnimationRule(
+            string p_stateFullPath,
+            EHandIKPolicy p_leftHand,
+            EHandIKPolicy p_rightHand)
+        {
+            _stateFullPath = p_stateFullPath;
+            _leftHand = p_leftHand;
+            _rightHand = p_rightHand;
+        }
+    }
+
+    // Player의 조준 상체 자세와 양손 IK를 Animator Rig 표현으로 적용한다.
     [RequireComponent(typeof(Animator))]
     public class RigView : MonoBehaviour
     {
@@ -34,6 +73,9 @@ namespace Alpha.Rig.Player
         private float _upperChestPitchWeight = 0.4f;
 
         [Header("Left Hand IK")]
+        [SerializeField]
+        private bool _enableLeftHandIK = true;
+
         [SerializeField, Range(0f, 1f)]
         private float _leftHandPositionWeight = 1f;
 
@@ -42,6 +84,27 @@ namespace Alpha.Rig.Player
 
         [SerializeField, Min(0f)]
         private float _handIKBlendSpeed = 10f;
+
+        [Header("Right Hand IK")]
+        [SerializeField]
+        private bool _enableRightHandIK = true;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _rightHandPositionWeight = 1f;
+
+        [SerializeField, Range(0f, 1f)]
+        private float _rightHandRotationWeight = 1f;
+
+        [Header("Hand IK Animation Rules")]
+        [SerializeField]
+        [Tooltip("현재 또는 전환 중인 Animator State에 따라 손별 IK를 제어합니다. 아래쪽 규칙이 우선합니다.")]
+        private HandIKAnimationRule[] _handIKAnimationRules =
+        {
+            new(
+                "Base Layer.Fast Run F",
+                EHandIKPolicy.Disable,
+                EHandIKPolicy.Inherit)
+        };
 
         private Animator _anim;
         private Transform _ownerTr;
@@ -59,7 +122,13 @@ namespace Alpha.Rig.Player
         private Transform _leftHandIKTarget;
         private Vector3 _leftHandIKPosition;
         private Quaternion _leftHandIKRotation = Quaternion.identity;
-        private float _currentHandIKWeight;
+        private float _currentLeftHandIKWeight;
+
+        private Transform _rightHandIKTarget;
+        private Vector3 _rightHandIKPosition;
+        private Quaternion _rightHandIKRotation = Quaternion.identity;
+        private float _currentRightHandIKWeight;
+
         private bool _isHandIKSwapSuppressed;
         private bool _isHandIKLocomotionSuppressed;
 
@@ -91,7 +160,7 @@ namespace Alpha.Rig.Player
             UpdateAimPitch();
         }
 
-        // Weapon UpperBody Layer 평가 후 왼손을 현재 무기의 지지점에 고정한다.
+        // Weapon UpperBody Layer 평가 후 활성화된 손을 각 IK Target에 고정한다.
         private void OnAnimatorIK(int p_layerIndex)
         {
             if (_anim == null ||
@@ -100,26 +169,23 @@ namespace Alpha.Rig.Player
                 return;
             }
 
-            CacheHandIKPose();
+            CacheHandIKPoses();
 
-            _anim.SetIKPositionWeight(
+            ApplyHandIK(
                 AvatarIKGoal.LeftHand,
-                _currentHandIKWeight * _leftHandPositionWeight);
-
-            _anim.SetIKRotationWeight(
-                AvatarIKGoal.LeftHand,
-                _currentHandIKWeight * _leftHandRotationWeight);
-
-            if (_currentHandIKWeight <= 0f)
-                return;
-
-            _anim.SetIKPosition(
-                AvatarIKGoal.LeftHand,
-                _leftHandIKPosition);
-
-            _anim.SetIKRotation(
-                AvatarIKGoal.LeftHand,
+                _currentLeftHandIKWeight,
+                _leftHandPositionWeight,
+                _leftHandRotationWeight,
+                _leftHandIKPosition,
                 _leftHandIKRotation);
+
+            ApplyHandIK(
+                AvatarIKGoal.RightHand,
+                _currentRightHandIKWeight,
+                _rightHandPositionWeight,
+                _rightHandRotationWeight,
+                _rightHandIKPosition,
+                _rightHandIKRotation);
         }
 
         // 조준 방향의 로컬 기준과 상체 회전축으로 사용할 Entity Transform을 연결한다.
@@ -174,13 +240,26 @@ namespace Alpha.Rig.Player
         public void SetLeftHandIKTarget(Transform p_target)
         {
             _leftHandIKTarget = p_target;
-            CacheHandIKPose();
+            CacheLeftHandIKPose();
         }
 
         public void ClearLeftHandIKTarget()
         {
-            CacheHandIKPose();
+            CacheLeftHandIKPose();
             _leftHandIKTarget = null;
+        }
+
+        // 오른손 IK가 필요한 View가 외부 기준 Target을 연결할 수 있는 진입점이다.
+        public void SetRightHandIKTarget(Transform p_target)
+        {
+            _rightHandIKTarget = p_target;
+            CacheRightHandIKPose();
+        }
+
+        public void ClearRightHandIKTarget()
+        {
+            CacheRightHandIKPose();
+            _rightHandIKTarget = null;
         }
 
         // Swap처럼 Animation Clip이 손을 직접 제어하는 동안 IK 적용을 잠시 차단한다.
@@ -193,14 +272,14 @@ namespace Alpha.Rig.Player
             if (!p_isImmediate)
                 return;
 
-            _currentHandIKWeight =
-                _leftHandIKTarget != null &&
-                !IsHandIKSuppressed
-                    ? 1f
-                    : 0f;
+            _currentLeftHandIKWeight =
+                ResolveTargetHandIKWeight(AvatarIKGoal.LeftHand);
+
+            _currentRightHandIKWeight =
+                ResolveTargetHandIKWeight(AvatarIKGoal.RightHand);
         }
 
-        // 무기별 상체 애니메이션을 지원하지 않는 이동 상태에서는 왼손 IK를 해제한다.
+        // 무기별 상체 애니메이션을 지원하지 않는 이동 상태에서는 양손 IK를 해제한다.
         public void HandleLocomotionStateChanged(
             ELocomotionMode p_mode,
             ELocoStateType p_state)
@@ -334,29 +413,158 @@ namespace Alpha.Rig.Player
 
         private void UpdateHandIKBlend()
         {
-            float targetWeight =
-                _leftHandIKTarget != null &&
-                !IsHandIKSuppressed
-                    ? 1f
-                    : 0f;
+            float leftTargetWeight =
+                ResolveTargetHandIKWeight(AvatarIKGoal.LeftHand);
 
-            _currentHandIKWeight = _handIKBlendSpeed > 0f
-                ? Mathf.MoveTowards(
-                    _currentHandIKWeight,
-                    targetWeight,
-                    _handIKBlendSpeed * Time.deltaTime)
-                : targetWeight;
+            float rightTargetWeight =
+                ResolveTargetHandIKWeight(AvatarIKGoal.RightHand);
 
-            CacheHandIKPose();
+            _currentLeftHandIKWeight = BlendHandIKWeight(
+                _currentLeftHandIKWeight,
+                leftTargetWeight);
+
+            _currentRightHandIKWeight = BlendHandIKWeight(
+                _currentRightHandIKWeight,
+                rightTargetWeight);
+
+            CacheHandIKPoses();
         }
 
-        private void CacheHandIKPose()
+        private float ResolveTargetHandIKWeight(AvatarIKGoal p_goal)
+        {
+            Transform target = p_goal == AvatarIKGoal.LeftHand
+                ? _leftHandIKTarget
+                : _rightHandIKTarget;
+
+            bool defaultEnabled = p_goal == AvatarIKGoal.LeftHand
+                ? _enableLeftHandIK
+                : _enableRightHandIK;
+
+            return target != null &&
+                   !IsHandIKSuppressed &&
+                   ResolveAnimationHandIKEnabled(p_goal, defaultEnabled)
+                ? 1f
+                : 0f;
+        }
+
+        // 현재와 전환 대상 State의 규칙을 순서대로 적용한다.
+        private bool ResolveAnimationHandIKEnabled(
+            AvatarIKGoal p_goal,
+            bool p_defaultEnabled)
+        {
+            bool isEnabled = p_defaultEnabled;
+
+            if (_anim == null || _handIKAnimationRules == null)
+                return isEnabled;
+
+            foreach (HandIKAnimationRule rule in _handIKAnimationRules)
+            {
+                if (rule == null ||
+                    string.IsNullOrWhiteSpace(rule.StateFullPath))
+                {
+                    continue;
+                }
+
+                int stateHash = Animator.StringToHash(rule.StateFullPath);
+
+                if (!IsAnimatorStateActive(stateHash))
+                    continue;
+
+                EHandIKPolicy policy = p_goal == AvatarIKGoal.LeftHand
+                    ? rule.LeftHand
+                    : rule.RightHand;
+
+                if (policy == EHandIKPolicy.Enable)
+                    isEnabled = true;
+                else if (policy == EHandIKPolicy.Disable)
+                    isEnabled = false;
+            }
+
+            return isEnabled;
+        }
+
+        private bool IsAnimatorStateActive(int p_stateHash)
+        {
+            for (int layerIndex = 0;
+                 layerIndex < _anim.layerCount;
+                 layerIndex++)
+            {
+                AnimatorStateInfo currentState =
+                    _anim.GetCurrentAnimatorStateInfo(layerIndex);
+
+                if (currentState.fullPathHash == p_stateHash)
+                    return true;
+
+                if (!_anim.IsInTransition(layerIndex))
+                    continue;
+
+                AnimatorStateInfo nextState =
+                    _anim.GetNextAnimatorStateInfo(layerIndex);
+
+                if (nextState.fullPathHash == p_stateHash)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private float BlendHandIKWeight(
+            float p_currentWeight,
+            float p_targetWeight)
+        {
+            return _handIKBlendSpeed > 0f
+                ? Mathf.MoveTowards(
+                    p_currentWeight,
+                    p_targetWeight,
+                    _handIKBlendSpeed * Time.deltaTime)
+                : p_targetWeight;
+        }
+
+        private void ApplyHandIK(
+            AvatarIKGoal p_goal,
+            float p_currentWeight,
+            float p_positionWeight,
+            float p_rotationWeight,
+            Vector3 p_position,
+            Quaternion p_rotation)
+        {
+            _anim.SetIKPositionWeight(
+                p_goal,
+                p_currentWeight * p_positionWeight);
+
+            _anim.SetIKRotationWeight(
+                p_goal,
+                p_currentWeight * p_rotationWeight);
+
+            if (p_currentWeight <= 0f)
+                return;
+
+            _anim.SetIKPosition(p_goal, p_position);
+            _anim.SetIKRotation(p_goal, p_rotation);
+        }
+
+        private void CacheHandIKPoses()
+        {
+            CacheLeftHandIKPose();
+            CacheRightHandIKPose();
+        }
+
+        private void CacheLeftHandIKPose()
         {
             if (_leftHandIKTarget == null)
                 return;
 
             _leftHandIKPosition = _leftHandIKTarget.position;
             _leftHandIKRotation = _leftHandIKTarget.rotation;
+        }
+
+        private void CacheRightHandIKPose()
+        {
+            if (_rightHandIKTarget == null)
+                return;
+
+            _rightHandIKPosition = _rightHandIKTarget.position;
+            _rightHandIKRotation = _rightHandIKTarget.rotation;
         }
 
         private bool IsWeaponUpperBodyStateActive(int p_stateHash)

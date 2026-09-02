@@ -17,10 +17,10 @@ MonoBehaviour:
   _audioClips:
   - {fileID: 8300000, guid: 6a9699bc025213b47bbf8a4a0bd7fada, type: 3}
   _effectPrefab: {fileID: 6808585451359539416, guid: 0581a3741df659e46b6271e4501a2cfd, type: 3}
-  _effectStartTime: 0.2
+  _effectStartTime: 0.01
   _attackSettings:
-    _duration: 0.5833333
-    _hitTime: 0.20416665
+    _duration: 0.3
+    _hitTime: 0.01
     _damageMultiplier: 1
     _impactSettings:
       _hitType: 1
@@ -49,7 +49,6 @@ MonoBehaviour:
       _radius: 1.7
       _angle: 90
       _height: 1.5
-      _targetMask:
+      _targetLayers:
         serializedVersion: 2
         m_Bits: 128
-      _triggerInteraction: 1

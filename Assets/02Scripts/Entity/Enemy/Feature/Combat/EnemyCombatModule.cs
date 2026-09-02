@@ -45,7 +45,7 @@ namespace Alpha.Enemy
         private bool _didActivateAttack;
         private bool[] _startedAttackTimings = Array.Empty<bool>();
         private bool[] _completedAttackTimings = Array.Empty<bool>();
-        private float _lastAttackNormalizedTime = -1f;
+        private float _lastAttackElapsedTime = -1f;
         private int _nextAttackId = 1;
 
         public int PatternCount => _patternSettings?.Count ?? 0;
@@ -266,14 +266,14 @@ namespace Alpha.Enemy
                     EEnemyAttackTimingType.Collider));
         }
 
-        // Animation View가 전달한 진행률에서 아직 실행하지 않은 타이밍을 처리한다.
-        public void UpdateAttackAnimationProgress(
-            float p_normalizedTime)
+        // Animation View가 전달한 경과 초에서 아직 실행하지 않은 타이밍을 처리한다.
+        public void UpdateAttackAnimationTime(
+            float p_elapsedSeconds)
         {
             if (!IsAttackActivated)
                 return;
 
-            ProcessAttackTimings(Mathf.Clamp01(p_normalizedTime));
+            ProcessAttackTimings(Mathf.Max(0f, p_elapsedSeconds));
         }
 
         public void EndAttackExecution(
@@ -416,10 +416,10 @@ namespace Alpha.Enemy
                 Array.Clear(_completedAttackTimings, 0, timingCount);
             }
 
-            _lastAttackNormalizedTime = -1f;
+            _lastAttackElapsedTime = -1f;
         }
 
-        private void ProcessAttackTimings(float p_normalizedTime)
+        private void ProcessAttackTimings(float p_elapsedSeconds)
         {
             int timingCount = _currentPattern.AttackTimingCount;
 
@@ -438,8 +438,8 @@ namespace Alpha.Enemy
 
                 if (!_startedAttackTimings[index] &&
                     HasReachedTiming(
-                        timing.StartNormalizedTime,
-                        p_normalizedTime))
+                        timing.StartTimeSeconds,
+                        p_elapsedSeconds))
                 {
                     _startedAttackTimings[index] = true;
                     startedThisUpdate = true;
@@ -469,7 +469,7 @@ namespace Alpha.Enemy
                     !_startedAttackTimings[index] ||
                     _completedAttackTimings[index] ||
                     startedThisUpdate ||
-                    p_normalizedTime < timing.EndNormalizedTime)
+                    p_elapsedSeconds < timing.EndTimeSeconds)
                 {
                     continue;
                 }
@@ -478,18 +478,18 @@ namespace Alpha.Enemy
                 _completedAttackTimings[index] = true;
             }
 
-            _lastAttackNormalizedTime = Mathf.Max(
-                _lastAttackNormalizedTime,
-                p_normalizedTime);
+            _lastAttackElapsedTime = Mathf.Max(
+                _lastAttackElapsedTime,
+                p_elapsedSeconds);
         }
 
         private bool HasReachedTiming(
-            float p_timing,
-            float p_currentNormalizedTime)
+            float p_timingSeconds,
+            float p_currentElapsedTime)
         {
-            return p_currentNormalizedTime >= p_timing &&
-                   (_lastAttackNormalizedTime < 0f ||
-                    _lastAttackNormalizedTime < p_timing);
+            return p_currentElapsedTime >= p_timingSeconds &&
+                   (_lastAttackElapsedTime < 0f ||
+                    _lastAttackElapsedTime < p_timingSeconds);
         }
 
         private bool ActivateTimingCollider(Collider p_collider)
@@ -575,7 +575,7 @@ namespace Alpha.Enemy
 
             _activeTimingColliderCounts.Clear();
             _activeTimingColliderSources.Clear();
-            _lastAttackNormalizedTime = -1f;
+            _lastAttackElapsedTime = -1f;
         }
 
         private void DisableAllConfiguredAttackColliders()
