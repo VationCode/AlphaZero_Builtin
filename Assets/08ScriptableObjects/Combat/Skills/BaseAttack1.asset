@@ -19,7 +19,7 @@ MonoBehaviour:
   _effectPrefab: {fileID: 6808585451359539416, guid: 0581a3741df659e46b6271e4501a2cfd, type: 3}
   _effectStartTime: 0.01
   _attackSettings:
-    _duration: 0.3
+    _duration: 0.4
     _hitTime: 0.01
     _damageMultiplier: 1
     _impactSettings:

@@ -17,9 +17,9 @@ MonoBehaviour:
   _audioClips:
   - {fileID: 8300000, guid: 661162310b90c5f4db09f1a1d241871a, type: 3}
   _effectPrefab: {fileID: 3005809508287484312, guid: b4f69dafefd3a56489839c0cb6708699, type: 3}
-  _effectStartTime: 0
+  _effectStartTime: 0.01
   _attackSettings:
-    _duration: 0.3
+    _duration: 0.5
     _hitTime: 0.01
     _damageMultiplier: 1.15
     _impactSettings:

@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 97d98f60674a4275be8daa0f1f4cf11a, type: 3}
-  m_Name: BaseAttack3
+  m_Name: BaseAttack4
   m_EditorClassIdentifier: 
-  _skillId: BaseAttack3
-  _animationKey: BaseAttack3
+  _skillId: BaseAttack4
+  _animationKey: BaseAttack4
   _audioClips:
   - {fileID: 8300000, guid: cde62ff56eff30049a21badc0d9d8ebd, type: 3}
-  _effectPrefab: {fileID: 17297526742360883, guid: b29968a5e7702434b8d73350dbb3a00d, type: 3}
-  _effectStartTime: 0.01
+  _effectPrefab: {fileID: 4058935131724552213, guid: 99e2792ae7916b64cb9e5cb445ba61ce, type: 3}
+  _effectStartTime: 0.2
   _attackSettings:
-    _duration: 0.6
+    _duration: 1
     _hitTime: 0.01
     _damageMultiplier: 1.5
     _impactSettings:
