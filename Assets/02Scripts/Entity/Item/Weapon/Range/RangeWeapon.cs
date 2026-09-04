@@ -25,10 +25,6 @@ namespace Alpha.Item.Weapon.Range
         [SerializeField]
         private Transform _muzzle;
 
-        [Header("Hand IK")]
-        [SerializeField]
-        private Transform _leftHandIKTarget;
-
         [Header("Scene Preview")]
         [SerializeField]
         private bool _showRange = true;
@@ -43,8 +39,6 @@ namespace Alpha.Item.Weapon.Range
         public RangeWeaponSettings Settings => _settings;
         public RangeWeaponAttackSettings AttackSettings => _attackSettings;
         public Transform Muzzle => _muzzle != null ? _muzzle : transform;
-        public Transform LeftHandIKTarget => _leftHandIKTarget;
-
         public sealed override EWeaponType WeaponType =>
             _settings != null
                 ? (EWeaponType)_settings.WeaponType

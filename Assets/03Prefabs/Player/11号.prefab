@@ -8742,9 +8742,26 @@ MonoBehaviour:
   _spinePitchWeight: 0.2
   _chestPitchWeight: 0.8
   _upperChestPitchWeight: 0.4
+  _suppressRangeRigOutsideGround: 1
+  _suppressedLocomotionStates:
+  - 2
+  - 3
+  - 4
+  - 5
+  - 8
+  - 6
+  - 7
+  _enableLeftHandIK: 1
   _leftHandPositionWeight: 1
   _leftHandRotationWeight: 1
   _handIKBlendSpeed: 10
+  _enableRightHandIK: 1
+  _rightHandPositionWeight: 1
+  _rightHandRotationWeight: 1
+  _handIKAnimationRules:
+  - _stateFullPath: Base Layer.Fast Run F
+    _leftHand: 2
+    _rightHand: 0
 --- !u!1 &5080942519295545440 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8348364593110042455, guid: 81475205dedaa814c825c4877d1286dc, type: 3}

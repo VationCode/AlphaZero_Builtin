@@ -620,7 +620,7 @@ namespace Alpha.Player.Combat
                  context.IsRangeAttacking ||
                  context.IsRangeCombatActive);
 
-            _core.RigView?.SetAiming(shouldActivate);
+            _core.RigView?.SetRangeCombatPose(shouldActivate);
         }
 
         #endregion ============================== /Range Secondary

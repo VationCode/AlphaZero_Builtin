@@ -72,6 +72,24 @@ namespace Alpha.Rig.Player
         [SerializeField, Range(0f, 1f)]
         private float _upperChestPitchWeight = 0.4f;
 
+        [Header("Range Pose Locomotion")]
+        [SerializeField]
+        [Tooltip("Ground 이외의 이동 Mode에서는 Range 상체 자세와 손 IK를 해제합니다.")]
+        private bool _suppressRangeRigOutsideGround = true;
+
+        [SerializeField]
+        [Tooltip("Range Rig를 해제할 Locomotion State입니다. 배열에서 제거하면 해당 상태에도 적용됩니다.")]
+        private ELocoStateType[] _suppressedLocomotionStates =
+        {
+            ELocoStateType.Jump,
+            ELocoStateType.Fall,
+            ELocoStateType.Land,
+            ELocoStateType.Dash,
+            ELocoStateType.Dodge,
+            ELocoStateType.Die,
+            ELocoStateType.Rising
+        };
+
         [Header("Left Hand IK")]
         [SerializeField]
         private bool _enableLeftHandIK = true;
@@ -113,8 +131,10 @@ namespace Alpha.Rig.Player
         private Transform _upperChestBone;
 
         private int _weaponUpperBodyLayerIndex = -1;
-        private bool _isAimRigRequested;
-        private bool _isAiming;
+        private bool _hasRangeWeaponRig;
+        private bool _holdRangePoseWhileEquipped;
+        private bool _isRangeCombatPoseRequested;
+        private bool _isRangePoseActive;
         private Vector3 _aimDirection;
         private float _currentAimPitch;
         private float _aimPitchVelocity;
@@ -123,18 +143,25 @@ namespace Alpha.Rig.Player
         private Vector3 _leftHandIKPosition;
         private Quaternion _leftHandIKRotation = Quaternion.identity;
         private float _currentLeftHandIKWeight;
+        private float _weaponLeftHandPositionWeight = 1f;
+        private float _weaponLeftHandRotationWeight = 1f;
 
         private Transform _rightHandIKTarget;
         private Vector3 _rightHandIKPosition;
         private Quaternion _rightHandIKRotation = Quaternion.identity;
         private float _currentRightHandIKWeight;
 
-        private bool _isHandIKSwapSuppressed;
-        private bool _isHandIKLocomotionSuppressed;
+        private bool _isRangeRigSwapSuppressed;
+        private bool _isRangeRigLocomotionSuppressed;
 
-        private bool IsHandIKSuppressed =>
-            _isHandIKSwapSuppressed ||
-            _isHandIKLocomotionSuppressed;
+        private bool IsRangeRigSuppressed =>
+            _isRangeRigSwapSuppressed ||
+            _isRangeRigLocomotionSuppressed;
+
+        private bool IsRangeRigRequested =>
+            _hasRangeWeaponRig &&
+            (_holdRangePoseWhileEquipped ||
+             _isRangeCombatPoseRequested);
 
         private static readonly int WeaponUpperBodyNoneState =
             Animator.StringToHash("Weapon UpperBody Layer.None");
@@ -156,7 +183,7 @@ namespace Alpha.Rig.Player
 
         private void LateUpdate()
         {
-            SynchronizeAimingState();
+            SynchronizeRangePoseState();
             UpdateAimPitch();
         }
 
@@ -174,8 +201,10 @@ namespace Alpha.Rig.Player
             ApplyHandIK(
                 AvatarIKGoal.LeftHand,
                 _currentLeftHandIKWeight,
-                _leftHandPositionWeight,
-                _leftHandRotationWeight,
+                _leftHandPositionWeight *
+                _weaponLeftHandPositionWeight,
+                _leftHandRotationWeight *
+                _weaponLeftHandRotationWeight,
                 _leftHandIKPosition,
                 _leftHandIKRotation);
 
@@ -203,7 +232,7 @@ namespace Alpha.Rig.Player
             _weaponUpperBodyLayerIndex =
                 _anim.GetLayerIndex(WeaponUpperBodyLayerName);
 
-            _isAiming = false;
+            _isRangePoseActive = false;
 
             if (_weaponUpperBodyLayerIndex < 0)
             {
@@ -216,11 +245,11 @@ namespace Alpha.Rig.Player
             _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
         }
 
-        // Flow가 판단한 조준 자세 요청을 Inspector 설정과 함께 적용한다.
-        public void SetAiming(bool p_isRequested)
+        // Range 전투 Flow가 판단한 조준·공격 자세 요청을 반영한다.
+        public void SetRangeCombatPose(bool p_isRequested)
         {
-            _isAimRigRequested = p_isRequested;
-            ApplyAimingState(0.1f);
+            _isRangeCombatPoseRequested = p_isRequested;
+            ApplyRangePoseState(0.1f);
         }
 
         // 실제 Range 공격과 동일한 월드 조준 방향을 상체 Pitch 입력으로 보관한다.
@@ -234,6 +263,37 @@ namespace Alpha.Rig.Player
         public void ClearAimDirection()
         {
             _aimDirection = Vector3.zero;
+        }
+
+        // Range 무기의 표현 설정을 값으로 복사해 Item View에 대한 지속 참조를 피한다.
+        public void BindRangeWeaponRig(
+            Transform p_leftHandTarget,
+            float p_positionWeight,
+            float p_rotationWeight,
+            bool p_holdPoseWhileEquipped)
+        {
+            _hasRangeWeaponRig = true;
+            _holdRangePoseWhileEquipped = p_holdPoseWhileEquipped;
+            _weaponLeftHandPositionWeight =
+                Mathf.Clamp01(p_positionWeight);
+            _weaponLeftHandRotationWeight =
+                Mathf.Clamp01(p_rotationWeight);
+
+            SetLeftHandIKTarget(p_leftHandTarget);
+            ApplyRangePoseState(0.1f);
+        }
+
+        // Range 장착이 해제되면 상체 자세와 손 Target을 함께 정리한다.
+        public void ClearRangeWeaponRig()
+        {
+            _hasRangeWeaponRig = false;
+            _holdRangePoseWhileEquipped = false;
+            _isRangeCombatPoseRequested = false;
+            _weaponLeftHandPositionWeight = 1f;
+            _weaponLeftHandRotationWeight = 1f;
+            ClearAimDirection();
+            ClearLeftHandIKTarget();
+            ApplyRangePoseState(0.1f);
         }
 
         // 현재 무기의 왼손 지지점을 IK Target으로 교체한다.
@@ -267,7 +327,10 @@ namespace Alpha.Rig.Player
             bool p_isSuppressed,
             bool p_isImmediate = false)
         {
-            _isHandIKSwapSuppressed = p_isSuppressed;
+            _isRangeRigSwapSuppressed = p_isSuppressed;
+
+            ApplyRangePoseState(
+                p_isImmediate ? 0f : 0.05f);
 
             if (!p_isImmediate)
                 return;
@@ -284,16 +347,33 @@ namespace Alpha.Rig.Player
             ELocomotionMode p_mode,
             ELocoStateType p_state)
         {
-            bool isUnsupportedGroundState =
-                p_state == ELocoStateType.Jump ||
-                p_state == ELocoStateType.Fall ||
-                p_state == ELocoStateType.Land ||
-                p_state == ELocoStateType.Dash ||
-                p_state == ELocoStateType.Die;
+            _isRangeRigLocomotionSuppressed =
+                ShouldSuppressRangeRig(p_mode, p_state);
 
-            _isHandIKLocomotionSuppressed =
-                p_mode != ELocomotionMode.Ground ||
-                isUnsupportedGroundState;
+            ApplyRangePoseState(0.05f);
+        }
+
+        private bool ShouldSuppressRangeRig(
+            ELocomotionMode p_mode,
+            ELocoStateType p_state)
+        {
+            if (_suppressRangeRigOutsideGround &&
+                p_mode != ELocomotionMode.Ground)
+            {
+                return true;
+            }
+
+            if (_suppressedLocomotionStates == null)
+                return false;
+
+            foreach (ELocoStateType suppressedState in
+                     _suppressedLocomotionStates)
+            {
+                if (suppressedState == p_state)
+                    return true;
+            }
+
+            return false;
         }
 
         private void CacheAimBones()
@@ -306,14 +386,15 @@ namespace Alpha.Rig.Player
             _upperChestBone = _anim.GetBoneTransform(HumanBodyBones.UpperChest);
         }
 
-        private void ApplyAimingState(float p_transitionDuration)
+        private void ApplyRangePoseState(float p_transitionDuration)
         {
             if (_anim == null || _weaponUpperBodyLayerIndex < 0)
                 return;
 
             bool shouldActivate =
                 _enableAimRig &&
-                _isAimRigRequested;
+                IsRangeRigRequested &&
+                !IsRangeRigSuppressed;
 
             int targetState = shouldActivate
                 ? AimingState
@@ -328,13 +409,13 @@ namespace Alpha.Rig.Player
                 return;
             }
 
-            if (_isAiming == shouldActivate &&
+            if (_isRangePoseActive == shouldActivate &&
                 IsWeaponUpperBodyStateActive(targetState))
             {
                 return;
             }
 
-            _isAiming = shouldActivate;
+            _isRangePoseActive = shouldActivate;
             _anim.SetLayerWeight(_weaponUpperBodyLayerIndex, 1f);
             _anim.CrossFadeInFixedTime(
                 targetState,
@@ -343,22 +424,26 @@ namespace Alpha.Rig.Player
                 0f);
         }
 
-        private void SynchronizeAimingState()
+        private void SynchronizeRangePoseState()
         {
             bool shouldActivate =
                 _enableAimRig &&
-                _isAimRigRequested;
+                IsRangeRigRequested &&
+                !IsRangeRigSuppressed;
 
             // 비활성 상태에서는 Swap 같은 다른 상체 애니메이션을 None으로 덮지 않는다.
-            if (!shouldActivate && !_isAiming)
+            if (!shouldActivate && !_isRangePoseActive)
                 return;
 
-            ApplyAimingState(0.05f);
+            ApplyRangePoseState(0.05f);
         }
 
         private void UpdateAimPitch()
         {
-            if (_ownerTr == null || !_enableAimRig)
+            if (_ownerTr == null ||
+                !_enableAimRig ||
+                !_isRangeCombatPoseRequested ||
+                IsRangeRigSuppressed)
             {
                 _currentAimPitch = 0f;
                 _aimPitchVelocity = 0f;
@@ -440,8 +525,9 @@ namespace Alpha.Rig.Player
                 ? _enableLeftHandIK
                 : _enableRightHandIK;
 
-            return target != null &&
-                   !IsHandIKSuppressed &&
+            return IsRangeRigRequested &&
+                   target != null &&
+                   !IsRangeRigSuppressed &&
                    ResolveAnimationHandIKEnabled(p_goal, defaultEnabled)
                 ? 1f
                 : 0f;

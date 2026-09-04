@@ -192,6 +192,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
       insertIndex: -1
       addedObject: {fileID: -1205438234555539969}
+    - targetCorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 900000000000000104}
     - targetCorrespondingSourceObject: {fileID: 2104374422288944379, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
       insertIndex: -1
       addedObject: {fileID: -1205438234555539967}
@@ -225,6 +228,22 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 7048463505730427350}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &900000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2314529660664611562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _leftHandGrip: {fileID: 7881355183418259081}
+  _leftHandPositionWeight: 1
+  _leftHandRotationWeight: 1
+  _holdPoseWhileEquipped: 1
 --- !u!114 &-1205438234555539969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,7 +304,6 @@ MonoBehaviour:
     _activeSettings:
       rid: 720000000000000005
   _muzzle: {fileID: 8488541816802171109}
-  _leftHandIKTarget: {fileID: 7881355183418259081}
   _showRange: 1
   _rangeColor: {r: 0, g: 0.8, b: 1, a: 1}
   references:

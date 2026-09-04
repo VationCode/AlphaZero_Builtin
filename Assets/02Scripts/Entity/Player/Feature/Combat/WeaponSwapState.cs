@@ -65,7 +65,7 @@ namespace Alpha.Player.Combat
         {
             _remainingTime = 0f;
 
-            // 새 무기의 LeftHandAttach로 왼손을 부드럽게 복원한다.
+            // 새 Range 무기의 상체 자세와 왼손 Grip을 부드럽게 복원한다.
             _Core.RigView?
                 .SetHandIKSuppressed(false);
         }
@@ -92,18 +92,28 @@ namespace Alpha.Player.Combat
                     .ApplyWeaponOverrideController(currentCategory);
             }
 
-            // 오른손이 무기 기준이므로 Range의 왼손 지지점만 IK Target으로 연결한다.
+            // 오른손은 WeaponHolder가 기준이고 Range View의 왼손 Grip만 IK로 연결한다.
             if (currentWeapon is RangeWeapon rangeWeapon)
             {
-                _Core.RigView?
-                    .SetLeftHandIKTarget(
-                        rangeWeapon.LeftHandIKTarget);
+                RangeWeaponRigView rangeRigView =
+                    rangeWeapon.GetComponentInChildren<RangeWeaponRigView>(true);
 
+                if (rangeRigView == null)
+                {
+                    Debug.LogWarning(
+                        $"{rangeWeapon.name}에 {nameof(RangeWeaponRigView)}가 없습니다.",
+                        rangeWeapon);
+                }
+
+                _Core.RigView?.BindRangeWeaponRig(
+                    rangeRigView?.LeftHandGrip,
+                    rangeRigView?.LeftHandPositionWeight ?? 1f,
+                    rangeRigView?.LeftHandRotationWeight ?? 1f,
+                    rangeRigView?.HoldPoseWhileEquipped ?? true);
             }
             else
             {
-                _Core.RigView?
-                    .ClearLeftHandIKTarget();
+                _Core.RigView?.ClearRangeWeaponRig();
             }
 
             // Effect와 Audio의 구체 종류를 알지 않고 모든 무기 View를 연결한다.
