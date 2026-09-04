@@ -6,12 +6,12 @@ namespace Alpha.Player
     public abstract class StateBase
     {
         protected PlayerCore _Core;
-        protected readonly StateFlowBase _StateFlow;
+        protected readonly LocomotionStateFlow _StateFlow;
         protected AlphaInputSystem _Input => _Core.Input;
         
         public abstract ELocoStateType Type { get; }
         // 상태가 사용할 PlayerCore와 소유 StateFlow를 보관한다.
-        protected StateBase(PlayerCore p_core, StateFlowBase p_stateFlow)
+        protected StateBase(PlayerCore p_core, LocomotionStateFlow p_stateFlow)
         {
             _Core = p_core;
             _StateFlow = p_stateFlow;

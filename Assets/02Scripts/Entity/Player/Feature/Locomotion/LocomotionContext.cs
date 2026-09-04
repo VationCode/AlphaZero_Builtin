@@ -33,5 +33,12 @@ namespace Alpha.Player.Locomotion
             CurrentState = p_state;
             OnStateChanged?.Invoke(CurrentMode, p_state);
         }
+
+        // State가 유지된 Mode 전환도 View가 새 Mode와 함께 다시 평가하도록 알린다.
+        internal void NotifyCurrentState()
+        {
+            if (CurrentState.HasValue)
+                OnStateChanged?.Invoke(CurrentMode, CurrentState.Value);
+        }
     }
 }

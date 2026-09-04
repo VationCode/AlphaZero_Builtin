@@ -24,4 +24,6 @@ MonoBehaviour:
   - _skill: {fileID: 11400000, guid: a3844c864dc14f9885251332929044fb, type: 2}
     _nextSkillInputTime: 0.6
   - _skill: {fileID: 11400000, guid: 76e5112e19961774aaa2e6de9edbaeca, type: 2}
-    _nextSkillInputTime: 0.6
+    _nextSkillInputTime: 0.3
+  - _skill: {fileID: 11400000, guid: d2a6bd9293967ca4f998f4ec17046597, type: 2}
+    _nextSkillInputTime: 0.3

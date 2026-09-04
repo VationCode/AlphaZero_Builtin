@@ -243,7 +243,10 @@ namespace Alpha.Player.Actions
             }
 
             if (!_hitReactionFlow.IsActive)
+            {
+                TryBeginDodge();
                 return;
+            }
 
             EHitReactionState previousState =
                 _hitReactionFlow.CurrentState;
@@ -264,6 +267,62 @@ namespace Alpha.Player.Actions
                 OnHitReactionStateChanged?.Invoke(
                     _hitReactionFlow.CurrentState);
             }
+        }
+
+        // 공격의 입력 잠금보다 먼저 Dodge를 해석하고 두 Feature의 전환 순서를 조정한다.
+        private bool TryBeginDodge()
+        {
+            if (CurrentState != EPlayerActionState.Normal ||
+                !AllowsLocomotion ||
+                _core.Input?.IsDodge != true ||
+                _core.Input.MoveInput.sqrMagnitude < 0.0001f)
+            {
+                return false;
+            }
+
+            LocomotionModeFlow locomotionModeFlow =
+                _core.LocomotionModeFlow;
+            LocomotionStateFlow locomotionFlow =
+                locomotionModeFlow?.CurrentFlow;
+            ELocoStateType? locomotionState =
+                locomotionFlow?.CurrentState?.Type;
+
+            if (!CanEnterDodge(locomotionState) ||
+                _core.LocomotionModule == null ||
+                _core.LocomotionModule.IsEvasionActive)
+            {
+                return false;
+            }
+
+            CombatFlow combatFlow = _core.CombatFlow;
+            bool isWeaponAction =
+                combatFlow?.CurrentState?.Type ==
+                ECombatStateType.WeaponAction;
+
+            // 공격이 아닌 다른 소유자의 잠금은 Dodge가 가로채지 않는다.
+            if (_core.LocomotionModule.BlocksInput &&
+                !isWeaponAction)
+            {
+                return false;
+            }
+
+            if (combatFlow != null &&
+                !combatFlow.TryCancelForDodge())
+            {
+                return false;
+            }
+
+            return locomotionFlow.ChangeState(
+                ELocoStateType.Dodge);
+        }
+
+        private static bool CanEnterDodge(
+            ELocoStateType? p_currentState)
+        {
+            return p_currentState.HasValue &&
+                   p_currentState != ELocoStateType.Dash &&
+                   p_currentState != ELocoStateType.Dodge &&
+                   p_currentState != ELocoStateType.Die;
         }
 
         private void CompleteReaction()
@@ -293,14 +352,19 @@ namespace Alpha.Player.Actions
             _core.CombatFlow?.TryChangeState(ECombatStateType.Idle);
             _core.CombatModule?.CancelWeaponAction();
 
-            if (_core.LocomotionModeFlow?.CurrentMode ==
-                    ELocomotionMode.Ground &&
-                _core.LocomotionModule?.IsGrounded == true &&
-                _core.LocomotionModeFlow.CurrentFlow?.CurrentState?.Type !=
-                    ELocoStateType.Move)
+            LocomotionModeFlow locomotionFlow =
+                _core.LocomotionModeFlow;
+
+            if (locomotionFlow?.CurrentFlow?.CurrentState?.Type !=
+                ELocoStateType.Move)
             {
-                _core.LocomotionModeFlow.CurrentFlow.ChangeState(
-                    ELocoStateType.Move);
+                ELocoStateType recoveryState =
+                    locomotionFlow.CurrentMode == ELocomotionMode.Ground &&
+                    _core.LocomotionModule?.IsGrounded != true
+                        ? ELocoStateType.Fall
+                        : ELocoStateType.Move;
+
+                locomotionFlow.CurrentFlow.ChangeState(recoveryState);
             }
         }
 

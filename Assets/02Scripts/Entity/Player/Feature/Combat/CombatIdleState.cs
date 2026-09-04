@@ -18,6 +18,10 @@ namespace Alpha.Player.Combat
         // 현재 상태의 입력과 전환 조건을 매 프레임 처리한다.
         protected override void Tick()
         {
+            // 같은 Frame의 Dodge가 새 공격이나 교체보다 먼저 처리되게 한다.
+            if (_Input?.IsDodge == true)
+                return;
+
             // Pending 요청의 실행 가능 여부는 현재 Idle State가 판단한다.
             if (_Context.HasPendingWeaponChange && CanEnterWeaponSwap())
             {
@@ -42,6 +46,9 @@ namespace Alpha.Player.Combat
             if (!_Core.CombatModule.HasWeapon)
                 return;
 
+            if (!CanEnterWeaponAction())
+                return;
+
             TryRequestWeaponAction();
         }
 
@@ -56,7 +63,20 @@ namespace Alpha.Player.Combat
             return _Core.LocomotionContext.CurrentState switch
             {
                 ELocoStateType.Dash => false,
+                ELocoStateType.Dodge => false,
                 ELocoStateType.Jump => false,
+                ELocoStateType.Die => false,
+                _ => true
+            };
+        }
+
+        // 회피·사망 중에는 현재 무기의 새 행동을 시작하지 않는다.
+        private bool CanEnterWeaponAction()
+        {
+            return _Core.LocomotionContext.CurrentState switch
+            {
+                ELocoStateType.Dash => false,
+                ELocoStateType.Dodge => false,
                 ELocoStateType.Die => false,
                 _ => true
             };

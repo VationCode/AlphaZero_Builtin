@@ -155,6 +155,26 @@ namespace Alpha.Player.Combat
             return true;
         }
 
+        // PlayerActionFlow가 Dodge에 앞서 현재 무기 행동과 조준 표현을 안전하게 종료한다.
+        internal bool TryCancelForDodge()
+        {
+            if (_core == null || CurrentState == null ||
+                CurrentState.Type == ECombatStateType.WeaponSwap)
+            {
+                return false;
+            }
+
+            CancelRangeSecondary();
+
+            if (CurrentState.Type == ECombatStateType.WeaponAction &&
+                !TryChangeState(ECombatStateType.Idle))
+            {
+                return false;
+            }
+
+            return CurrentState?.Type == ECombatStateType.Idle;
+        }
+
         #region ============================== Swap
         // 숫자키로의 변경, 장비창으로의 변경
 
@@ -252,7 +272,8 @@ namespace Alpha.Player.Combat
             if (_core == null ||
                 _core.LocomotionContext == null ||
                 _core.Input?.IsJump == true ||
-                _core.Input?.IsDash == true)
+                _core.Input?.IsDash == true ||
+                _core.Input?.IsDodge == true)
             {
                 return false;
             }

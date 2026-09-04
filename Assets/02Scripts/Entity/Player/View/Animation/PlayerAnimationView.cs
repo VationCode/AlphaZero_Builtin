@@ -83,6 +83,9 @@ namespace Alpha.Player.Animation
         private static readonly int DashState =
             Animator.StringToHash("Base Layer.Dash");
 
+        private static readonly int DodgeState =
+            Animator.StringToHash("Base Layer.Dodge Tree");
+
         private static readonly int LightHitReactionState =
             Animator.StringToHash("Base Layer.LightHit");
 
@@ -263,6 +266,10 @@ namespace Alpha.Player.Animation
 
                 case ELocoStateType.Dash:
                     PlayDash();
+                    break;
+
+                case ELocoStateType.Dodge:
+                    // DodgeState가 보관한 입력 방향으로 직접 재생한다.
                     break;
 
                 default:
@@ -461,6 +468,32 @@ namespace Alpha.Player.Animation
 
             // 연속 Dash 입력에도 처음부터 재생한다.
             CrossFadeBase(DashState, 0.05f, 0f, true);
+        }
+
+        // Player 로컬 방향을 8방향 Dodge Blend Tree에 전달하고 처음부터 재생한다.
+        public void PlayDodge(Vector2 p_localDirection)
+        {
+            if (_isDamageReactionActive)
+                return;
+
+            Vector2 direction = Vector2.ClampMagnitude(
+                p_localDirection,
+                1f);
+
+            if (direction.sqrMagnitude <= 0.0001f)
+                return;
+
+            direction.Normalize();
+            _hasGroundMoveInput = false;
+            ResetFootstepCycle();
+
+            // 취소된 Melee 전신 동작이 Dodge를 덮지 않도록 즉시 내린다.
+            if (_meleeFullBodyLayerIndex >= 0)
+                SetMeleeLayerWeightImmediate(0f);
+
+            _anim.SetFloat(InputX, direction.x);
+            _anim.SetFloat(InputY, direction.y);
+            CrossFadeBase(DodgeState, 0.05f, 0f, true);
         }
 
         // 공용 피격 행동 상태를 Player Base Layer 상태로 변환한다.

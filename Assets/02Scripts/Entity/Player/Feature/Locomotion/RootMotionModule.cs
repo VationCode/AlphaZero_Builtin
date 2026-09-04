@@ -17,6 +17,7 @@ namespace Alpha.Player.Locomotion
     public sealed class RootMotionModule
     {
         private LocomotionMoveModule _moveModule;
+        private object _owner;
 
         public ERootMotionMode CurrentMode { get; private set; } = ERootMotionMode.None;
 
@@ -27,24 +28,44 @@ namespace Alpha.Player.Locomotion
             if (p_moveModule == null)
                 return false;
 
+            ForceEnd();
             _moveModule = p_moveModule;
             return true;
         }
 
-        public bool Begin(ERootMotionMode p_mode)
+        // 활성 Root Motion을 시작한 소유자만 같은 세션을 종료할 수 있다.
+        public bool Begin(object p_owner, ERootMotionMode p_mode)
         {
-            if (_moveModule == null ||
+            if (p_owner == null ||
+                _moveModule == null ||
                 p_mode == ERootMotionMode.None)
             {
                 return false;
             }
 
+            if (IsActive)
+            {
+                return ReferenceEquals(_owner, p_owner) &&
+                       CurrentMode == p_mode;
+            }
+
+            _owner = p_owner;
             CurrentMode = p_mode;
             return true;
         }
 
-        public void End()
+        public bool End(object p_owner)
         {
+            if (!IsActive || !ReferenceEquals(_owner, p_owner))
+                return false;
+
+            ForceEnd();
+            return true;
+        }
+
+        public void ForceEnd()
+        {
+            _owner = null;
             CurrentMode = ERootMotionMode.None;
         }
 

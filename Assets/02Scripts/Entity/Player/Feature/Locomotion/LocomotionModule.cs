@@ -17,6 +17,7 @@ namespace Alpha.Player.Locomotion
         private LocomotionRotationModule _rotationModule;
         private LocomotionContext _context;
         private readonly RootMotionModule _rootMotionModule = new();
+        private readonly EvasionModule _evasionModule = new();
         private int _inputLockCount;
         private bool _isKnockbackActive;
         private Vector3 _knockbackVelocity;
@@ -30,9 +31,19 @@ namespace Alpha.Player.Locomotion
         [SerializeField] private float _landDuration = 0.15f;
         
 
-        [Header("DashUpdate")]
-        [SerializeField] private float _dashDistance = 6f;
-        [SerializeField] private float _dashDuration = 0.3f;
+        // 3단계 Dash 이전 전까지 기존 Scene 설정을 보존한다.
+        [SerializeField, HideInInspector] private float _dashDistance = 6f;
+        [SerializeField, HideInInspector] private float _dashDuration = 0.3f;
+        [SerializeField, HideInInspector] private bool _hasMigratedEvasionSettings;
+
+        [Header("Evasion")]
+        [SerializeField]
+        private EvasionSettings _dashSettings =
+            EvasionSettings.CreateDashDefault();
+
+        [SerializeField]
+        private EvasionSettings _dodgeSettings =
+            EvasionSettings.CreateDodgeDefault();
 
 
         [Header("Ground")]
@@ -56,8 +67,8 @@ namespace Alpha.Player.Locomotion
         public Vector3 Velocity => _moveModule != null ? _moveModule.Velocity : Vector3.zero;
 
         public float LandDuration => _landDuration;
-        public float DashDuration => _dashDuration;
         public bool UsesRootMotion => _rootMotionModule.IsActive;
+        public bool IsEvasionActive => _evasionModule.IsActive;
         public bool BlocksInput =>
             UsesRootMotion || _inputLockCount > 0;
         public bool IsKnockbackActive => _isKnockbackActive;
@@ -81,11 +92,16 @@ namespace Alpha.Player.Locomotion
 
         private void OnDisable()
         {
+            _evasionModule.End();
+            _rootMotionModule.ForceEnd();
             CancelKnockback();
         }
 
         // 이동 Context와 세부 이동·회전 Module을 Player Transform에 연결한다.
-        public void Bind(LocomotionContext p_context, Transform p_playerTransform)
+        public void Bind(
+            LocomotionContext p_context,
+            Transform p_playerTransform,
+            DamageReceiverModule p_damageReceiver)
         {
             if (p_context == null || p_playerTransform == null ||
                 _controller == null || _moveModule == null || _rotationModule == null)
@@ -96,6 +112,8 @@ namespace Alpha.Player.Locomotion
 
             _context = p_context;
             _inputLockCount = 0;
+            EnsureEvasionSettings();
+            _evasionModule.End();
             CancelKnockback();
 
             _moveModule.Bind(p_context);
@@ -103,33 +121,65 @@ namespace Alpha.Player.Locomotion
 
             if (!_rootMotionModule.Bind(_moveModule))
                 Debug.LogError($"{nameof(RootMotionModule)}을 연결하지 못했습니다.", this);
+
+            if (!_evasionModule.Bind(
+                    _moveModule,
+                    _rootMotionModule,
+                    p_damageReceiver,
+                    () => GroundVerticalVelocity))
+            {
+                Debug.LogError(
+                    $"{nameof(EvasionModule)}을 연결하지 못했습니다.",
+                    this);
+            }
         }
 
         #region ======================================== Movement
-        // Ground 이동의 계산, 회전, 실제 이동 순서를 조합한다.
+        // 현재 Mode 이동의 계산, 회전, 실제 이동 순서를 공통으로 조합한다.
         // p_facingDirection : 회전할 방향 결정(Input, Aim, Mouse 방향)
-        public void MoveGround(Vector2 p_moveInput, Transform p_cameraTransform,
-                               bool p_isSprint, bool p_isCombat,
-                               Vector3 p_facingDirection,
-                               float p_moveSpeedMultiplier = 1f)
+        public void Move(
+            Vector2 p_moveInput,
+            Transform p_cameraTransform,
+            ELocomotionMode p_mode,
+            bool p_isSprint,
+            bool p_isCombat,
+            Vector3 p_facingDirection,
+            float p_moveSpeedMultiplier = 1f)
         {
             // 이동 방향
-            Vector3 moveDirection = 
-                _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
+            Vector3 moveDirection =
+                _moveModule.GetMoveDirection(
+                    p_moveInput,
+                    p_cameraTransform,
+                    p_mode);
 
             // 속력
             float moveSpeed =
-                _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint,p_isCombat) * Mathf.Clamp01(p_moveSpeedMultiplier);
+                _moveModule.GetMoveSpeed(
+                    p_mode,
+                    p_isSprint,
+                    p_isCombat) * Mathf.Clamp01(p_moveSpeedMultiplier);
 
             // 속도
-            Vector3 moveVelocity = 
-                _moveModule.GetMoveVelocity(moveDirection, moveSpeed, GroundVerticalVelocity, ELocomotionMode.Ground);
+            Vector3 moveVelocity =
+                _moveModule.GetMoveVelocity(
+                    moveDirection,
+                    moveSpeed,
+                    GroundVerticalVelocity,
+                    p_mode);
 
             // 별도의 바라볼 방향이 없으면 이동 방향을 사용한다.
-            Vector3 rotationDirection = p_facingDirection.sqrMagnitude > 0.0001f? p_facingDirection : moveDirection;
+            Vector3 rotationDirection =
+                p_facingDirection.sqrMagnitude > 0.0001f
+                    ? p_facingDirection
+                    : moveDirection;
 
             // 회전 적용
-            _rotationModule.ApplyRotation(rotationDirection, p_cameraTransform, false, p_isCombat);
+            _rotationModule.ApplyRotation(
+                rotationDirection,
+                p_cameraTransform,
+                p_mode == ELocomotionMode.Flight,
+                p_isCombat);
 
             // 실제 이동
             _moveModule.Move(moveVelocity);
@@ -138,34 +188,107 @@ namespace Alpha.Player.Locomotion
         // 전투 행동 시작 시 Player를 지정된 지상 방향으로 회전시킨다.
         public void FaceGroundDirection(Vector3 p_direction, Transform p_cameraTransform, bool p_isInstant)
         {
-            _rotationModule.ApplyRotation(p_direction, p_cameraTransform, false, true, p_isInstant);
+            FaceDirection(
+                p_direction,
+                p_cameraTransform,
+                ELocomotionMode.Ground,
+                p_isInstant,
+                true);
+        }
+
+        // 현재 Mode의 평면 또는 공간 회전 규칙으로 지정 방향을 바라본다.
+        public void FaceDirection(
+            Vector3 p_direction,
+            Transform p_cameraTransform,
+            ELocomotionMode p_mode,
+            bool p_isInstant,
+            bool p_isCombat = false)
+        {
+            _rotationModule.ApplyRotation(
+                p_direction,
+                p_cameraTransform,
+                p_mode == ELocomotionMode.Flight,
+                p_isCombat,
+                p_isInstant);
         }
 
         // 이동 입력을 카메라 기준의 지상 월드 방향으로 변환한다.
         public bool TryGetGroundInputDirection(Vector2 p_moveInput, Transform p_cameraTransform, out Vector3 p_direction)
         {
-            p_direction = 
-                _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
+            return TryGetInputDirection(
+                p_moveInput,
+                p_cameraTransform,
+                ELocomotionMode.Ground,
+                out p_direction);
+        }
+
+        // 이동 입력을 현재 Mode의 카메라 기준 월드 방향으로 변환한다.
+        public bool TryGetInputDirection(
+            Vector2 p_moveInput,
+            Transform p_cameraTransform,
+            ELocomotionMode p_mode,
+            out Vector3 p_direction)
+        {
+            p_direction = _moveModule.GetMoveDirection(
+                p_moveInput,
+                p_cameraTransform,
+                p_mode);
 
             return p_direction.sqrMagnitude >= 0.0001f;
         }
 
         // 행동이 사용할 Root Motion 적용 방식을 시작한다.
-        public bool BeginRootMotion(ERootMotionMode p_mode)
+        public bool BeginRootMotion(
+            object p_owner,
+            ERootMotionMode p_mode)
         {
-            return _rootMotionModule.Begin(p_mode);
+            return _rootMotionModule.Begin(p_owner, p_mode);
         }
 
-        // 현재 Root Motion 행동을 종료한다.
-        public void EndRootMotion()
+        // 현재 Root Motion을 획득한 행동만 해당 세션을 종료한다.
+        public bool EndRootMotion(object p_owner)
         {
-            _rootMotionModule.End();
+            return _rootMotionModule.End(p_owner);
         }
 
         // Animator 이동량을 활성화된 Root Motion Module에 전달한다.
         public void ApplyRootMotion(Vector3 p_deltaPosition)
         {
             _rootMotionModule.Apply(p_deltaPosition, GroundVerticalVelocity);
+        }
+
+        // 현재 회피 종류에 대응하는 Inspector 설정을 반환한다.
+        public EvasionSettings GetEvasionSettings(EEvasionType p_type)
+        {
+            return p_type switch
+            {
+                EEvasionType.Dash => _dashSettings,
+                EEvasionType.Dodge => _dodgeSettings,
+                _ => null
+            };
+        }
+
+        // State가 확정한 방향과 현재 Mode로 회피 실행을 시작한다.
+        public bool BeginEvasion(
+            EEvasionType p_type,
+            Vector3 p_direction,
+            ELocomotionMode p_mode)
+        {
+            return _evasionModule.Begin(
+                p_type,
+                GetEvasionSettings(p_type),
+                p_direction,
+                p_mode);
+        }
+
+        public bool TickEvasion(float p_deltaTime)
+        {
+            return _evasionModule.Tick(p_deltaTime);
+        }
+
+        public void EndEvasion()
+        {
+            _evasionModule.End();
         }
 
         // Root Motion을 사용하지 않는 행동이 이동 입력을 잠근다.
@@ -300,37 +423,6 @@ namespace Alpha.Player.Locomotion
         }
         #endregion ======================================== /Fall
 
-        // 입력 또는 Player 정면으로 대시 방향을 결정하고 고정한다.
-        public void StartDash(Vector2 p_moveInput, Transform p_cameraTransform)
-        {
-            Vector3 dashDirection = _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
-
-            // 이동 입력이 없으면 현재 정면으로 Dash한다.
-            if (dashDirection.sqrMagnitude < 0.0001f)
-            {
-                dashDirection = Vector3.ProjectOnPlane(_controller.transform.forward, Vector3.up).normalized;
-            }
-
-            _context.LockedMoveDirection = dashDirection;
-
-            // Dash 방향은 시작할 때 즉시 고정한다.
-            _rotationModule.ApplyRotation(dashDirection, p_cameraTransform, false, false, true);
-        }
-
-        // 거리와 지속 시간으로 대시 속도를 계산해 매 프레임 이동한다.
-        public void DashUpdate(Vector3 p_direction)
-        {
-            float duration = Mathf.Max(_dashDuration, 0.01f);
-
-            float dashSpeed = _dashDistance / duration;
-
-            Vector3 velocity = p_direction.normalized * dashSpeed;
-
-            velocity.y = GroundVerticalVelocity;
-
-            _moveModule.Move(velocity);
-        }
-
         #region Ground & Gravity
         // 접지 판정 후 현재 이동 State의 배율로 중력을 갱신한다.
         public void UpdateEnvironment(float p_gravityScale)
@@ -390,6 +482,39 @@ namespace Alpha.Player.Locomotion
             Gizmos.color = IsGrounded ? Color.green : Color.red;
 
             Gizmos.DrawWireSphere(groundPoint, controller.radius);
+        }
+
+        private void OnValidate()
+        {
+            _jumpHeight = Mathf.Max(0f, _jumpHeight);
+            _landDuration = Mathf.Max(0f, _landDuration);
+            _dashDistance = Mathf.Max(0f, _dashDistance);
+            _dashDuration = Mathf.Max(0.01f, _dashDuration);
+            _groundOffset = Mathf.Max(0f, _groundOffset);
+            _gravity = Mathf.Max(0f, _gravity);
+            _groundedForce = Mathf.Max(0f, _groundedForce);
+
+            EnsureEvasionSettings();
+        }
+
+        // 기존 Dash 직렬화 값을 새 공통 설정으로 한 번만 이전한다.
+        private void EnsureEvasionSettings()
+        {
+            if (!_hasMigratedEvasionSettings)
+            {
+                _dashSettings = EvasionSettings.CreateDashDefault(
+                    _dashDistance,
+                    _dashDuration);
+                _hasMigratedEvasionSettings = true;
+            }
+
+            _dashSettings ??= EvasionSettings.CreateDashDefault(
+                _dashDistance,
+                _dashDuration);
+            _dodgeSettings ??= EvasionSettings.CreateDodgeDefault();
+
+            _dashSettings.Validate();
+            _dodgeSettings.Validate();
         }
         #endregion
     }

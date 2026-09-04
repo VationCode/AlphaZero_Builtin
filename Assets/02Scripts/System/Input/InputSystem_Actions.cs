@@ -181,6 +181,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Dodge"",
+                    ""type"": ""Button"",
+                    ""id"": ""d6fe7db9-4a00-4d86-a33f-744afc2b6490"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -359,6 +368,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""TriggerMode"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""da60c794-68f9-4608-acba-ca19d49a415e"",
+                    ""path"": ""<Keyboard>/capsLock"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dodge"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -493,6 +513,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Swap = m_Player.FindAction("Swap", throwIfNotFound: true);
         m_Player_Interaction = m_Player.FindAction("Interaction", throwIfNotFound: true);
         m_Player_TriggerMode = m_Player.FindAction("TriggerMode", throwIfNotFound: true);
+        m_Player_Dodge = m_Player.FindAction("Dodge", throwIfNotFound: true);
         // Camera
         m_Camera = asset.FindActionMap("Camera", throwIfNotFound: true);
         m_Camera_Look = m_Camera.FindAction("Look", throwIfNotFound: true);
@@ -594,6 +615,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Swap;
     private readonly InputAction m_Player_Interaction;
     private readonly InputAction m_Player_TriggerMode;
+    private readonly InputAction m_Player_Dodge;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -645,6 +667,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/TriggerMode".
         /// </summary>
         public InputAction @TriggerMode => m_Wrapper.m_Player_TriggerMode;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Dodge".
+        /// </summary>
+        public InputAction @Dodge => m_Wrapper.m_Player_Dodge;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -701,6 +727,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @TriggerMode.started += instance.OnTriggerMode;
             @TriggerMode.performed += instance.OnTriggerMode;
             @TriggerMode.canceled += instance.OnTriggerMode;
+            @Dodge.started += instance.OnDodge;
+            @Dodge.performed += instance.OnDodge;
+            @Dodge.canceled += instance.OnDodge;
         }
 
         /// <summary>
@@ -742,6 +771,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @TriggerMode.started -= instance.OnTriggerMode;
             @TriggerMode.performed -= instance.OnTriggerMode;
             @TriggerMode.canceled -= instance.OnTriggerMode;
+            @Dodge.started -= instance.OnDodge;
+            @Dodge.performed -= instance.OnDodge;
+            @Dodge.canceled -= instance.OnDodge;
         }
 
         /// <summary>
@@ -1077,6 +1109,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTriggerMode(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Dodge" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDodge(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Camera" which allows adding and removing callbacks.

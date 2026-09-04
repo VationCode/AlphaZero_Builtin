@@ -1,7 +1,5 @@
-// 모드 전환 관리
-using System;
-using System.Collections.Generic;
 using UnityEngine;
+
 // ELocomotionMode 관련 선택 값을 정의한다.
 public enum ELocomotionMode
 {
@@ -18,34 +16,39 @@ public enum ELocomotionMode
 
 namespace Alpha.Player.Locomotion
 {
-    // Player의 이동 Mode와 하위 이동 State의 시작·갱신·종료 순서를 조정한다.
+    // Player의 이동 Mode와 하나의 공통 이동 State 흐름을 조정한다.
     // ActionFlow가 일반 이동을 막아도 환경 판정과 넉백처럼 필수 이동 처리는 계속 갱신한다.
     public class LocomotionModeFlow : MonoBehaviour
     {
         private PlayerCore _core;
+        private LocomotionStateFlow _stateFlow;
+        private readonly TransitionRule _rule = new();
+
         public ELocomotionMode CurrentMode { get; private set; }
+        public LocomotionStateFlow CurrentFlow => _stateFlow;
 
-        private readonly Dictionary<ELocomotionMode, StateFlowBase> _flowDict = new();
-        public StateFlowBase CurrentFlow => _currentStateFlow;
-        private StateFlowBase _currentStateFlow;
-
-        public event Action<string> OnStateFlowChanged;
-        // 이동 Mode별 StateFlow를 구성하고 지상 이동에서 시작한다.
+        // Mode와 무관하게 공유하는 State 흐름을 구성하고 지상 이동에서 시작한다.
         public void Bind(PlayerCore p_core)
         {
+            if (p_core == null)
+            {
+                Debug.LogError($"{nameof(LocomotionModeFlow)}에 PlayerCore가 없습니다.", this);
+                return;
+            }
+
             _core = p_core;
+            _stateFlow = new LocomotionStateFlow(p_core);
 
-            _flowDict.Add(ELocomotionMode.Ground, new GroundStateFlow(p_core));
-
-            _flowDict.Add(ELocomotionMode.Flight, new FlightStateFlow(p_core));
-
-            ChangeMode(ELocomotionMode.Ground, ELocoStateType.Move);
+            CurrentMode = ELocomotionMode.Ground;
+            _core.LocomotionContext.SetCurrentMode(CurrentMode);
+            _stateFlow.EnterFlow(ELocoStateType.Move);
         }
 
         // 매 프레임 입력과 현재 상태를 갱신한다.
         private void Update()
         {
-            if (_core == null) return;
+            if (_core == null || _stateFlow == null)
+                return;
 
             float gravityScale = CurrentMode == ELocomotionMode.Ground ? 1f : 0f;
 
@@ -60,44 +63,74 @@ namespace Alpha.Player.Locomotion
             if (!_core.CanUseLocomotion)
                 return;
 
-            // Mode 전환
+            // Mode만 변경하며 공통 StateFlow 인스턴스는 교체하지 않는다.
             if (!_core.LocomotionModule.BlocksInput &&
-                _currentStateFlow.CanChangeMode(
+                TryResolveModeChange(
                     out ELocomotionMode nextMode,
                     out ELocoStateType entryState))
             {
                 ChangeMode(nextMode, entryState);
             }
 
-            // 해당 Mode의 상태를 Update
-            _currentStateFlow?.TickFlow();
+            _stateFlow.TickFlow();
         }
 
-        // ChangeMode 상태 전환을 수행하고 변경을 알린다.
+        // Mode를 갱신하고 새 Mode가 사용할 진입 State만 공통 Flow에 요청한다.
         public void ChangeMode(ELocomotionMode p_nextMode, ELocoStateType p_entryState)
         {
-            if (!_flowDict.TryGetValue(p_nextMode, out StateFlowBase nextFlow) ||
-                ReferenceEquals(_currentStateFlow, nextFlow))
+            if (_core == null || _stateFlow == null || !IsSupportedMode(p_nextMode))
             {
                 Debug.LogWarning($"[LocomotionMode] 등록되지 않은 Mode: {p_nextMode}");
                 return;
             }
 
-            string previousMode = _currentStateFlow == null ? "None" : CurrentMode.ToString();
-
-            //Debug.Log($"[LocomotionMode] {previousMode} → {p_nextMode} " + $"(Entry: {p_entryState})");
-
-
-            _currentStateFlow?.ExitFlow();
-
-            _currentStateFlow = nextFlow;
+            bool isModeChanged = CurrentMode != p_nextMode;
             CurrentMode = p_nextMode;
-
-            // Context에 현재 Mode 기록
             _core.LocomotionContext.SetCurrentMode(p_nextMode);
 
-            // 지정한 State로 새 Flow 시작
-            _currentStateFlow.EnterFlow(p_entryState);
+            bool isStateChanged = _stateFlow.ChangeState(p_entryState);
+
+            // Move → Move처럼 State가 유지되어도 Mode 변경은 View에 알려야 한다.
+            if (isModeChanged && !isStateChanged)
+                _core.LocomotionContext.NotifyCurrentState();
+        }
+
+        // Flight 입력을 Mode 토글로 해석하고 다음 State를 함께 결정한다.
+        private bool TryResolveModeChange(
+            out ELocomotionMode p_nextMode,
+            out ELocoStateType p_entryState)
+        {
+            p_nextMode = default;
+            p_entryState = default;
+
+            if (!_core.Input.IsFlight)
+                return false;
+
+            if (CurrentMode == ELocomotionMode.Ground &&
+                _rule.CanFlight(_core.LocomotionContext))
+            {
+                p_nextMode = ELocomotionMode.Flight;
+                p_entryState = ELocoStateType.Move;
+                return true;
+            }
+
+            if (CurrentMode == ELocomotionMode.Flight &&
+                _rule.CanGround(_core.LocomotionContext))
+            {
+                p_nextMode = ELocomotionMode.Ground;
+                p_entryState = _core.LocomotionModule.IsGrounded
+                    ? ELocoStateType.Move
+                    : ELocoStateType.Fall;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsSupportedMode(ELocomotionMode p_mode)
+        {
+            return p_mode == ELocomotionMode.Ground ||
+                   p_mode == ELocomotionMode.Flight;
         }
     }
 }

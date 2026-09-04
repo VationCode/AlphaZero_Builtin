@@ -167,7 +167,10 @@ namespace Alpha.Player
             // 이동 상태와 실제 이동 Module을 먼저 구성한다.
             LocomotionModeFlow.Bind(this);
 
-            LocomotionModule.Bind(LocomotionContext, PlayerTr);
+            LocomotionModule.Bind(
+                LocomotionContext,
+                PlayerTr,
+                DamageReceiver);
 
             // Inventory와 Equipment가 같은 슬롯 이동 규칙을 공유한다.
             SlotTransferModule slotTransferModule = new();

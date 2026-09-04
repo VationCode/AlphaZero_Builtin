@@ -16,17 +16,19 @@ public class AlphaInputSystem : MonoBehaviour
     public bool IsSprint => _isSprint;
     bool _isSprint;
 
-    public bool IsJump => _isJump;
-    private bool _isJump => _jumpFrame == Time.frameCount;  // 한 프레임 단위만 True로 이후 False
-    private int _jumpFrame;
+    public bool IsJump => _jumpFrame == Time.frameCount;  // 한 프레임 단위만 True로 이후 False
+    private int _jumpFrame = -1;
+
+    public bool IsDodge => _dodgeFrame == Time.frameCount;
+    private int _dodgeFrame = -1;
 
     public bool IsDash => _isDash;
     private bool _isDash => _dashFrame == Time.frameCount;
-    private int _dashFrame;
+    private int _dashFrame = -1;
 
     public bool IsFlight => _isFlight;
     private bool _isFlight => _flightFrame == Time.frameCount;
-    private int _flightFrame;
+    private int _flightFrame = -1;
 
     public bool IsInteraction => _interactionFrame == Time.frameCount;
     private int _interactionFrame = -1;
@@ -45,8 +47,7 @@ public class AlphaInputSystem : MonoBehaviour
     public bool IsSecondaryAction => _isSecondaryAction;
     private bool _isSecondaryAction;
 
-    public bool IsSecondaryActionPressed =>
-        _secondaryActionPressedFrame == Time.frameCount;
+    public bool IsSecondaryActionPressed => _secondaryActionPressedFrame == Time.frameCount;
     private int _secondaryActionPressedFrame = -1;
 
     public bool IsTriggerModeSwitchInput =>
@@ -90,6 +91,7 @@ public class AlphaInputSystem : MonoBehaviour
 
         _action.Player.Jump.performed += i => _jumpFrame = Time.frameCount;
         _action.Player.Dash.performed += i => _dashFrame = Time.frameCount;
+        _action.Player.Dodge.performed += i => _dodgeFrame = Time.frameCount;
 
         _action.Player.Flight.performed += i => _flightFrame = Time.frameCount;
         
@@ -218,6 +220,7 @@ public class AlphaInputSystem : MonoBehaviour
 
         _jumpFrame = -1;
         _dashFrame = -1;
+        _dodgeFrame = -1;
         _flightFrame = -1;
         _interactionFrame = -1;
         _swapFrame = -1;

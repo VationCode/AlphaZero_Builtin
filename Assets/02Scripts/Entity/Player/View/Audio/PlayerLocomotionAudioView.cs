@@ -37,10 +37,10 @@ namespace Alpha.Player.Audio
 
         private void Awake()
         {
-            _audioSource = GetComponentInParent<AudioSource>();
+            _audioSource = GetComponent<AudioSource>();
 
             if (_audioSource == null)
-                _audioSource = gameObject.GetComponentInParent<AudioSource>();
+                _audioSource = gameObject.GetComponent<AudioSource>();
 
             _audioSource.playOnAwake = false;
         }
