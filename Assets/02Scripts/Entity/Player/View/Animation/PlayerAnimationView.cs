@@ -40,6 +40,8 @@ namespace Alpha.Player.Animation
 
         public event Action<Vector3> OnRootMotion;
         public event Action OnFootstep;
+        public event Action<string> OnEffectKeyRequested;
+        public event Action<string> OnAudioKeyRequested;
 
         [Header("Footstep")]
         [SerializeField, Range(0f, 1f)]
@@ -311,6 +313,42 @@ namespace Alpha.Player.Animation
             OnRootMotion?.Invoke(_anim.deltaPosition);
         }
 
+        // Animation Clip Event의 String Key를 Effect View에 전달한다.
+        public void PlayEffect(string p_key)
+        {
+            if (!TryNormalizeEventKey(p_key, out string key))
+            {
+                Debug.LogWarning(
+                    "Animation Effect Event Key가 비어 있습니다.",
+                    this);
+                return;
+            }
+
+            OnEffectKeyRequested?.Invoke(key);
+        }
+
+        // Animation Clip Event의 String Key를 Audio View에 전달한다.
+        public void PlayAudio(string p_key)
+        {
+            if (!TryNormalizeEventKey(p_key, out string key))
+            {
+                Debug.LogWarning(
+                    "Animation Audio Event Key가 비어 있습니다.",
+                    this);
+                return;
+            }
+
+            OnAudioKeyRequested?.Invoke(key);
+        }
+
+        private static bool TryNormalizeEventKey(
+            string p_key,
+            out string p_normalizedKey)
+        {
+            p_normalizedKey = p_key?.Trim();
+            return !string.IsNullOrEmpty(p_normalizedKey);
+        }
+
         /// <summary>
         /// Base Layer의 상태를 전환하며, 강제 재생이 아니면 같은 상태의 중복 전환을 생략한다.
         /// </summary>
@@ -449,7 +487,7 @@ namespace Alpha.Player.Animation
             if (_isDamageReactionActive)
                 return;
 
-            CrossFadeBase(Fall, 0.15f, 0f);
+            CrossFadeBase(Fall, 0.3f, 0.3f);
         }
         // 착지 클립의 충격 구간부터 재생한다.
         public void PlayLand()

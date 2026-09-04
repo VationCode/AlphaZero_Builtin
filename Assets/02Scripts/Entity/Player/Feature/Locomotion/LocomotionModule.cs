@@ -124,7 +124,6 @@ namespace Alpha.Player.Locomotion
 
             if (!_evasionModule.Bind(
                     _moveModule,
-                    _rootMotionModule,
                     p_damageReceiver,
                     () => GroundVerticalVelocity))
             {

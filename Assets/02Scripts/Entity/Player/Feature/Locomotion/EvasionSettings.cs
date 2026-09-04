@@ -9,26 +9,10 @@ namespace Alpha.Player.Locomotion
         Dodge
     }
 
-    public enum EEvasionMovementMode
-    {
-        // 거리와 시간으로 계산한 이동을 사용한다.
-        Scripted,
-
-        // Animation의 XZ 이동과 Locomotion 중력을 함께 사용한다.
-        RootMotionGround,
-
-        // Animation의 XYZ 이동을 그대로 사용한다.
-        RootMotionFull
-    }
-
     // Dash와 Dodge가 공유하는 이동 및 무적 시간 설정이다.
     [Serializable]
     public sealed class EvasionSettings
     {
-        [SerializeField]
-        private EEvasionMovementMode _movementMode =
-            EEvasionMovementMode.Scripted;
-
         [SerializeField, Min(0f)]
         private float _distance = 6f;
 
@@ -41,7 +25,6 @@ namespace Alpha.Player.Locomotion
         [SerializeField, Min(0f)]
         private float _invulnerabilityDuration = 0.15f;
 
-        public EEvasionMovementMode MovementMode => _movementMode;
         public float Distance => _distance;
         public float Duration => _duration;
         public float InvulnerabilityStartTime =>
@@ -52,9 +35,7 @@ namespace Alpha.Player.Locomotion
             _invulnerabilityStartTime + _invulnerabilityDuration;
 
         public bool IsValid =>
-            _duration > 0f &&
-            (_movementMode != EEvasionMovementMode.Scripted ||
-             _distance > 0f);
+            _duration > 0f && _distance > 0f;
 
         public static EvasionSettings CreateDashDefault(
             float p_distance = 6f,
@@ -62,7 +43,6 @@ namespace Alpha.Player.Locomotion
         {
             return new EvasionSettings
             {
-                _movementMode = EEvasionMovementMode.Scripted,
                 _distance = Mathf.Max(0f, p_distance),
                 _duration = Mathf.Max(0.01f, p_duration),
                 _invulnerabilityStartTime = 0.05f,
@@ -74,7 +54,6 @@ namespace Alpha.Player.Locomotion
         {
             return new EvasionSettings
             {
-                _movementMode = EEvasionMovementMode.Scripted,
                 _distance = 4f,
                 _duration = 0.45f,
                 _invulnerabilityStartTime = 0.08f,

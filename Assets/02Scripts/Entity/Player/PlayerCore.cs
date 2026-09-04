@@ -236,8 +236,10 @@ namespace Alpha.Player
                 }
             }
 
-            LocomotionAudioView?.Bind(LocomotionContext);
-            ActionEffectView?.Bind(LocomotionContext);
+            LocomotionAudioView?.Bind(
+                LocomotionContext,
+                AnimationView);
+            ActionEffectView?.Bind(AnimationView);
             MeleeSkillEffectView?.Bind(CombatModule);
             WeaponCameraShakeView?.Bind(CombatModule, CameraCore);
             DamageFeedbackView?.Bind(ActionFlow, CameraCore);

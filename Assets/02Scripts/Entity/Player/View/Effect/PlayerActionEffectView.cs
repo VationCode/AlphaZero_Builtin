@@ -1,22 +1,16 @@
-using Alpha.Player.Locomotion;
+using Alpha.Player.Animation;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Alpha.Player.Effect
 {
-    // 하나의 Locomotion 행동과 재생할 ParticleSystem 설정을 연결한다.
+    // Animation Event Key와 재생할 ParticleSystem 설정을 연결한다.
     [Serializable]
     public sealed class PlayerActionEffectSetting
     {
         [SerializeField]
-        private ELocoStateType _state;
-
-        [SerializeField]
-        private bool _useModeFilter;
-
-        [SerializeField]
-        private ELocomotionMode _mode;
+        private string _key;
 
         [SerializeField]
         private ParticleSystem _particlePrefab;
@@ -36,43 +30,47 @@ namespace Alpha.Player.Effect
         public bool FollowPlayer => _followPlayer;
         public float Lifetime => _lifetime;
 
-        public bool Matches(
-            ELocomotionMode p_mode,
-            ELocoStateType p_state)
+        public bool Matches(string p_key)
         {
-            return _state == p_state &&
-                   (!_useModeFilter || _mode == p_mode);
+            return !string.IsNullOrWhiteSpace(_key) &&
+                   string.Equals(
+                       _key.Trim(),
+                       p_key,
+                       StringComparison.Ordinal);
         }
     }
 
-    // Player 행동 상태를 실제 ParticleSystem 재생으로 표현한다.
+    // Animation Event Key를 실제 ParticleSystem 재생으로 표현한다.
     public sealed class PlayerActionEffectView : MonoBehaviour
     {
         [SerializeField]
         private PlayerActionEffectSetting[] _effects;
 
         private readonly List<ParticleSystem> _activeEffects = new();
-        private LocomotionContext _context;
+        private readonly HashSet<string> _missingKeyWarnings = new();
+        private PlayerAnimationView _animationView;
         private bool _isSubscribed;
 
-        // PlayerCore가 Player Locomotion 상태를 전달한다.
-        public void Bind(LocomotionContext p_context)
+        // PlayerCore가 Animation Event Key 발행 View를 전달한다.
+        public void Bind(PlayerAnimationView p_animationView)
         {
-            if (ReferenceEquals(_context, p_context))
+            if (ReferenceEquals(_animationView, p_animationView))
             {
                 Subscribe();
                 return;
             }
 
             Unsubscribe();
-            _context = p_context;
+            _animationView = p_animationView;
+            _missingKeyWarnings.Clear();
             Subscribe();
         }
 
         public void Unbind()
         {
             Unsubscribe();
-            _context = null;
+            _animationView = null;
+            _missingKeyWarnings.Clear();
             StopAllEffects();
         }
 
@@ -90,44 +88,53 @@ namespace Alpha.Player.Effect
         private void Subscribe()
         {
             if (_isSubscribed ||
-                _context == null ||
+                _animationView == null ||
                 !isActiveAndEnabled)
             {
                 return;
             }
 
-            _context.OnStateChanged += HandleStateChanged;
+            _animationView.OnEffectKeyRequested +=
+                HandleEffectKeyRequested;
             _isSubscribed = true;
         }
 
         private void Unsubscribe()
         {
-            if (!_isSubscribed || _context == null)
+            if (!_isSubscribed || _animationView == null)
                 return;
 
-            _context.OnStateChanged -= HandleStateChanged;
+            _animationView.OnEffectKeyRequested -=
+                HandleEffectKeyRequested;
             _isSubscribed = false;
         }
 
-        // 확정된 행동과 일치하는 모든 Particle 설정을 한 번 재생한다.
-        private void HandleStateChanged(
-            ELocomotionMode p_mode,
-            ELocoStateType p_state)
+        // 요청 Key와 일치하는 모든 Particle 설정을 한 번 재생한다.
+        private void HandleEffectKeyRequested(string p_key)
         {
             if (_effects == null)
                 return;
 
             CleanupDestroyedEffects();
+            bool hasMatch = false;
 
             foreach (PlayerActionEffectSetting setting in _effects)
             {
                 if (setting == null ||
-                    !setting.Matches(p_mode, p_state))
+                    !setting.Matches(p_key))
                 {
                     continue;
                 }
 
+                hasMatch = true;
                 PlayEffect(setting);
+            }
+
+            if (!hasMatch && _missingKeyWarnings.Add(p_key))
+            {
+                Debug.LogWarning(
+                    $"Animation Effect Event Key 설정을 찾을 수 없습니다: {p_key}",
+                    this);
             }
         }
 

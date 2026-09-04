@@ -4,11 +4,10 @@ using UnityEngine;
 
 namespace Alpha.Player.Locomotion
 {
-    // 회피 행동의 실제 이동, Root Motion, 무적 적용과 정리를 담당한다.
+    // 회피 행동의 스크립트 이동, 무적 적용과 정리를 담당한다.
     public sealed class EvasionModule
     {
         private LocomotionMoveModule _moveModule;
-        private RootMotionModule _rootMotionModule;
         private DamageReceiverModule _damageReceiver;
         private Func<float> _getGroundVerticalVelocity;
 
@@ -16,7 +15,6 @@ namespace Alpha.Player.Locomotion
         private Vector3 _direction;
         private ELocomotionMode _locomotionMode;
         private float _elapsedTime;
-        private bool _ownsRootMotion;
         private bool _ownsInvulnerability;
 
         public bool IsActive { get; private set; }
@@ -28,20 +26,17 @@ namespace Alpha.Player.Locomotion
 
         private bool IsBound =>
             _moveModule != null &&
-            _rootMotionModule != null &&
             _damageReceiver != null &&
             _getGroundVerticalVelocity != null;
 
         public bool Bind(
             LocomotionMoveModule p_moveModule,
-            RootMotionModule p_rootMotionModule,
             DamageReceiverModule p_damageReceiver,
             Func<float> p_getGroundVerticalVelocity)
         {
             End();
 
             _moveModule = p_moveModule;
-            _rootMotionModule = p_rootMotionModule;
             _damageReceiver = p_damageReceiver;
             _getGroundVerticalVelocity = p_getGroundVerticalVelocity;
 
@@ -67,30 +62,18 @@ namespace Alpha.Player.Locomotion
                 return false;
             }
 
-            bool usesRootMotion =
-                p_settings.MovementMode != EEvasionMovementMode.Scripted;
-
-            if (usesRootMotion &&
-                !_rootMotionModule.Begin(
-                    this,
-                    ResolveRootMotionMode(p_settings.MovementMode)))
-            {
-                return false;
-            }
-
             CurrentType = p_type;
             _currentSettings = p_settings;
             _direction = direction;
             _locomotionMode = p_locomotionMode;
             _elapsedTime = 0f;
-            _ownsRootMotion = usesRootMotion;
             IsActive = true;
 
             UpdateInvulnerability();
             return true;
         }
 
-        // Script 이동과 무적 시간을 갱신하고 행동 완료 여부를 반환한다.
+        // 스크립트 이동과 무적 시간을 갱신하고 행동 완료 여부를 반환한다.
         public bool Tick(float p_deltaTime)
         {
             if (!IsActive || _currentSettings == null)
@@ -102,11 +85,7 @@ namespace Alpha.Player.Locomotion
                 _currentSettings.Duration - _elapsedTime);
             float activeTime = Mathf.Min(deltaTime, remainingTime);
 
-            if (_currentSettings.MovementMode ==
-                EEvasionMovementMode.Scripted)
-            {
-                ApplyScriptedMovement(activeTime);
-            }
+            ApplyScriptedMovement(activeTime);
 
             _elapsedTime += activeTime;
             UpdateInvulnerability();
@@ -119,16 +98,12 @@ namespace Alpha.Player.Locomotion
             if (_ownsInvulnerability && _damageReceiver != null)
                 _damageReceiver.EndInvulnerability(this);
 
-            if (_ownsRootMotion && _rootMotionModule != null)
-                _rootMotionModule.End(this);
-
             IsActive = false;
             CurrentType = default;
             _currentSettings = null;
             _direction = Vector3.zero;
             _locomotionMode = default;
             _elapsedTime = 0f;
-            _ownsRootMotion = false;
             _ownsInvulnerability = false;
         }
 
@@ -190,17 +165,5 @@ namespace Alpha.Player.Locomotion
             return true;
         }
 
-        private static ERootMotionMode ResolveRootMotionMode(
-            EEvasionMovementMode p_mode)
-        {
-            return p_mode switch
-            {
-                EEvasionMovementMode.RootMotionGround =>
-                    ERootMotionMode.Ground,
-                EEvasionMovementMode.RootMotionFull =>
-                    ERootMotionMode.Full,
-                _ => ERootMotionMode.None
-            };
-        }
     }
 }
