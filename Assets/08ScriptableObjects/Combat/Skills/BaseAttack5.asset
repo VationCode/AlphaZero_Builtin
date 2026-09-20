@@ -16,6 +16,7 @@ MonoBehaviour:
   _animationKey: BaseAttack5
   _audioClips:
   - {fileID: 8300000, guid: cde62ff56eff30049a21badc0d9d8ebd, type: 3}
+  _cameraShakeName: Heavy
   _effectPrefab: {fileID: 4058935131724552213, guid: fb85fa2d80ffda34f9b1661ae5773ee2, type: 3}
   _effectStartTime: 0.2
   _attackSettings:
@@ -23,7 +24,8 @@ MonoBehaviour:
     _hitTime: 0.01
     _damageMultiplier: 1.5
     _impactSettings:
-      _hitType: 1
+      _reactionType: Heavy2
+      _hitType: 2
       _lightKnockback:
         _distance: 1
         _duration: 0.2

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Alpha.Item.Weapon.Melee;
 using Alpha.Player.Combat;
 using UnityEngine;
 
@@ -77,7 +76,7 @@ namespace Alpha.Player.Effect
 
             _activeEffects.RemoveAll(effect => effect == null);
 
-            // Prefab의 Local Transform을 유지한 채 Player/Effect/Combat 자식으로 생성한다.
+            // Prefab의 Local Transform을 유지한 채 Melee 표현 소유자 아래에 생성한다.
             GameObject effect = Instantiate(prefab, transform, false);
             ParticleSystem[] particles =
                 effect.GetComponentsInChildren<ParticleSystem>(true);

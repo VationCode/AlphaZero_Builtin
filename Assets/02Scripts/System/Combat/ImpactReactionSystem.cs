@@ -14,30 +14,21 @@ namespace Alpha.Combat
                 return default;
             }
 
-            EHitReaction reaction = ResolveReaction(p_damageInfo.HitType);
-
-            if (reaction == EHitReaction.None)
-                return default;
-
-            AttackImpactInfo impact = p_damageInfo.Impact;
-
-            return new ImpactReactionResult(
-                reaction,
-                impact.RecoveryDuration,
-                impact.KnockbackDistance,
-                impact.KnockbackDuration);
+            return Resolve(p_damageInfo.Impact, p_responseSettings);
         }
 
-        private static EHitReaction ResolveReaction(EHitType p_hitType)
+        public static ImpactReactionResult Resolve(
+            in AttackImpactInfo p_impact,
+            HitTypeResponseSettings p_responseSettings)
         {
-            return p_hitType switch
-            {
-                EHitType.Light => EHitReaction.Light,
-                EHitType.Heavy => EHitReaction.Heavy,
-                EHitType.Knockdown => EHitReaction.Knockdown,
-                EHitType.Launch => EHitReaction.Launch,
-                _ => EHitReaction.None
-            };
+            if (p_responseSettings == null || !p_responseSettings.CanRespond(p_impact.HitType))
+                return default;
+
+            return new ImpactReactionResult(
+                p_impact.HitType,
+                p_impact.RecoveryDuration,
+                p_impact.KnockbackDistance,
+                p_impact.KnockbackDuration);
         }
     }
 }

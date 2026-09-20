@@ -7,7 +7,6 @@ namespace Alpha.Player.View.Combat
 {
     // Player가 조준 중인 Projectile의 실제 Radial 피해 반경만 바닥에 표현한다.
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(CombatModule))]
     public sealed class PlayerProjectileDamageAreaView : MonoBehaviour
     {
         [SerializeField]
@@ -212,7 +211,8 @@ namespace Alpha.Player.View.Combat
 
         private CombatModule ResolveCombatModule()
         {
-            _combatModule ??= GetComponent<CombatModule>();
+            if (_combatModule == null)
+                _combatModule = GetComponentInParent<CombatModule>(true);
             return _combatModule;
         }
 

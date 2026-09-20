@@ -9,7 +9,6 @@ using UnityEngine.Serialization;
 namespace Alpha.Player.Combat
 {
     [RequireComponent(typeof(WeaponSwapModule))]
-    [RequireComponent(typeof(RangeAimModule))]
     public class CombatModule : MonoBehaviour
     {
         [Header("Attack Power")]
@@ -17,15 +16,14 @@ namespace Alpha.Player.Combat
         [SerializeField, Min(0f)]
         private float _additionalAttackDamage;
 
-        [Header("Melee Attack")]
-        [FormerlySerializedAs("_meleeAttackModule")]
+        [Header("Category Components")]
+        [FormerlySerializedAs("_meleeWeaponUseModule")]
         [SerializeField]
-        private PlayerMeleeWeaponUseModule _meleeWeaponUseModule = new();
+        private MeleeCombatModule _meleeCombatModule;
 
-        [Header("Range Attack")]
-        [FormerlySerializedAs("_rangeAttackModule")]
+        [FormerlySerializedAs("_rangeWeaponUseModule")]
         [SerializeField]
-        private PlayerRangeWeaponUseModule _rangeWeaponUseModule = new();
+        private RangeCombatModule _rangeCombatModule;
 
         private PlayerCore _core;
         private WeaponSwapModule _weaponSwapModule;
@@ -46,6 +44,9 @@ namespace Alpha.Player.Combat
         // 설정된 재생 시간에 도달한 Melee Effect를 Player 표현 계층에 요청한다.
         public event Action<MeleeSkillDefinition> OnMeleeSkillEffectRequested;
 
+        // Melee Combat이 새 Skill을 시작하면 Audio·Animation 표현에 알린다.
+        public event Action<MeleeSkillDefinition> OnMeleeSkillStarted;
+
         // 하나의 Melee Skill이 한 명 이상의 대상을 맞힌 경우 Skill 자산과 함께 한 번만 알린다.
         public event Action<MeleeSkillDefinition> OnMeleeSkillHitConfirmed;
 
@@ -55,21 +56,27 @@ namespace Alpha.Player.Combat
             CurrentWeapon as RangeWeapon;
         public bool HasWeapon => CurrentWeapon != null;
         public int CurrentMeleeSkillIndex =>
-            _meleeWeaponUseModule?.CurrentSkillIndex ?? -1;
+            _meleeCombatModule?.CurrentSkillIndex ?? -1;
         public MeleeSkillDefinition CurrentMeleeSkill =>
-            _meleeWeaponUseModule?.CurrentSkill;
+            _meleeCombatModule?.CurrentSkill;
         public string CurrentMeleeSkillId =>
-            _meleeWeaponUseModule?.CurrentSkillId;
+            _meleeCombatModule?.CurrentSkillId;
         public string CurrentMeleeAnimationKey =>
-            _meleeWeaponUseModule?.CurrentAnimationKey;
+            _meleeCombatModule?.CurrentAnimationKey;
+        public AnimatorOverrideController CurrentMeleeAnimatorOverrideController =>
+            _meleeCombatModule?.AnimatorOverrideController;
         public Transform MeleeAttackSource =>
-            _meleeWeaponUseModule?.AttackSource;
+            _meleeCombatModule?.AttackSource;
 
         public EWeaponActionType ActiveActionType =>
-            CurrentWeapon?.ActiveActionType ?? EWeaponActionType.None;
+            CurrentWeapon is MeleeWeapon
+                ? _meleeCombatModule?.ActiveActionType ?? EWeaponActionType.None
+                : CurrentWeapon?.ActiveActionType ?? EWeaponActionType.None;
 
         public bool HasActiveAction =>
-            CurrentWeapon != null && CurrentWeapon.HasActiveAction;
+            CurrentWeapon is MeleeWeapon
+                ? _meleeCombatModule?.HasActiveAction == true
+                : CurrentWeapon != null && CurrentWeapon.HasActiveAction;
 
         public RangeWeapon ActiveRangeSecondaryWeapon =>
             _activeRangeSecondaryWeapon;
@@ -80,17 +87,28 @@ namespace Alpha.Player.Combat
 
         private void Awake()
         {
-            _meleeWeaponUseModule ??= new PlayerMeleeWeaponUseModule();
-            _rangeWeaponUseModule ??= new PlayerRangeWeaponUseModule();
+            ResolveCategoryComponents();
             _weaponSwapModule = GetComponent<WeaponSwapModule>();
-            _rangeAimModule = GetComponent<RangeAimModule>();
         }
 
         private void OnValidate()
         {
             _additionalAttackDamage = Mathf.Max(0f, _additionalAttackDamage);
-            _meleeWeaponUseModule ??= new PlayerMeleeWeaponUseModule();
-            _rangeWeaponUseModule ??= new PlayerRangeWeaponUseModule();
+            ResolveCategoryComponents();
+        }
+
+        // Combat 자식의 사용 컴포넌트를 연결하고 Range 객체에서 조준 기능을 찾는다.
+        private void ResolveCategoryComponents()
+        {
+            if (_meleeCombatModule == null)
+                _meleeCombatModule = GetComponentInChildren<MeleeCombatModule>(true);
+
+            if (_rangeCombatModule == null)
+                _rangeCombatModule = GetComponentInChildren<RangeCombatModule>(true);
+
+            _rangeAimModule = _rangeCombatModule != null
+                ? _rangeCombatModule.GetComponent<RangeAimModule>()
+                : null;
         }
 
         private void OnEnable()
@@ -107,6 +125,8 @@ namespace Alpha.Player.Combat
         public bool Bind(PlayerCore p_core)
         {
             if (p_core == null ||
+                _meleeCombatModule == null ||
+                _rangeCombatModule == null ||
                 _weaponSwapModule == null ||
                 _rangeAimModule == null ||
                 !_weaponSwapModule.Bind(p_core.ResourceLoader) ||
@@ -119,23 +139,24 @@ namespace Alpha.Player.Combat
 
             _core = p_core;
 
-            if (!_meleeWeaponUseModule.Bind(
+            if (!_meleeCombatModule.Bind(
                     Attacker,
+                    HandleMeleeSkillStarted,
                     HandleMeleeSkillEffectRequested,
                     HandleMeleeSkillHitConfirmed))
             {
                 Debug.LogError(
-                    $"{nameof(PlayerMeleeWeaponUseModule)}의 사용 기준을 설정하지 못했습니다.",
+                    $"{nameof(MeleeCombatModule)}의 사용 기준을 설정하지 못했습니다.",
                     this);
                 return false;
             }
 
-            if (!_rangeWeaponUseModule.Bind(
+            if (!_rangeCombatModule.Bind(
                     Attacker,
                     _rangeAimModule))
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRangeWeaponUseModule)}의 사용 기준을 설정하지 못했습니다.",
+                    $"{nameof(RangeCombatModule)}의 사용 기준을 설정하지 못했습니다.",
                     this);
                 return false;
             }
@@ -183,6 +204,11 @@ namespace Alpha.Player.Combat
             OnMeleeSkillHitConfirmed?.Invoke(p_skill);
         }
 
+        private void HandleMeleeSkillStarted(MeleeSkillDefinition p_skill)
+        {
+            OnMeleeSkillStarted?.Invoke(p_skill);
+        }
+
         private void HandleMeleeSkillEffectRequested(
             MeleeSkillDefinition p_skill)
         {
@@ -201,13 +227,13 @@ namespace Alpha.Player.Combat
                 return false;
 
             // 새 무기가 적용된 뒤 이전 Weapon 연결 상태를 정리한다.
-            _meleeWeaponUseModule.UnbindCurrentWeapon();
-            _rangeWeaponUseModule.UnbindCurrentWeapon();
+            _meleeCombatModule.UnbindCurrentWeapon();
+            _rangeCombatModule.UnbindCurrentWeapon();
 
             MeleeWeapon meleeWeapon = CurrentWeapon as MeleeWeapon;
 
             if (meleeWeapon != null &&
-                !_meleeWeaponUseModule.TryBindWeapon(
+                !_meleeCombatModule.TryBindWeapon(
                     meleeWeapon,
                     _additionalAttackDamage))
             {
@@ -220,7 +246,7 @@ namespace Alpha.Player.Combat
                 CurrentRangeWeapon;
 
             if (rangeWeapon != null &&
-                !_rangeWeaponUseModule.TryBindWeapon(
+                !_rangeCombatModule.TryBindWeapon(
                     rangeWeapon,
                     _additionalAttackDamage))
             {
@@ -259,8 +285,11 @@ namespace Alpha.Player.Combat
         // 현재 무기의 Action을 선택하고 행동을 시작한다.
         public bool TryBeginWeaponAction(EWeaponActionType p_type)
         {
+            if (CurrentWeapon is MeleeWeapon)
+                return _meleeCombatModule.TryBeginAction(p_type);
+
             if (CurrentRangeWeapon != null &&
-                !_rangeWeaponUseModule.RefreshAttackPose())
+                !_rangeCombatModule.RefreshAttackPose())
             {
                 return false;
             }
@@ -275,8 +304,17 @@ namespace Alpha.Player.Combat
             bool p_isInputPressed,
             float p_deltaTime)
         {
+            if (CurrentWeapon is MeleeWeapon)
+            {
+                _meleeCombatModule.TickAction(
+                    p_isInputHeld,
+                    p_isInputPressed,
+                    p_deltaTime);
+                return;
+            }
+
             if (CurrentRangeWeapon != null)
-                _rangeWeaponUseModule.RefreshAttackPose();
+                _rangeCombatModule.RefreshAttackPose();
 
             CurrentWeapon?.TickAction(
                 p_isInputHeld,
@@ -286,14 +324,20 @@ namespace Alpha.Player.Combat
 
         public void CancelWeaponAction()
         {
+            if (CurrentWeapon is MeleeWeapon)
+            {
+                _meleeCombatModule.CancelAction();
+                return;
+            }
+
             CurrentWeapon?.CancelAction();
         }
 
-        // 현재 MeleeWeapon이 참조하는 Skill 자산을 View에 읽기 전용으로 제공한다.
+        // 현재 Melee Combat 설정의 Skill 자산을 View에 읽기 전용으로 제공한다.
         public MeleeSkillDefinition GetMeleeSkillDefinition(
             int p_skillIndex)
         {
-            return _meleeWeaponUseModule?.GetSkillDefinition(
+            return _meleeCombatModule?.GetSkillDefinition(
                 p_skillIndex);
         }
 
@@ -305,14 +349,14 @@ namespace Alpha.Player.Combat
             RangeWeapon rangeWeapon = CurrentRangeWeapon;
 
             if (rangeWeapon == null ||
-                _rangeWeaponUseModule == null)
+                _rangeCombatModule == null)
             {
                 p_attackOrigin = Vector3.zero;
                 p_attackDirection = Vector3.zero;
                 return false;
             }
 
-            return _rangeWeaponUseModule.TryGetAttackPose(
+            return _rangeCombatModule.TryGetAttackPose(
                 rangeWeapon,
                 out p_attackOrigin,
                 out p_attackDirection);
@@ -361,7 +405,7 @@ namespace Alpha.Player.Combat
                 CurrentRangeWeapon;
 
             if (rangeWeapon != null)
-                _rangeWeaponUseModule.RefreshAttackPose();
+                _rangeCombatModule.RefreshAttackPose();
 
             if (rangeWeapon == null ||
                 _activeRangeSecondaryWeapon != null ||
@@ -376,7 +420,7 @@ namespace Alpha.Player.Combat
 
         public void TickRangeSecondary(float p_deltaTime)
         {
-            _rangeWeaponUseModule?.RefreshAttackPose();
+            _rangeCombatModule?.RefreshAttackPose();
             _activeRangeSecondaryWeapon?.TickSecondary(p_deltaTime);
         }
 

@@ -808,6 +808,7 @@ MonoBehaviour:
     _damageProfile:
       _damage: 10
       _impactSettings:
+        _reactionType: None
         _hitType: 0
         _lightKnockback:
           _distance: 0.2

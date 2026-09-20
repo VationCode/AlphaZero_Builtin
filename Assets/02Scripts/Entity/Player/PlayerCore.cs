@@ -60,6 +60,7 @@ namespace Alpha.Player
         public PlayerAnimationView AnimationView { get; private set; }
         public RigView RigView { get; private set; }
         public PlayerLocomotionAudioView LocomotionAudioView { get; private set; }
+        public PlayerMeleeSkillAudioView MeleeSkillAudioView { get; private set; }
         public PlayerActionEffectView ActionEffectView { get; private set; }
         public PlayerMeleeSkillEffectView MeleeSkillEffectView { get; private set; }
         public PlayerWeaponCameraShakeView WeaponCameraShakeView { get; private set; }
@@ -121,17 +122,20 @@ namespace Alpha.Player
             AnimationView = GetComponentInChildren<PlayerAnimationView>(true);
             RigView = GetComponentInChildren<RigView>(true);
             LocomotionAudioView = GetComponentInChildren<PlayerLocomotionAudioView>(true);
+            MeleeSkillAudioView = GetComponentInChildren<PlayerMeleeSkillAudioView>(true);
             ActionEffectView = GetComponentInChildren<PlayerActionEffectView>(true);
             MeleeSkillEffectView = GetComponentInChildren<PlayerMeleeSkillEffectView>(true);
 
-            // Scene에서 View가 누락되어도 기존 Effect/Combat을 표현 소유자로 사용한다.
+            // 근접 표현이 누락되면 Combat의 Melee 소유 객체에 구성한다.
             if (MeleeSkillEffectView == null)
             {
-                Transform combatEffectOwner = transform.Find("Effect/Combat");
+                MeleeCombatModule meleeOwner = CombatModule != null
+                    ? CombatModule.GetComponentInChildren<MeleeCombatModule>(true)
+                    : null;
 
-                if (combatEffectOwner != null)
+                if (meleeOwner != null)
                 {
-                    MeleeSkillEffectView = combatEffectOwner.gameObject
+                    MeleeSkillEffectView = meleeOwner.gameObject
                         .AddComponent<PlayerMeleeSkillEffectView>();
                 }
             }
@@ -140,7 +144,7 @@ namespace Alpha.Player
                 GetComponentInChildren<PlayerWeaponCameraShakeView>(true);
             DamageFeedbackView = GetComponentInChildren<PlayerDamageFeedbackView>(true);
             ArmorView = GetComponent<PlayerArmorView>();
-            ScopeView = GetComponent<PlayerScopeView>();
+            ScopeView = GetComponentInChildren<PlayerScopeView>(true);
 
             PlayerTr = this.transform;
         }
@@ -239,6 +243,7 @@ namespace Alpha.Player
             LocomotionAudioView?.Bind(
                 LocomotionContext,
                 AnimationView);
+            MeleeSkillAudioView?.Bind(CombatModule);
             ActionEffectView?.Bind(AnimationView);
             MeleeSkillEffectView?.Bind(CombatModule);
             WeaponCameraShakeView?.Bind(CombatModule, CameraCore);
@@ -305,6 +310,7 @@ namespace Alpha.Player
                 AnimationView.OnFootstep -= LocomotionAudioView.PlayFootstep;
 
             LocomotionAudioView?.Unbind();
+            MeleeSkillAudioView?.Unbind();
             ActionEffectView?.Unbind();
             MeleeSkillEffectView?.Unbind();
             WeaponCameraShakeView?.Unbind();

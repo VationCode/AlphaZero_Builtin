@@ -80,11 +80,11 @@ namespace Alpha.Player.Combat
                 currentWeapon?.Data?.WeaponCategory ??
                 EWeaponCategory.None;
 
-            if (currentWeapon is MeleeWeapon meleeWeapon)
+            if (currentWeapon is MeleeWeapon)
             {
                 _Core.AnimationView?
                     .ApplyMeleeWeapon(
-                        meleeWeapon.AnimatorOverrideController);
+                        _Core.CombatModule.CurrentMeleeAnimatorOverrideController);
             }
             else
             {

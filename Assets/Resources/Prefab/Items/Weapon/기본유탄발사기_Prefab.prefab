@@ -221,6 +221,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: -1205438234555539969}
   _audioSource: {fileID: 0}
+  _playbackMode: 0
   _fireClip: {fileID: 8300000, guid: c48654f7d1f7b5a41b2e2f5c77f6ec94, type: 3}
   _fireVolume: 1
 --- !u!1 &2314529660664611562 stripped
@@ -228,22 +229,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 7048463505730427350}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &900000000000000104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2314529660664611562}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _leftHandGrip: {fileID: 7881355183418259081}
-  _leftHandPositionWeight: 1
-  _leftHandRotationWeight: 1
-  _holdPoseWhileEquipped: 1
 --- !u!114 &-1205438234555539969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,7 +252,7 @@ MonoBehaviour:
     _fireResponseSettings:
       _recoil: 0
       _moveSpeedMultiplier: 1
-      _cameraShakeName: Weak
+      _cameraShakeName: Heavy
     _defaultTriggerMode: 1
     _secondarySettings:
       _enabled: 1
@@ -279,6 +264,7 @@ MonoBehaviour:
         _maxDuration: 1
         _maxBonusDamage: 0
     _impactSettings:
+      _reactionType: Heavy
       _hitType: 1
       _lightKnockback:
         _distance: 1.5
@@ -313,6 +299,22 @@ MonoBehaviour:
       type: {class: ProjectileAttackSettings, ns: Alpha.Item.Weapon.Range, asm: Assembly-CSharp}
       data:
         _projectilePrefab: {fileID: 2853060138587645021, guid: 87c9fc9390752bd4d855cb7502da44fd, type: 3}
+--- !u!114 &900000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2314529660664611562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _leftHandGrip: {fileID: 7881355183418259081}
+  _leftHandPositionWeight: 1
+  _leftHandRotationWeight: 1
+  _holdPoseWhileEquipped: 1
 --- !u!4 &7708700338529141487 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

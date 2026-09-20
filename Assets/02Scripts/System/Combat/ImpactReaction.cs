@@ -13,16 +13,6 @@ namespace Alpha.Combat
         Launch = 4
     }
 
-    // 공용 판정이 반환하고 Entity별 ActionFlow가 실행할 반응 단계다.
-    public enum EHitReaction
-    {
-        None,
-        Light,
-        Heavy,
-        Knockdown,
-        Launch
-    }
-
     // Hit Type 하나에 대응하는 넉백 실행 수치를 보관한다.
     [Serializable]
     public sealed class HitTypeKnockbackSettings
@@ -74,10 +64,12 @@ namespace Alpha.Combat
         }
     }
 
-    // 공격 하나가 선택한 Hit Type과 타입별 넉백·공통 회복 수치를 보관한다.
+    // 공격은 공용 설정 타입만 선택한다. 기존 수치는 미이전 데이터 호환을 위해 유지한다.
     [Serializable]
     public sealed class AttackImpactSettings : ISerializationCallbackReceiver
     {
+        [SerializeField] private string _reactionType;
+
         private const int CurrentKnockbackSettingsVersion = 1;
 
         [Tooltip("공격자가 전달할 피격 종류입니다.")]
@@ -110,15 +102,20 @@ namespace Alpha.Combat
         [SerializeField, Min(0f)]
         private float _recoveryDuration = 0.25f;
 
-        public EHitType HitType => _hitType;
+        public EHitType HitType => CreateInfo().HitType;
         public float KnockbackDistance =>
-            GetSelectedKnockbackSettings()?.Distance ?? 0f;
+            CreateInfo().KnockbackDistance;
         public float KnockbackDuration =>
-            GetSelectedKnockbackSettings()?.Duration ?? 0f;
-        public float RecoveryDuration => _recoveryDuration;
+            CreateInfo().KnockbackDuration;
+        public float RecoveryDuration => CreateInfo().RecoveryDuration;
 
         public AttackImpactSettings()
         {
+        }
+
+        public AttackImpactSettings(string p_reactionType)
+        {
+            _reactionType = p_reactionType;
         }
 
         public AttackImpactSettings(
@@ -148,6 +145,16 @@ namespace Alpha.Combat
 
         public AttackImpactInfo CreateInfo()
         {
+            if (!string.IsNullOrEmpty(_reactionType))
+            {
+                HitReactionSystem system = HitReactionSystem.Shared;
+                if (system != null && system.TryGetImpact(_reactionType, out AttackImpactInfo impact))
+                    return impact;
+                Debug.LogError($"공용 피격 설정 타입을 찾을 수 없습니다: {_reactionType}");
+                return default;
+            }
+
+            // 아직 이전되지 않은 Scene/Prefab과 코드 생성 설정의 수치를 보존한다.
             HitTypeKnockbackSettings knockbackSettings =
                 GetSelectedKnockbackSettings();
 
@@ -220,7 +227,8 @@ namespace Alpha.Combat
         public float KnockbackDistance { get; }
         public float KnockbackDuration { get; }
         public float RecoveryDuration { get; }
-        public bool HasImpact => HitType != EHitType.None;
+        public bool HasImpact => HitType != EHitType.None ||
+            (KnockbackDistance > 0f && KnockbackDuration > 0f);
 
         public AttackImpactInfo(
             EHitType p_hitType,
@@ -285,14 +293,14 @@ namespace Alpha.Combat
         [SerializeField, Min(0f)]
         private float _launchDuration = 1.5f;
 
-        public float GetDuration(EHitReaction p_reaction)
+        public float GetDuration(EHitType p_reaction)
         {
             return p_reaction switch
             {
-                EHitReaction.Light => _lightDuration,
-                EHitReaction.Heavy => _heavyDuration,
-                EHitReaction.Knockdown => _knockdownDuration,
-                EHitReaction.Launch => _launchDuration,
+                EHitType.Light => _lightDuration,
+                EHitType.Heavy => _heavyDuration,
+                EHitType.Knockdown => _knockdownDuration,
+                EHitType.Launch => _launchDuration,
                 _ => 0f
             };
         }
@@ -309,23 +317,23 @@ namespace Alpha.Combat
     // 공용 판정 결과는 피격자가 실행할 반응과 공격자가 전달한 수치를 보관한다.
     public readonly struct ImpactReactionResult
     {
-        public EHitReaction Reaction { get; }
+        public EHitType HitType { get; }
         public float RecoveryDuration { get; }
         public float KnockbackDistance { get; }
         public float KnockbackDuration { get; }
-        public int Priority => (int)Reaction;
-        public bool HasReaction => Reaction != EHitReaction.None;
+        public int Priority => (int)HitType;
+        public bool HasReaction => HitType != EHitType.None;
         public bool HasKnockback =>
             KnockbackDistance > 0f &&
             KnockbackDuration > 0f;
 
         public ImpactReactionResult(
-            EHitReaction p_reaction,
+            EHitType p_reaction,
             float p_recoveryDuration,
             float p_knockbackDistance,
             float p_knockbackDuration)
         {
-            Reaction = p_reaction;
+            HitType = p_reaction;
             RecoveryDuration = Mathf.Max(0f, p_recoveryDuration);
             KnockbackDistance = Mathf.Max(0f, p_knockbackDistance);
             KnockbackDuration = Mathf.Max(0f, p_knockbackDuration);

@@ -99,7 +99,7 @@ namespace Alpha.Enemy.Animation
             new EnemyAttackAnimationBinding(
                 EEnemyAttackType.Arena,
                 -1,
-                "Base Layer.ArenaAttack")
+                "Base Layer.AOE")
         };
 
         [Header("Action States")]

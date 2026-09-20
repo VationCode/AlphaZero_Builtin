@@ -213,6 +213,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapon: {fileID: 1901805864755986856}
   _audioSource: {fileID: 8609604963728520760}
+  _playbackMode: 0
   _fireClip: {fileID: 8300000, guid: adc171bd21d9a954a82a2b4d22233891, type: 3}
   _fireVolume: 1
 --- !u!1 &2545903137041230049 stripped
@@ -220,22 +221,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 7105322497578234845}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &900000000000000102
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2545903137041230049}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _leftHandGrip: {fileID: 7938214281197395074}
-  _leftHandPositionWeight: 1
-  _leftHandRotationWeight: 1
-  _holdPoseWhileEquipped: 1
 --- !u!114 &1901805864755986856
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,7 +244,7 @@ MonoBehaviour:
     _fireResponseSettings:
       _recoil: 20
       _moveSpeedMultiplier: 1
-      _cameraShakeName: Weak
+      _cameraShakeName: Heavy
     _defaultTriggerMode: 1
     _secondarySettings:
       _enabled: 1
@@ -271,6 +256,7 @@ MonoBehaviour:
         _maxDuration: 1.7
         _maxBonusDamage: 80
     _impactSettings:
+      _reactionType: Heavy
       _hitType: 1
       _lightKnockback:
         _distance: 0.5
@@ -303,6 +289,22 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
+--- !u!114 &900000000000000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2545903137041230049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _leftHandGrip: {fileID: 7938214281197395074}
+  _leftHandPositionWeight: 1
+  _leftHandRotationWeight: 1
+  _holdPoseWhileEquipped: 1
 --- !u!4 &7615814574026434788 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 804985633845762873, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

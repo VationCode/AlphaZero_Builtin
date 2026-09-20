@@ -66,7 +66,7 @@ namespace Alpha.Item.Weapon.Range
                 out RaycastHit hit,
                 p_request.MaxDistance,
                 p_hitMask,
-                QueryTriggerInteraction.Ignore);
+                QueryTriggerInteraction.Collide);
 
             Vector3 endPoint = hasHit
                 ? hit.point

@@ -17,7 +17,7 @@ namespace Alpha.Combat
     public sealed class HitReactionFlow
     {
         private const int ReactionTypeCount =
-            (int)EHitReaction.Launch + 1;
+            (int)EHitType.Launch + 1;
 
         private readonly float[] _immunityEndTimes =
             new float[ReactionTypeCount];
@@ -27,8 +27,8 @@ namespace Alpha.Combat
         private float _standupDuration;
         private float _currentImmunityDuration;
 
-        public EHitReaction CurrentReaction { get; private set; } =
-            EHitReaction.None;
+        public EHitType CurrentHitType { get; private set; } =
+            EHitType.None;
 
         public EHitReactionState CurrentState { get; private set; } =
             EHitReactionState.None;
@@ -51,7 +51,7 @@ namespace Alpha.Combat
         // 현재 반응만 종료하고 타입별 피격 면역 시간은 유지한다.
         public void Clear()
         {
-            CurrentReaction = EHitReaction.None;
+            CurrentHitType = EHitType.None;
             CurrentState = EHitReactionState.None;
             _remainingTime = 0f;
             _downRecoveryDuration = 0f;
@@ -68,9 +68,9 @@ namespace Alpha.Combat
         {
             if (!p_result.HasReaction ||
                 (IsActive &&
-                 p_result.Priority <= (int)CurrentReaction) ||
+                 p_result.Priority <= (int)CurrentHitType) ||
                 IsImmune(
-                    p_result.Reaction,
+                    p_result.HitType,
                     p_currentTime))
             {
                 return false;
@@ -80,13 +80,13 @@ namespace Alpha.Combat
             if (IsActive)
                 BeginCurrentImmunity(p_currentTime);
 
-            CurrentReaction = p_result.Reaction;
+            CurrentHitType = p_result.HitType;
             _standupDuration = Mathf.Max(0f, p_standupDuration);
             _currentImmunityDuration =
-                p_immunitySettings?.GetDuration(CurrentReaction) ?? 0f;
+                p_immunitySettings?.GetDuration(CurrentHitType) ?? 0f;
 
-            if (CurrentReaction is EHitReaction.Knockdown or
-                EHitReaction.Launch)
+            if (CurrentHitType is EHitType.Knockdown or
+                EHitType.Launch)
             {
                 CurrentState = EHitReactionState.Knockdown;
                 _remainingTime = Mathf.Max(
@@ -96,7 +96,7 @@ namespace Alpha.Combat
                 return true;
             }
 
-            CurrentState = CurrentReaction == EHitReaction.Heavy
+            CurrentState = CurrentHitType == EHitType.Heavy
                 ? EHitReactionState.HeavyHit
                 : EHitReactionState.LightHit;
             _remainingTime = p_result.RecoveryDuration;
@@ -157,21 +157,21 @@ namespace Alpha.Combat
         }
 
         private bool IsImmune(
-            EHitReaction p_reaction,
+            EHitType p_reaction,
             float p_currentTime)
         {
             int index = (int)p_reaction;
 
-            return index > (int)EHitReaction.None &&
+            return index > (int)EHitType.None &&
                    index < _immunityEndTimes.Length &&
                    p_currentTime < _immunityEndTimes[index];
         }
 
         private void BeginCurrentImmunity(float p_currentTime)
         {
-            int index = (int)CurrentReaction;
+            int index = (int)CurrentHitType;
 
-            if (index <= (int)EHitReaction.None ||
+            if (index <= (int)EHitType.None ||
                 index >= _immunityEndTimes.Length)
             {
                 return;

@@ -87,6 +87,17 @@ namespace Alpha.Detection
             _height = Mathf.Max(0.01f, _height);
         }
 
+        // 파생 설정의 실행용 복사본만 확대할 때 사용한다. 원본 Inspector 값은 유지한다.
+        protected void ScaleHorizontal(float p_scale)
+        {
+            float scale = Mathf.Max(1f, p_scale);
+            _width *= scale;
+            _length *= scale;
+            _radius *= scale;
+            _localOffset.x *= scale;
+            _localOffset.z *= scale;
+        }
+
         private float CalculateMaximumHorizontalReach()
         {
             if (!IsValid)

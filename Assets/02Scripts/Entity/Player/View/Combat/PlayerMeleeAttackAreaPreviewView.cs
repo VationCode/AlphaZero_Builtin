@@ -1,5 +1,4 @@
 using Alpha.Detection;
-using Alpha.Item.Weapon.Melee;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -7,7 +6,6 @@ namespace Alpha.Player.Combat
 {
     // Player가 소유한 Skill별 공격 범위를 Scene에서 미리 보여준다.
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(CombatModule))]
     [RequireComponent(typeof(DetectionAreaGizmoView))]
     public sealed class PlayerMeleeAttackAreaPreviewView : MonoBehaviour
     {
@@ -33,13 +31,14 @@ namespace Alpha.Player.Combat
 
         private void Reset()
         {
-            _combatModule = GetComponent<CombatModule>();
+            _combatModule = GetComponentInParent<CombatModule>(true);
             _areaGizmoView = GetComponent<DetectionAreaGizmoView>();
         }
 
         private void OnValidate()
         {
-            _combatModule ??= GetComponent<CombatModule>();
+            if (_combatModule == null)
+                _combatModule = GetComponentInParent<CombatModule>(true);
             _areaGizmoView ??= GetComponent<DetectionAreaGizmoView>();
             _previewSkillIndex = Mathf.Max(0, _previewSkillIndex);
         }
@@ -86,7 +85,8 @@ namespace Alpha.Player.Combat
 
         private bool TryResolveCombatModule()
         {
-            _combatModule ??= GetComponent<CombatModule>();
+            if (_combatModule == null)
+                _combatModule = GetComponentInParent<CombatModule>(true);
 
             if (_combatModule != null)
                 return true;

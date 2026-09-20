@@ -191,22 +191,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
   m_PrefabInstance: {fileID: 5941702993894771108}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &900000000000000103
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1421689580568040088}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  _leftHandGrip: {fileID: 6828641872705021691}
-  _leftHandPositionWeight: 1
-  _leftHandRotationWeight: 1
-  _holdPoseWhileEquipped: 1
 --- !u!114 &4238556192481367803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,7 +214,7 @@ MonoBehaviour:
     _fireResponseSettings:
       _recoil: 10
       _moveSpeedMultiplier: 1
-      _cameraShakeName: Weak
+      _cameraShakeName: Heavy
     _defaultTriggerMode: 1
     _secondarySettings:
       _enabled: 1
@@ -242,6 +226,7 @@ MonoBehaviour:
         _maxDuration: 1
         _maxBonusDamage: 0
     _impactSettings:
+      _reactionType: Heavy
       _hitType: 1
       _lightKnockback:
         _distance: 1
@@ -274,6 +259,22 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
+--- !u!114 &900000000000000103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421689580568040088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b84d205e3c94c21a34d2b8d2c1e301f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _leftHandGrip: {fileID: 6828641872705021691}
+  _leftHandPositionWeight: 1
+  _leftHandRotationWeight: 1
+  _holdPoseWhileEquipped: 1
 --- !u!1 &2989607757772351980 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8865356821426921544, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}

@@ -16,6 +16,7 @@ MonoBehaviour:
   _animationKey: BaseAttack4
   _audioClips:
   - {fileID: 8300000, guid: 661162310b90c5f4db09f1a1d241871a, type: 3}
+  _cameraShakeName: Light
   _effectPrefab: {fileID: 4058935131724552213, guid: 99e2792ae7916b64cb9e5cb445ba61ce, type: 3}
   _effectStartTime: 0.01
   _attackSettings:
@@ -23,6 +24,7 @@ MonoBehaviour:
     _hitTime: 0.01
     _damageMultiplier: 1.5
     _impactSettings:
+      _reactionType: Light2
       _hitType: 1
       _lightKnockback:
         _distance: 1

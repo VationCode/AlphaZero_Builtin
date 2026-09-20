@@ -16,18 +16,18 @@ namespace Alpha.Player.Actions
     // Player 전체 행동의 우선순위를 소유하고 Combat과 Locomotion의 실행을 허용하거나 차단한다.
     // 피격·넉다운·사망처럼 일반 행동보다 우선하는 상태만 이 Flow에서 조정한다.
     [DisallowMultipleComponent]
-    public sealed class PlayerActionFlow : MonoBehaviour
+    public sealed class PlayerActionFlow : MonoBehaviour, IHitReactionReceiver
     {
         [Header("Hit Type Response")]
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
-        [Header("Hit Reaction Immunity")]
+        [Header("Hit HitType Immunity")]
         [SerializeField]
         private HitReactionImmunitySettings _hitReactionImmunitySettings =
             new();
 
-        [Header("Hit Reaction Timing")]
+        [Header("Hit HitType Timing")]
         [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _knockdownFallDuration = 1.1f;
@@ -76,7 +76,7 @@ namespace Alpha.Player.Actions
 
         public event System.Action<EPlayerActionState> OnStateChanged;
         public event System.Action<EHitReactionState> OnHitReactionStateChanged;
-        public event System.Action<EHitReaction> OnDamageFeedbackRequested;
+        public event System.Action<EHitType> OnDamageFeedbackRequested;
         public event System.Action OnDeathStarted;
         public event System.Action OnDeathDownStarted;
 
@@ -166,27 +166,31 @@ namespace Alpha.Player.Actions
                     p_damageInfo,
                     _hitTypeResponseSettings);
 
-            OnDamageFeedbackRequested?.Invoke(reactionResult.Reaction);
+            OnDamageFeedbackRequested?.Invoke(reactionResult.HitType);
 
-            if (TryEnterHitReaction(reactionResult))
-                ApplyKnockback(p_damageInfo, reactionResult);
+            TryApplyHitReaction(p_damageInfo.Impact, p_damageInfo.Attacker, p_damageInfo.Direction);
         }
 
-        // 공격자가 전달한 방향과 거리/시간을 실제 넉백 요청으로 조합한다.
-        private void ApplyKnockback(
-            in DamageInfo p_damageInfo,
-            in ImpactReactionResult p_result)
+        // 피해 없이 요청된 반응도 기존 행동 잠금과 면역을 거친다.
+        public bool TryApplyHitReaction(
+            in AttackImpactInfo p_impact, Transform p_attacker, Vector3 p_direction)
         {
-            if (!p_result.HasKnockback)
-                return;
+            if (!isActiveAndEnabled || _isDead || IsExternallyBlocked || _core == null ||
+                p_attacker == null || (_core.HealthModule != null && _core.HealthModule.CurrentHealth <= 0f))
+                return false;
+
+            ImpactReactionResult result = ImpactReactionSystem.Resolve(p_impact, _hitTypeResponseSettings);
+            if (p_impact.HitType != EHitType.None && !TryEnterHitReaction(result))
+                return false;
+
+            if (p_impact.KnockbackDistance <= 0f || p_impact.KnockbackDuration <= 0f)
+                return result.HasReaction;
 
             KnockbackInfo knockbackInfo = new(
-                p_damageInfo.Attacker,
-                p_damageInfo.Direction,
-                p_result.KnockbackDistance,
-                p_result.KnockbackDuration);
+                p_attacker, p_direction, p_impact.KnockbackDistance, p_impact.KnockbackDuration);
 
-            KnockbackSystem.TryApply(this, knockbackInfo);
+            bool moved = KnockbackSystem.TryApply(this, knockbackInfo);
+            return result.HasReaction || moved;
         }
 
         // 공용 반응 우선순위를 기준으로 현재 Player 행동을 중단한다.

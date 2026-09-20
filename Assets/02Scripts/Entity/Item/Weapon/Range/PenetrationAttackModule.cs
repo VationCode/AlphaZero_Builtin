@@ -115,7 +115,7 @@ namespace Alpha.Item.Weapon.Range
                 broadphaseRadius,
                 _volumeCandidates,
                 p_hitMask,
-                QueryTriggerInteraction.Ignore);
+                QueryTriggerInteraction.Collide);
 
             _trajectoryTargets.Clear();
 
@@ -167,7 +167,7 @@ namespace Alpha.Item.Weapon.Range
                 _pathHits,
                 p_request.MaxDistance,
                 p_hitMask,
-                QueryTriggerInteraction.Ignore);
+                QueryTriggerInteraction.Collide);
 
             float effectiveDistance = p_request.MaxDistance;
             p_hasCollision = false;

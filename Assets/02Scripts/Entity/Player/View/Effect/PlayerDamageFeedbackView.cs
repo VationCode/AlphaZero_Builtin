@@ -11,13 +11,13 @@ namespace Alpha.Player.Effect
     {
         [Header("Camera Shake")]
         [SerializeField]
-        private string _lightShakeName = "Weak";
+        private string _lightShakeName = "Light";
 
         [SerializeField]
-        private string _heavyShakeName = "Medium";
+        private string _heavyShakeName = "Heavy";
 
         [SerializeField]
-        private string _knockdownShakeName = "Strong";
+        private string _knockdownShakeName = "KnockDown";
 
         private PlayerActionFlow _actionFlow;
         private CameraCore _cameraCore;
@@ -81,13 +81,13 @@ namespace Alpha.Player.Effect
         }
 
         private void HandleDamageFeedbackRequested(
-            EHitReaction p_reaction)
+            EHitType p_reaction)
         {
             string shakeName = p_reaction switch
             {
-                EHitReaction.Light => _lightShakeName,
-                EHitReaction.Heavy => _heavyShakeName,
-                EHitReaction.Knockdown or EHitReaction.Launch =>
+                EHitType.Light => _lightShakeName,
+                EHitType.Heavy => _heavyShakeName,
+                EHitType.Knockdown or EHitType.Launch =>
                     _knockdownShakeName,
                 _ => null
             };

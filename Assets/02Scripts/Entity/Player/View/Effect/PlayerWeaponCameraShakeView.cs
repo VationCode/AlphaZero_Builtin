@@ -1,50 +1,19 @@
 using Alpha.AlphaCamera;
 using Alpha.Item.Weapon;
-using Alpha.Item.Weapon.Melee;
 using Alpha.Item.Weapon.Range;
 using Alpha.Player.Combat;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Alpha.Player.Effect
 {
-    // Player Melee Skill 자산과 Camera Shake 설정 이름을 연결한다.
-    [Serializable]
-    public struct PlayerMeleeHitShakeBinding
-    {
-        [Tooltip("Camera Shake를 적용할 공통 Skill 자산")]
-        [SerializeField]
-        private MeleeSkillDefinition _skill;
-
-        [Tooltip("CameraShakeModule에 등록한 설정 이름")]
-        [SerializeField]
-        private string _shakeName;
-
-        public MeleeSkillDefinition Skill => _skill;
-        public string ShakeName => _shakeName;
-    }
-
     // Player 원거리 발사와 근접 명중 값을 Local Camera Shake 표현으로 변환한다.
     [DisallowMultipleComponent]
     public sealed class PlayerWeaponCameraShakeView : MonoBehaviour
     {
-        [Tooltip("Shake가 필요한 Melee Skill만 Skill 자산과 설정 이름으로 등록합니다.")]
-        [SerializeField]
-        private PlayerMeleeHitShakeBinding[] _meleeHitShakeBindings;
-
         private CombatModule _combatModule;
         private CameraCore _cameraCore;
         private RangeWeapon _rangeWeapon;
         private bool _isSubscribed;
-
-        private readonly Dictionary<MeleeSkillDefinition, string>
-            _meleeHitShakeBySkill = new();
-
-        private void Awake()
-        {
-            RebuildMeleeHitShakeMap(true);
-        }
 
         public void Bind(
             CombatModule p_combatModule,
@@ -138,15 +107,7 @@ namespace Alpha.Player.Effect
         private void HandleMeleeSkillHitConfirmed(
             MeleeSkillDefinition p_skill)
         {
-            if (p_skill == null ||
-                !_meleeHitShakeBySkill.TryGetValue(
-                    p_skill,
-                    out string shakeName))
-            {
-                return;
-            }
-
-            RequestShake(shakeName);
+            RequestShake(p_skill?.CameraShakeName);
         }
 
         private void RequestShake(string p_name)
@@ -160,44 +121,5 @@ namespace Alpha.Player.Effect
             _cameraCore.RequestShake(p_name.Trim());
         }
 
-        private void RebuildMeleeHitShakeMap(bool p_logWarnings)
-        {
-            _meleeHitShakeBySkill.Clear();
-
-            if (_meleeHitShakeBindings == null)
-                return;
-
-            foreach (PlayerMeleeHitShakeBinding binding in
-                     _meleeHitShakeBindings)
-            {
-                MeleeSkillDefinition skill = binding.Skill;
-                string shakeName = binding.ShakeName?.Trim();
-
-                if (skill == null ||
-                    string.IsNullOrWhiteSpace(shakeName))
-                {
-                    continue;
-                }
-
-                if (_meleeHitShakeBySkill.ContainsKey(skill))
-                {
-                    if (p_logWarnings)
-                    {
-                        Debug.LogWarning(
-                            $"Player Melee Hit Shake의 Skill 자산이 중복되었습니다: {skill.name}",
-                            this);
-                    }
-
-                    continue;
-                }
-
-                _meleeHitShakeBySkill.Add(skill, shakeName);
-            }
-        }
-
-        private void OnValidate()
-        {
-            RebuildMeleeHitShakeMap(false);
-        }
     }
 }

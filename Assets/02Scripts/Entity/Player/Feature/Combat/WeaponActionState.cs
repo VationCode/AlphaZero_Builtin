@@ -163,7 +163,7 @@ namespace Alpha.Player.Combat
                 _ => false
             };
 
-            // State는 입력 상태만 전달하고, 사용 방식과 종료 시점은 Weapon이 판단한다.
+            // State는 입력 상태만 전달하고, 사용 방식과 종료 시점은 Combat 계층이 판단한다.
             module.TickWeaponAction(
                 isInputHeld,
                 isInputPressed,
@@ -184,7 +184,7 @@ namespace Alpha.Player.Combat
 
             PlayCurrentMeleeSkill();
 
-            // Melee Primary처럼 무기 내부에서 완료한 행동은 Idle로 복귀한다.
+            // Melee Primary처럼 Combat 실행이 완료된 행동은 Idle로 복귀한다.
             if (!module.HasActiveAction)
                 TryChangeState(ECombatStateType.Idle);
         }
@@ -227,7 +227,7 @@ namespace Alpha.Player.Combat
             _playedSkillIndex = -1;
         }
 
-        // MeleeWeapon이 실제 다음 Skill로 전환했을 때 해당 전신 애니메이션을 재생한다.
+        // Melee Combat이 실제 다음 Skill로 전환했을 때 해당 전신 애니메이션을 재생한다.
         private void PlayCurrentMeleeSkill()
         {
             if (!_isMeleePrimaryAction ||

@@ -35,13 +35,17 @@ namespace Alpha.Item.Weapon
         // 구체 무기 계열이 초기화 후 추가 상태를 준비할 수 있다.
         protected virtual void OnInitialized() { }
 
-        // 무기 계열이 좌·우 행동의 실제 시작과 갱신을 구현한다.
-        protected abstract bool OnBeginAction(EWeaponActionType p_type);
-        protected abstract void OnTickAction(
+        // 행동을 직접 실행하는 무기 계열만 필요한 생명주기를 재정의한다.
+        protected virtual bool OnBeginAction(EWeaponActionType p_type)
+        {
+            return false;
+        }
+
+        protected virtual void OnTickAction(
             EWeaponActionType p_type,
             bool p_isInputHeld,
             bool p_isInputPressed,
-            float p_deltaTime);
+            float p_deltaTime) { }
         protected virtual void OnEndAction(EWeaponActionType p_type) { }
         protected virtual void OnCancelAction(EWeaponActionType p_type) { }
 
