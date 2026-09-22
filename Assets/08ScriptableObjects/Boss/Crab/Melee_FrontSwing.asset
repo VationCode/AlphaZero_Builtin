@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14deed30142b4e35bc6da4028e9a74aa, type: 3}
+  m_Name: Melee_FrontSwing
+  m_EditorClassIdentifier: 
+  _common:
+    _id: Melee_FrontSwing
+    _minDistance: 0
+    _maxDistance: 30
+    _attackStartDistance: 20
+    _cooldown: 3
+    _selectionWeight: 1
+  _animationClip: {fileID: 7400000, guid: 4e87334c243ba2e4cb48c8643beaaa61, type: 2}
+  _prepareDuration: 0.5
+  _activeDuration: 2
+  _recoveryDuration: 1.5
+  _attack:
+    _hitRadius: 2

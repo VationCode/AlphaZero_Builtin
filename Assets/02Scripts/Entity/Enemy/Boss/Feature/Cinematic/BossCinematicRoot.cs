@@ -9,12 +9,12 @@ namespace Alpha.Boss
     {
         [Header("Entity")]
         [SerializeField]
-        private BossCore _boss;
+        private Animator _bossAnimator;
+
+        [SerializeField, Tooltip("시네마틱 카메라가 바라볼 보스 Transform입니다.")]
+        private Transform _bossTarget;
 
         [Header("Feature")]
-        [SerializeField]
-        private BossCinematicModule _cinematicModule;
-
         [SerializeField]
         private BossCinematicFlow _flow;
 
@@ -26,6 +26,11 @@ namespace Alpha.Boss
         private BossCinematicTriggerView _triggerView;
 
         public BossCinematicFlow Flow => _flow;
+        // Core의 Awake 순서와 관계없이 상태를 연결할 수 있게 대표 진입점에서 해석한다.
+        public BossCinematicContext Context
+        {
+            get { ResolveOwnedReferences(); return _flow != null ? _flow.Context : null; }
+        }
 
         private void Awake()
         {
@@ -37,27 +42,24 @@ namespace Alpha.Boss
             }
         }
 
-        // Boss → Module·View → Flow → Trigger 순서로 내부 참조를 조립한다.
+        // Animator·View → Flow → Trigger 순서로 내부 참조를 조립한다.
         public bool Initialize()
         {
             ResolveOwnedReferences();
 
-            if (_boss == null ||
-                _cinematicModule == null ||
+            if (_bossAnimator == null ||
+                _bossTarget == null ||
                 _flow == null ||
                 _cinematicView == null ||
                 _triggerView == null ||
-                !_cinematicModule.Bind(_boss) ||
                 !_cinematicView.BindBossAnimation(
-                    _boss.AnimationView,
-                    _boss.transform))
+                    _bossAnimator,
+                    _bossTarget))
             {
                 return false;
             }
 
             return _flow.Bind(
-                       _boss,
-                       _cinematicModule,
                        _cinematicView) &&
                    _triggerView.Bind(_flow);
         }
@@ -81,14 +83,6 @@ namespace Alpha.Boss
 
         private void ResolveOwnedReferences()
         {
-            if (_boss == null && transform.parent != null)
-            {
-                _boss = transform.parent
-                    .GetComponentInChildren<BossCore>(true);
-            }
-
-            _cinematicModule ??=
-                GetComponent<BossCinematicModule>();
             _flow ??= GetComponent<BossCinematicFlow>();
             _cinematicView ??= GetComponent<BossCinematicView>();
             _triggerView ??=

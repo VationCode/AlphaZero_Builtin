@@ -20,7 +20,7 @@ namespace Alpha.Boss
         private CinemachineCamera _cinematicCamera;
 
         [SerializeField]
-        private BossAnimationView _bossAnimationView;
+        private Animator _bossAnimator;
 
         [SerializeField]
         private TrackAsset _bossAnimationTrack;
@@ -57,10 +57,8 @@ namespace Alpha.Boss
                     return "Cinematic Timeline이 없습니다.";
                 if (_cinematicCamera == null)
                     return "CinemachineCamera가 없습니다.";
-                if (_bossAnimationView == null)
-                    return "BossAnimationView가 없습니다.";
-                if (_bossAnimationView.Animator == null)
-                    return "Boss Animator가 없습니다.";
+                if (_bossAnimator == null)
+                    return "Animator가 없습니다.";
                 if (_bossAnimationTrack == null)
                     return $"{BossAnimationTrackName} Track을 찾지 못했습니다.";
                 if (_lookAtTarget == null)
@@ -79,12 +77,12 @@ namespace Alpha.Boss
         }
 
         public bool BindBossAnimation(
-            BossAnimationView p_animationView,
+            Animator p_animator,
             Transform p_lookAtTarget)
         {
-            _bossAnimationView = p_animationView;
+            _bossAnimator = p_animator;
             _lookAtTarget = p_lookAtTarget;
-            return _bossAnimationView != null &&
+            return _bossAnimator != null &&
                    _lookAtTarget != null;
         }
 
@@ -103,15 +101,9 @@ namespace Alpha.Boss
 
             CachePlaybackState();
 
-            if (!_bossAnimationView.BeginCinematic())
-            {
-                RestorePlaybackState();
-                return false;
-            }
-
             _director.SetGenericBinding(
                 _bossAnimationTrack,
-                _bossAnimationView.Animator);
+                _bossAnimator);
 
             ApplyCameraTarget();
             SubscribeDirector();
@@ -217,10 +209,9 @@ namespace Alpha.Boss
 
             IsPlaying = false;
             _completionCallback = null;
-            _bossAnimationView?.EndCinematic();
             RestorePlaybackState();
 
-            // 기본 카메라 복구가 끝난 뒤 Flow가 전투를 시작한다.
+            // 기본 카메라 복구가 끝난 뒤 Flow가 입력 잠금을 해제한다.
             callback?.Invoke(result);
         }
 

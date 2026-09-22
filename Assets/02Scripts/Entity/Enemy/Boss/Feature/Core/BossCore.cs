@@ -1,164 +1,119 @@
+using System;
+using System.Collections.Generic;
 using Alpha.Combat;
 using Alpha.Living;
-using Alpha.Player;
 using UnityEngine;
 
 namespace Alpha.Boss
 {
-    // Boss의 체력·피격·애니메이션과 연출 상태를 연결하는 대표 진입점이다.
-    [DisallowMultipleComponent]
+    // 내부 상태·행동·이동과 공용 체력 기능을 조립하는 대표 진입점이다.
+    [DisallowMultipleComponent, RequireComponent(typeof(Rigidbody))]
     public sealed class BossCore : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, Tooltip("추적에 사용할 Rigidbody입니다. 같은 객체에서 자동으로 찾습니다.")]
+        private Rigidbody _body;
+        [SerializeField, Tooltip("공용 체력 기능입니다. 비어 있으면 자식에서 찾고, 없으면 실행 시 추가합니다.")]
         private LivingModule _healthModule;
-
-        [SerializeField]
+        [SerializeField, Tooltip("공용 피해 수신 기능입니다. 비어 있으면 자식에서 찾고, 없으면 실행 시 추가합니다.")]
         private DamageReceiverModule _damageReceiver;
-
-        [SerializeField]
-        private Rigidbody _rigidbody;
-
-        [SerializeField]
+        [SerializeField, Tooltip("연결하면 시네마틱 완료 후 행동합니다. 같은 보스 아래의 Root는 자동으로 찾습니다.")]
+        private BossCinematicRoot _cinematic;
+        [SerializeField, Tooltip("감지와 행동 상태 전이 설정입니다.")]
+        private BossFlow _flow = new();
+        [SerializeField, Tooltip("추적 이동과 회전 설정입니다.")]
+        private BossMovementModule _movement = new();
+        [SerializeField, Tooltip("보스가 사용할 패턴 설정 에셋입니다. 같은 거리에 여러 타입을 함께 등록할 수 있습니다.")]
+        private BossPatternDefinition[] _patternDefinitions = Array.Empty<BossPatternDefinition>();
+        [SerializeField, Tooltip("보스 상태와 패턴 단계를 Animator에 표현하는 View입니다.")]
         private BossAnimationView _animationView;
 
-        [SerializeField] private BossAttackEffectView _attackEffectView;
-
-        [SerializeField] private BossCombatFlow _combatFlow;
-        [SerializeField] private BossActionFlow _actionFlow;
-        [SerializeField] private BossLocomotionModule _locomotionModule;
-        private readonly BossCombatModule _combatModule = new();
-
+        public BossContext Context { get; } = new();
         public HealthContext HealthContext { get; } = new();
-        public BossEncounterContext EncounterContext { get; } = new();
-        public BossCombatContext CombatContext { get; } = new();
-        public Transform Target { get; private set; }
+        private readonly BossPatternSelector _selector = new();
+        private bool _patternsConfigured;
+        private BossPatternFlow _patternFlow;
+        public BossPatternExecution? ActivePattern { get; private set; }
+        public float ActivePatternElapsedTime => _patternFlow?.ElapsedTime ?? 0f;
+        public string SelectedPatternId => _flow.SelectedPatternId;
 
-        public LivingModule HealthModule => _healthModule;
-        public DamageReceiverModule DamageReceiver => _damageReceiver;
-        public Rigidbody Rigidbody => _rigidbody;
-        public BossAnimationView AnimationView => _animationView;
+        // Prepare: 준비·표현, Active: 공격 시작, Recovery/Completed/Cancelled: 정리 연결 지점이다.
+        public event Action<BossPatternExecution> OnPatternPhaseChanged;
 
         private void Awake()
         {
-            ResolveFeatures();
+            _body ??= GetComponent<Rigidbody>();
+            _healthModule ??= GetComponentInChildren<LivingModule>(true);
+            if (_healthModule == null) _healthModule = gameObject.AddComponent<LivingModule>();
+            _damageReceiver ??= GetComponentInChildren<DamageReceiverModule>(true);
+            if (_damageReceiver == null) _damageReceiver = gameObject.AddComponent<DamageReceiverModule>();
+            _cinematic ??= GetComponentInChildren<BossCinematicRoot>(true);
+            _healthModule.Bind(HealthContext);
+            _damageReceiver.Bind(transform, _healthModule.TryDecreaseHealth);
+            _movement.Bind(_body);
+            _patternFlow = new BossPatternFlow(Context);
+            BossCinematicContext cinematicContext = _cinematic != null ? _cinematic.Context : null;
+            _flow.Bind(Context, HealthContext, _movement, cinematicContext, _patternFlow, _selector);
+            _animationView ??= GetComponentInChildren<BossAnimationView>(true);
+            _animationView?.Bind(this, cinematicContext);
+            if (!_patternsConfigured) ConfigurePatterns();
+        }
+        private void OnEnable() => _flow.SetEnabled(true);
+        private void FixedUpdate() => _flow.Tick(Time.fixedDeltaTime);
+        private void OnDisable() => _flow.SetEnabled(false);
+        private void OnDestroy() { _flow.Unbind(); _animationView?.Unbind(); _damageReceiver?.Unbind(); }
 
-            if (_healthModule != null)
+        public bool TryStartPattern(BossPattern p_pattern) => _flow.TryStartPattern(p_pattern);
+        // 개별 패턴을 조립한 쪽에서 보스 전용 인스턴스를 전달한다. 선택 확률은 각 설정의 가중치다.
+        public void SetPatterns(params BossPattern[] p_patterns)
+        {
+            _patternsConfigured = true;
+            _selector.SetPatterns(p_patterns);
+        }
+        public void CancelPattern() => _flow.CancelPattern();
+        // 경직·그로기 요청의 대표 진입점이다. 지속 시간은 초 단위다.
+        public bool TryStagger(float p_duration) => _flow.TryStagger(p_duration);
+
+        // 설정 에셋마다 보스 전용 실행 상태를 가진 객체를 조립한다.
+        private void ConfigurePatterns()
+        {
+            var patterns = new List<BossPattern>();
+            var added = new HashSet<BossPatternDefinition>();
+            foreach (BossPatternDefinition definition in _patternDefinitions ?? Array.Empty<BossPatternDefinition>())
             {
-                _healthModule.OnDeath -= HandleDeath;
-                _healthModule.OnDeath += HandleDeath;
-                _healthModule.Bind(HealthContext);
+                if (definition == null || !added.Add(definition)) continue;
+                try
+                {
+                    BossPattern pattern = definition switch
+                    {
+                        BossMeleePatternDefinition melee => new BossMeleePattern(melee, PublishPatternPhase),
+                        BossRushPatternDefinition rush => new BossRushPattern(rush, PublishPatternPhase),
+                        BossRangePatternDefinition range => new BossRangePattern(range, PublishPatternPhase),
+                        BossGlobalAoEPatternDefinition area => new BossGlobalAoEPattern(area, PublishPatternPhase),
+                        _ => throw new ArgumentException("Unsupported boss pattern definition.")
+                    };
+                    patterns.Add(pattern);
+                }
+                catch (Exception exception) { Debug.LogException(exception); }
             }
+            SetPatterns(patterns.ToArray());
+        }
 
-            if (_damageReceiver != null && _healthModule != null)
+        private void PublishPatternPhase(BossPatternExecution p_execution)
+        {
+            ActivePattern = p_execution.Phase is EBossPatternPhase.Completed or EBossPatternPhase.Cancelled
+                ? null : p_execution;
+            Action<BossPatternExecution> handlers = OnPatternPhaseChanged;
+            if (handlers == null) return;
+            List<Exception> errors = null;
+            // 한 수신자의 오류가 다른 Module의 정리 알림을 막지 않도록 모두 호출한다.
+            foreach (Action<BossPatternExecution> handler in handlers.GetInvocationList())
             {
-                _damageReceiver.Bind(
-                    transform,
-                    _healthModule.TryDecreaseHealth);
+                try { handler(p_execution); }
+                catch (Exception exception) { (errors ??= new()).Add(exception); }
             }
-
-            _animationView?.Bind(_rigidbody);
-            if (_animationView != null)
-            {
-                EncounterContext.OnStateChanged += _animationView.SetEncounterState;
-                _animationView.SetEncounterState(EncounterContext.CurrentState);
-            }
-            _combatFlow.Bind(this, _combatModule, CombatContext,
-                GetComponentsInChildren<BossPatternGroup>(true));
-            _locomotionModule.Bind(_rigidbody);
-            _actionFlow.Bind(this, _combatFlow, _locomotionModule);
-            _attackEffectView.Bind(_combatFlow, transform);
-            if (_animationView != null)
-            {
-                _animationView.OnAttackProgress += _combatFlow.NotifyAnimationProgress;
-                _animationView.OnAttackCompleted += _combatFlow.NotifyAnimationCompleted;
-                _animationView.OnAttackInterrupted += _combatFlow.NotifyAnimationInterrupted;
-            }
+            if (errors != null) throw new AggregateException(errors);
         }
 
-        // 외부 패턴 선택과 Inspector는 이 진입점으로만 공격을 요청한다.
-        public bool TryStartAttack(BossPatternData p_pattern) =>
-            _combatFlow != null && _combatFlow.TryStartAttack(p_pattern);
-
-        // 거리 조건을 통과한 같은 공격 종류의 패턴 중 하나를 선택하여 실행한다.
-        public bool TryStartRandomAttack(EBossPatternGroupType p_groupType, EBossAttackType p_attackType) =>
-            _combatFlow != null && _combatFlow.TryStartRandomAttack(p_groupType, p_attackType);
-
-        public void CancelAttack()
-        {
-            _actionFlow?.CancelPendingAction();
-            _combatFlow?.CancelAttack();
-        }
-
-        public void SetAutomaticAttacksEnabled(bool p_enabled) =>
-            _actionFlow?.SetAutomaticAttacksEnabled(p_enabled);
-
-        // Installer는 Boss가 추적할 Player만 Entity 경계로 전달한다.
-        public void Bind(PlayerCore p_player)
-        {
-            SetTarget(p_player != null ? p_player.transform : null);
-        }
-
-        public void SetTarget(Transform p_target)
-        {
-            if (Target != p_target)
-                _actionFlow?.CancelPendingAction();
-            Target = p_target;
-        }
-
-        public void ClearTarget()
-        {
-            SetTarget(null);
-        }
-
-        private void ResolveFeatures()
-        {
-            _healthModule ??=
-                GetComponentInChildren<LivingModule>(true);
-            _damageReceiver ??=
-                GetComponentInChildren<DamageReceiverModule>(true);
-            _rigidbody ??= GetComponent<Rigidbody>();
-            _animationView ??=
-                GetComponentInChildren<BossAnimationView>(true);
-            _combatFlow ??= GetComponentInChildren<BossCombatFlow>(true);
-            if (_combatFlow == null)
-                _combatFlow = gameObject.AddComponent<BossCombatFlow>();
-            _actionFlow ??= GetComponentInChildren<BossActionFlow>(true);
-            if (_actionFlow == null)
-                _actionFlow = gameObject.AddComponent<BossActionFlow>();
-            _locomotionModule ??= GetComponentInChildren<BossLocomotionModule>(true);
-            if (_locomotionModule == null)
-                _locomotionModule = gameObject.AddComponent<BossLocomotionModule>();
-            _attackEffectView ??= GetComponentInChildren<BossAttackEffectView>(true);
-            if (_attackEffectView == null)
-                _attackEffectView = gameObject.AddComponent<BossAttackEffectView>();
-        }
-
-        private void HandleDeath()
-        {
-            CancelAttack();
-            _animationView?.PlayDeath();
-        }
-
-        private void OnDestroy()
-        {
-            if (_animationView != null)
-                EncounterContext.OnStateChanged -= _animationView.SetEncounterState;
-            CancelAttack();
-            _actionFlow?.Unbind();
-            _attackEffectView?.Unbind();
-            if (_animationView != null && _combatFlow != null)
-            {
-                _animationView.OnAttackProgress -= _combatFlow.NotifyAnimationProgress;
-                _animationView.OnAttackCompleted -= _combatFlow.NotifyAnimationCompleted;
-                _animationView.OnAttackInterrupted -= _combatFlow.NotifyAnimationInterrupted;
-            }
-            _animationView?.Unbind();
-            _damageReceiver?.Unbind();
-
-            if (_healthModule != null)
-                _healthModule.OnDeath -= HandleDeath;
-        }
-
-        private void OnDisable() => CancelAttack();
+        private void OnValidate() { _flow.Validate(); _movement.Validate(); }
     }
 }

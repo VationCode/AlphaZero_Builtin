@@ -24582,7 +24582,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2965882975067643366}
-  - component: {fileID: 3186412545471252691}
   m_Layer: 0
   m_Name: AoEAreaAttack
   m_TagString: Untagged
@@ -24607,22 +24606,6 @@ Transform:
   - {fileID: 465027027537562516}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3186412545471252691
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1685953478810931494}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92e3bf7f03a84acc8d3ea12e756bbac4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _damageCollider: {fileID: 8050546625697274980}
-  _damageMask:
-    serializedVersion: 2
-    m_Bits: 64
 --- !u!1 &1996135372112713609
 GameObject:
   m_ObjectHideFlags: 0

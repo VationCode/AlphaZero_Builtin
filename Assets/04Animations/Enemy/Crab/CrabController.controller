@@ -7,7 +7,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Range Attack 2
+  m_Name: Range_Forward Spreading Tornado
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -85,7 +85,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Melee Attack1
+  m_Name: Melee_Front Swing
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -137,7 +137,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Rush Attack
+  m_Name: Rush_Target Leap
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -215,7 +215,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Melee Attack3
+  m_Name: Rush_Forward Butt
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -286,32 +286,6 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
---- !u!1102 &-199360057234314892
-AnimatorState:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Aiming
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
-  m_WriteDefaultValues: 1
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 19121889f458e6a4f944b04bd731619d, type: 2}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
 --- !u!1102 &-173923190008636884
 AnimatorState:
   serializedVersion: 6
@@ -373,7 +347,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Range Attack 1
+  m_Name: Range_Blast Wave
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -481,7 +455,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: -5578082309521698263}
-    m_Position: {x: 100, y: 190, z: 0}
+    m_Position: {x: 90, y: 170, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 6779227144796673765}
     m_Position: {x: 490, y: 50, z: 0}
@@ -496,7 +470,7 @@ AnimatorStateMachine:
     m_Position: {x: 490, y: 0, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1480524359350067255}
-    m_Position: {x: 920, y: 110, z: 0}
+    m_Position: {x: 920, y: 140, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -7200080220420993583}
     m_Position: {x: 100, y: 110, z: 0}
@@ -511,7 +485,7 @@ AnimatorStateMachine:
     m_Position: {x: 1340, y: 480, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -6567429090964924896}
-    m_Position: {x: 1160, y: 10, z: 0}
+    m_Position: {x: 930, y: 20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -4650202220504632973}
     m_Position: {x: 1440, y: 250, z: 0}
@@ -520,22 +494,19 @@ AnimatorStateMachine:
     m_Position: {x: 1440, y: 300, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5859253640821672279}
-    m_Position: {x: 1140, y: 140, z: 0}
+    m_Position: {x: 1170, y: 20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8415004630951113305}
-    m_Position: {x: 920, y: 230, z: 0}
+    m_Position: {x: 920, y: 250, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8366954468210325053}
-    m_Position: {x: 920, y: -10, z: 0}
+    m_Position: {x: 930, y: 70, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -3606844144112266323}
-    m_Position: {x: 920, y: 40, z: 0}
+    m_Position: {x: 1170, y: 70, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -8338752417659135629}
-    m_Position: {x: 920, y: 160, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: -199360057234314892}
-    m_Position: {x: 710, y: 140, z: 0}
+    m_Position: {x: 920, y: 190, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -553,7 +524,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Melee Attack2
+  m_Name: Melee_Stationary Jump
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -579,7 +550,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: AOE Attack
+  m_Name: GlobalAoE_Water Drop Bomb
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -592,7 +563,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 8d201000ab5f7de48a00f8f84ecc0578, type: 2}
+  m_Motion: {fileID: 7400000, guid: f00336f5ee490bb4ab3efd94479afc7b, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

@@ -14847,7 +14847,6 @@ GameObject:
   - component: {fileID: 688527928792375571}
   - component: {fileID: 5600978568750869273}
   - component: {fileID: 8519639761923727277}
-  - component: {fileID: 3424620646752729018}
   m_Layer: 0
   m_Name: AoEArenaAttack
   m_TagString: Untagged
@@ -19802,22 +19801,6 @@ CapsuleCollider:
   m_Height: 4.5
   m_Direction: 1
   m_Center: {x: 0, y: 2, z: 0}
---- !u!114 &3424620646752729018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5551718882146614446}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92e3bf7f03a84acc8d3ea12e756bbac4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _damageCollider: {fileID: 8519639761923727277}
-  _damageMask:
-    serializedVersion: 2
-    m_Bits: 64
 --- !u!1 &6019972053106292641
 GameObject:
   m_ObjectHideFlags: 0

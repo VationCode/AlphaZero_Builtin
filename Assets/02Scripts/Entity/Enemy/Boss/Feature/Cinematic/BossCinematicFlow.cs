@@ -5,12 +5,10 @@ using UnityEngine.InputSystem;
 
 namespace Alpha.Boss
 {
-    // Cinematic 실행 조건과 Player 잠금, 완료 후 Combat 전환을 결정한다.
+    // Cinematic 실행 조건과 Player 잠금, 완료·취소 상태를 결정한다.
     [DisallowMultipleComponent]
     public sealed class BossCinematicFlow : MonoBehaviour
     {
-        private BossCore _boss;
-        private BossCinematicModule _cinematicModule;
         private BossCinematicView _cinematicView;
         private AlphaInputSystem _input;
         private PlayerCore _player;
@@ -25,12 +23,12 @@ namespace Alpha.Boss
         private bool _isShuttingDown;
         private string _reportedStartFailure;
 
-        public BossEncounterContext Context => _boss?.EncounterContext;
+        public BossCinematicContext Context { get; } = new();
         public bool IsCinematicTriggerArmed =>
             !_isShuttingDown &&
             _isWaitingPrepared &&
             Context?.CurrentState ==
-                EBossEncounterState.WaitingForCinematic &&
+                EBossCinematicState.WaitingForCinematic &&
             !_ownsPlayback &&
             _input != null &&
             _cinematicView != null;
@@ -57,21 +55,15 @@ namespace Alpha.Boss
             PrepareWaitingState();
         }
 
-        // Root가 Boss가 소유한 Cinematic 구성 요소를 연결한다.
+        // Root가 Cinematic View를 연결한다.
         public bool Bind(
-            BossCore p_boss,
-            BossCinematicModule p_cinematicModule,
             BossCinematicView p_cinematicView)
         {
-            if (p_boss == null ||
-                p_cinematicModule == null ||
-                p_cinematicView == null)
+            if (p_cinematicView == null)
             {
                 return false;
             }
 
-            _boss = p_boss;
-            _cinematicModule = p_cinematicModule;
             _cinematicView = p_cinematicView;
             NotifyTriggerArmedChanged();
             return true;
@@ -101,10 +93,6 @@ namespace Alpha.Boss
             if (!_cinematicView.IsConfigured)
                 return ReportStartFailure(
                     _cinematicView.ConfigurationIssue);
-
-            if (!_cinematicModule.PrepareCinematic())
-                return ReportStartFailure(
-                    "Boss Cinematic 대기 상태를 준비하지 못했습니다.");
 
             _reportedStartFailure = null;
 
@@ -178,14 +166,8 @@ namespace Alpha.Boss
             if (p_result is EBossCinematicPlayResult.Completed or
                 EBossCinematicPlayResult.Skipped)
             {
-                Transform playerTarget =
-                    _player != null ? _player.transform : null;
-
-                if (playerTarget != null &&
-                    Context?.TryBeginCombat() == true)
+                if (Context.TryComplete())
                 {
-                    _cinematicModule.BeginCombat();
-                    _boss.SetTarget(playerTarget);
                     _player = null;
                     _isWaitingPrepared = false;
                     NotifyTriggerArmedChanged();
@@ -198,8 +180,7 @@ namespace Alpha.Boss
 
         private void PrepareWaitingState()
         {
-            _isWaitingPrepared =
-                _cinematicModule?.PrepareWaitingForCinematic() == true;
+            _isWaitingPrepared = _cinematicView != null;
             Context?.ReturnToWaitingForCinematic();
             NotifyTriggerArmedChanged();
         }
@@ -208,8 +189,7 @@ namespace Alpha.Boss
         {
             _skipAction?.Disable();
             ReleaseCinematicContext();
-            _isWaitingPrepared =
-                _cinematicModule?.ReturnToWaitingForCinematic() == true;
+            _isWaitingPrepared = _cinematicView != null;
             Context?.ReturnToWaitingForCinematic();
             _player = null;
             NotifyTriggerArmedChanged();
@@ -286,7 +266,6 @@ namespace Alpha.Boss
             }
 
             ReleaseCinematicContext();
-            _cinematicModule?.Release();
             _isWaitingPrepared = false;
             _player = null;
             Context?.ReturnToWaitingForCinematic();
