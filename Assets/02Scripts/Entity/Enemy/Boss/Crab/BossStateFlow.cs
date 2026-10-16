@@ -3,6 +3,7 @@ using Alpha.Player;
 using UnityEngine;
 
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 #endif
 
@@ -19,6 +20,7 @@ namespace Alpha.Enemy.Boss
         private const int Attack3FillAreaId = 6;
         private const int Attack4AreaId = 7;
         private const int Attack4FillAreaId = 8;
+        private const int Attack5WarningBaseId = 100;
         private const float StartDistanceTolerance = 0.05f;
         private const float FallbackContactClearanceSpeed = 5f;
 
@@ -38,7 +40,8 @@ namespace Alpha.Enemy.Boss
             Attack1,
             Attack2,
             Attack3,
-            Attack4
+            Attack4,
+            Attack5
         }
 
         [SerializeField, Min(0f)] private float _prepareDuration = 0.3f;
@@ -51,6 +54,7 @@ namespace Alpha.Enemy.Boss
         private CrabBossAttackModule _attack;
         private CrabBossAnimationView _animation;
         private CrabBossAttackAreaView _attackAreaView;
+        private CrabBossAttackEffectView _attackEffectView;
         private CrabBossCollisionView _collisionView;
 
         private Transform _target;
@@ -63,6 +67,8 @@ namespace Alpha.Enemy.Boss
         private float _nextAttack2SelectionTime;
         private float _nextAttack3SelectionTime;
         private float _nextAttack4SelectionTime;
+        private float _nextAttack5SelectionTime;
+        private int _attack5WarningCount;
         private bool _isFacingLockedPosition;
         private bool _attack1HitApplied;
         private bool _attack2HitApplied;
@@ -87,6 +93,7 @@ namespace Alpha.Enemy.Boss
             BossLocomotionModule locomotion, CrabBossAttackSelectionModule selection,
             CrabBossAttackModule attack,
             CrabBossAnimationView animation, CrabBossAttackAreaView attackAreaView,
+            CrabBossAttackEffectView attackEffectView,
             CrabBossCollisionView collisionView)
         {
             Unbind();
@@ -98,10 +105,12 @@ namespace Alpha.Enemy.Boss
             _attack = attack;
             _animation = animation;
             _attackAreaView = attackAreaView;
+            _attackEffectView = attackEffectView;
             _collisionView = collisionView;
             _bound = _boss != null && _targetDetection != null && _locomotion != null &&
                      _selection != null &&
                      _attack != null && _animation != null && _attackAreaView != null &&
+                     _attackEffectView != null &&
                      _collisionView != null;
 
             if (!_bound)
@@ -115,12 +124,16 @@ namespace Alpha.Enemy.Boss
             _animation.Attack3Finished += HandleAttack3Finished;
             _animation.Attack4Hit += HandleAttack4Hit;
             _animation.Attack4Finished += HandleAttack4Finished;
+            _animation.Attack5HitStarted += HandleAttack5HitStarted;
+            _animation.Attack5Finished += HandleAttack5Finished;
             _animation.IndicatorStarted += HandleIndicatorStarted;
             _state = State.Waiting;
             _nextAttack1SelectionTime = 0f;
             _nextAttack2SelectionTime = 0f;
             _nextAttack3SelectionTime = 0f;
             _nextAttack4SelectionTime = 0f;
+            _nextAttack5SelectionTime = 0f;
+            _attack5WarningCount = 0;
             _selectedAttack = AttackKind.None;
             _previousAttack = AttackKind.None;
             _remainingAttackCount = 0;
@@ -147,6 +160,8 @@ namespace Alpha.Enemy.Boss
                 _animation.Attack3Finished -= HandleAttack3Finished;
                 _animation.Attack4Hit -= HandleAttack4Hit;
                 _animation.Attack4Finished -= HandleAttack4Finished;
+                _animation.Attack5HitStarted -= HandleAttack5HitStarted;
+                _animation.Attack5Finished -= HandleAttack5Finished;
                 _animation.IndicatorStarted -= HandleIndicatorStarted;
                 _animation.CancelAttack();
             }
@@ -160,6 +175,7 @@ namespace Alpha.Enemy.Boss
             _attack = null;
             _animation = null;
             _attackAreaView = null;
+            _attackEffectView = null;
             _collisionView = null;
             _target = null;
             _distanceTarget = null;
@@ -359,6 +375,7 @@ namespace Alpha.Enemy.Boss
                              !SelectedHitApplied();
             if (!isWarning)
             {
+                HideAttack5Warnings();
                 _attackAreaView.Hide(Attack1FillAreaId);
                 _attackAreaView.Hide(Attack2FillAreaId);
                 _attackAreaView.Hide(Attack3FillAreaId);
@@ -390,7 +407,8 @@ namespace Alpha.Enemy.Boss
                 _attackAreaView.Hide(Attack4AreaId);
                 _attackAreaView.Hide(Attack4FillAreaId);
             }
-
+            if (_selectedAttack != AttackKind.Attack5)
+                HideAttack5Warnings();
             // 이벤트 사이의 애니메이션 진행도에 따라 진한 영역만 확장한다.
             float progress = _animation.TryGetIndicatorProgress(out float value) ? value : 0f;
             if (ShowSelectedArea(progress))
@@ -407,13 +425,14 @@ namespace Alpha.Enemy.Boss
             AttackKind.Attack2 => ShowAttack2Warning(progress),
             AttackKind.Attack3 => ShowAttack3Warning(progress),
             AttackKind.Attack4 => ShowAttack4Warning(progress),
+            AttackKind.Attack5 => ShowAttack5Warning(progress),
             _ => false
         };
 
         private bool ShowAttack1Warning(float progress) =>
             _attack.TryGetAttack1Area(out var request) &&
             ShowWarningArea(Attack1AreaId, Attack1FillAreaId, request,
-                _attack.Attack1WarningColor, null, progress);
+                _attack.Attack1WarningColor, _attack.Attack1FillColor, progress);
 
         private bool ShowAttack2Warning(float progress)
         {
@@ -421,11 +440,8 @@ namespace Alpha.Enemy.Boss
                 !_attack.TryGetAttack2Area(_aimPosition, out var request))
                 return false;
 
-            Color warningColor = _attack.Attack2WarningColor;
-            Color baseColor = warningColor;
-            baseColor.a *= 0.3f;
             return ShowWarningArea(Attack2AreaId, Attack2FillAreaId, request,
-                baseColor, warningColor, progress);
+                _attack.Attack2WarningColor, _attack.Attack2FillColor, progress);
         }
 
         private bool ShowAttack3Warning(float progress)
@@ -434,11 +450,9 @@ namespace Alpha.Enemy.Boss
                 !_attack.TryGetAttack3Area(_aimPosition, out var request))
                 return false;
 
-            Color warningColor = _attack.Attack3WarningColor;
-            Color baseColor = warningColor;
-            baseColor.a *= 0.3f;
             return ShowWarningArea(Attack3AreaId, Attack3FillAreaId, request,
-                baseColor, warningColor, progress, centeredBox: true);
+                _attack.Attack3WarningColor, _attack.Attack3FillColor,
+                progress, centeredBox: true);
         }
 
         private bool ShowAttack4Warning(float progress)
@@ -446,15 +460,54 @@ namespace Alpha.Enemy.Boss
             if (!_attack4TargetLocked)
                 return false;
 
-            Color warningColor = _attack.Attack4WarningColor;
-            Color baseColor = warningColor;
-            baseColor.a *= 0.3f;
             return ShowWarningArea(Attack4AreaId, Attack4FillAreaId, _attack4Area,
-                baseColor, warningColor, progress);
+                _attack.Attack4WarningColor, _attack.Attack4FillColor, progress);
+        }
+
+        private bool ShowAttack5Warning(float progress)
+        {
+            int shown = 0;
+            string eventName = _animation.Attack5WarningEffectEventName;
+            int count = _attackEffectView.GetAttack5ProjectileCount(eventName);
+            for (int index = 0; index < count; index++)
+            {
+                if (!_attackEffectView.TryGetAttack5ProjectilePose(index,
+                        out Pose pose, eventName) ||
+                    !_attack.TryGetAttack5Area(pose,
+                        out DetectionAreaRequest request))
+                    continue;
+
+                int baseId = Attack5WarningBaseId + shown * 2;
+                if (!ShowWarningArea(baseId, baseId + 1, request,
+                        _attack.Attack5WarningColor,
+                        _attack.Attack5FillColor, progress))
+                    return false;
+                shown++;
+            }
+
+            for (int index = shown; index < _attack5WarningCount; index++)
+            {
+                int baseId = Attack5WarningBaseId + index * 2;
+                _attackAreaView.Hide(baseId);
+                _attackAreaView.Hide(baseId + 1);
+            }
+            _attack5WarningCount = shown;
+            return shown > 0;
+        }
+
+        private void HideAttack5Warnings()
+        {
+            for (int index = 0; index < _attack5WarningCount; index++)
+            {
+                int baseId = Attack5WarningBaseId + index * 2;
+                _attackAreaView.Hide(baseId);
+                _attackAreaView.Hide(baseId + 1);
+            }
+            _attack5WarningCount = 0;
         }
 
         private bool ShowWarningArea(int baseId, int fillId,
-            in DetectionAreaRequest request, Color baseColor, Color? fillColor,
+            in DetectionAreaRequest request, Color baseColor, Color fillColor,
             float progress, bool centeredBox = false)
         {
             if (!_attackAreaView.Show(baseId, request, color: baseColor))
@@ -477,6 +530,7 @@ namespace Alpha.Enemy.Boss
             AttackKind.Attack2 => _attack2HitApplied,
             AttackKind.Attack3 => _attack3HitApplied,
             AttackKind.Attack4 => _attack4HitApplied,
+            AttackKind.Attack5 => false,
             _ => true
         };
 
@@ -487,6 +541,7 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack2 = _selection.Attack2;
             AttackSelectionSettings attack3 = _selection.Attack3;
             AttackSelectionSettings attack4 = _selection.Attack4;
+            AttackSelectionSettings attack5 = _selection.Attack5;
             float attack1Weight = CanSelectAttack(target, attack1, _nextAttack1SelectionTime)
                 ? AdjustWeight(AttackKind.Attack1, attack1.Weight) : 0f;
             float attack2Weight = CanSelectAttack(target, attack2, _nextAttack2SelectionTime)
@@ -495,13 +550,17 @@ namespace Alpha.Enemy.Boss
                 ? AdjustWeight(AttackKind.Attack3, attack3.Weight) : 0f;
             float attack4Weight = CanSelectAttack(target, attack4, _nextAttack4SelectionTime)
                 ? AdjustWeight(AttackKind.Attack4, attack4.Weight) : 0f;
+            float attack5Weight = CanSelectAttack5(target)
+                ? AdjustWeight(AttackKind.Attack5, attack5.Weight) : 0f;
 
             // 다른 공격도 거리·재사용 시간 조건을 만족하면 먼저 타깃을 향해 돈다.
-            if (attack3Weight > 0f && attack1Weight + attack2Weight + attack4Weight <= 0f &&
+            if (attack3Weight > 0f &&
+                attack1Weight + attack2Weight + attack4Weight + attack5Weight <= 0f &&
                 HasReadyAlternativeAtCurrentDistance(target))
                 return AttackKind.None;
 
-            float totalWeight = attack1Weight + attack2Weight + attack3Weight + attack4Weight;
+            float totalWeight = attack1Weight + attack2Weight + attack3Weight +
+                attack4Weight + attack5Weight;
             if (totalWeight <= 0f)
                 return AttackKind.None;
 
@@ -512,8 +571,11 @@ namespace Alpha.Enemy.Boss
                 return AttackKind.Attack2;
             if (selection < attack1Weight + attack2Weight + attack3Weight)
                 return AttackKind.Attack3;
+            if (selection < attack1Weight + attack2Weight + attack3Weight + attack4Weight)
+                return AttackKind.Attack4;
             // Random.value가 1을 반환해도 비활성 공격을 선택하지 않는다.
-            return attack4Weight > 0f ? AttackKind.Attack4 :
+            return attack5Weight > 0f ? AttackKind.Attack5 :
+                attack4Weight > 0f ? AttackKind.Attack4 :
                 attack3Weight > 0f ? AttackKind.Attack3 :
                 attack2Weight > 0f ? AttackKind.Attack2 : AttackKind.Attack1;
         }
@@ -526,12 +588,16 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack1 = _selection.Attack1;
             AttackSelectionSettings attack2 = _selection.Attack2;
             AttackSelectionSettings attack4 = _selection.Attack4;
+            AttackSelectionSettings attack5 = _selection.Attack5;
             return (attack1.Weight > 0f && Time.time >= _nextAttack1SelectionTime &&
                     IsWithinSelectionDistance(target, attack1.MinDistance, attack1.MaxDistance)) ||
                    (attack2.Weight > 0f && Time.time >= _nextAttack2SelectionTime &&
                     IsWithinSelectionDistance(target, attack2.MinDistance, attack2.MaxDistance)) ||
                    (attack4.Weight > 0f && Time.time >= _nextAttack4SelectionTime &&
-                    IsWithinSelectionDistance(target, attack4.MinDistance, attack4.MaxDistance));
+                    IsWithinSelectionDistance(target, attack4.MinDistance, attack4.MaxDistance)) ||
+                   (IsAttack5Ready && attack5.Weight > 0f &&
+                    Time.time >= _nextAttack5SelectionTime &&
+                    IsWithinSelectionDistance(target, attack5.MinDistance, attack5.MaxDistance));
         }
 
         private float GetApproachDistance()
@@ -542,6 +608,7 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack2 = _selection.Attack2;
             AttackSelectionSettings attack3 = _selection.Attack3;
             AttackSelectionSettings attack4 = _selection.Attack4;
+            AttackSelectionSettings attack5 = _selection.Attack5;
             if (attack1.Weight > 0f)
                 distance = Mathf.Min(distance, attack1.MaxDistance);
             if (attack2.Weight > 0f)
@@ -550,6 +617,8 @@ namespace Alpha.Enemy.Boss
                 distance = Mathf.Min(distance, attack3.MaxDistance);
             if (attack4.Weight > 0f)
                 distance = Mathf.Min(distance, attack4.MaxDistance);
+            if (IsAttack5Ready && attack5.Weight > 0f)
+                distance = Mathf.Min(distance, attack5.MaxDistance);
             return float.IsPositiveInfinity(distance) ? 0f : distance;
         }
 
@@ -565,6 +634,14 @@ namespace Alpha.Enemy.Boss
 
         private bool CanSelectAttack4(Transform target) =>
             CanSelectAttack(target, _selection.Attack4, _nextAttack4SelectionTime);
+
+        private bool IsAttack5Ready =>
+            _attack != null && _attack.IsAttack5AreaConfigured &&
+            _attackEffectView != null && _attackEffectView.IsAttack5Ready;
+
+        private bool CanSelectAttack5(Transform target) =>
+            IsAttack5Ready &&
+            CanSelectAttack(target, _selection.Attack5, _nextAttack5SelectionTime);
 
         private bool CanSelectAttack(Transform target, AttackSelectionSettings settings,
             float nextSelectionTime) =>
@@ -628,6 +705,7 @@ namespace Alpha.Enemy.Boss
                 AttackKind.Attack2 => _selection.Attack2,
                 AttackKind.Attack3 => _selection.Attack3,
                 AttackKind.Attack4 => _selection.Attack4,
+                AttackKind.Attack5 => _selection.Attack5,
                 _ => default
             };
             _remainingAttackCount = attack == AttackKind.None ? 0 :
@@ -673,6 +751,7 @@ namespace Alpha.Enemy.Boss
                 AttackKind.Attack2 => _animation.PlayAttack2(),
                 AttackKind.Attack3 => _animation.PlayAttack3(),
                 AttackKind.Attack4 => _animation.PlayAttack4(),
+                AttackKind.Attack5 => _animation.PlayAttack5(),
                 _ => false
             };
             if (!started)
@@ -801,6 +880,16 @@ namespace Alpha.Enemy.Boss
             ClearPlayerContact();
         }
 
+        private void HandleAttack5HitStarted(int swingIndex)
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack5)
+                return;
+
+            _indicatorStarted = false;
+            HideAttack5Warnings();
+            // 같은 시점의 Effect1Start가 EffectView에 실제 투사체 생성을 요청한다.
+        }
+
         private bool ClearPlayerContact()
         {
             if (_collisionView == null ||
@@ -922,6 +1011,15 @@ namespace Alpha.Enemy.Boss
                 FinishSelectedAttack();
         }
 
+        private void HandleAttack5Finished()
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack5)
+                return;
+
+            HideAttack5Warnings();
+            FinishSelectedAttack();
+        }
+
         private void FinishSelectedAttack()
         {
             CloseHitWindow();
@@ -949,6 +1047,8 @@ namespace Alpha.Enemy.Boss
                 _nextAttack3SelectionTime = Time.time + _selection.Attack3.Cooldown;
             else if (_selectedAttack == AttackKind.Attack4)
                 _nextAttack4SelectionTime = Time.time + _selection.Attack4.Cooldown;
+            else if (_selectedAttack == AttackKind.Attack5)
+                _nextAttack5SelectionTime = Time.time + _selection.Attack5.Cooldown;
 
             _previousAttack = _selectedAttack;
             _selectedAttack = AttackKind.None;
@@ -1021,6 +1121,8 @@ namespace Alpha.Enemy.Boss
                 origin.GetComponentInChildren<CrabBossAttackModule>(true);
             CrabBossAttackSelectionModule selection = _selection != null ? _selection :
                 origin.GetComponentInChildren<CrabBossAttackSelectionModule>(true);
+            CrabBossAttackEffectView effectView = _attackEffectView != null ?
+                _attackEffectView : origin.GetComponentInChildren<CrabBossAttackEffectView>(true);
             if (attack == null || selection == null)
                 return;
 
@@ -1041,7 +1143,8 @@ namespace Alpha.Enemy.Boss
                     $"Conditions  1:{CanSelectAttack1(_target)}  " +
                     $"2:{CanSelectAttack2(_target)}  " +
                     $"3:{CanSelectAttack3(_target)}  " +
-                    $"4:{CanSelectAttack4(_target)}");
+                    $"4:{CanSelectAttack4(_target)}  " +
+                    $"5:{CanSelectAttack5(_target)}");
             }
 
             if (attack.ShowAttack1HitArea)
@@ -1079,6 +1182,27 @@ namespace Alpha.Enemy.Boss
                             "Attack4 fixed hit path sample", 3,
                         selection.Attack4.MinDistance, selection.Attack4.MaxDistance,
                         attack.Attack4HitAreaFillOpacity);
+            }
+            if (attack.ShowAttack5Areas && effectView != null)
+            {
+                int labelRow = 4;
+                HashSet<(Vector3, Vector3, float, float)> drawnPaths = new();
+                for (int index = 0; index < effectView.Attack5ProjectileCount; index++)
+                {
+                    if (!effectView.TryGetAttack5ProjectilePose(index, out Pose pose) ||
+                        !attack.TryGetAttack5Area(pose,
+                            out DetectionAreaRequest request))
+                        continue;
+                    var path = (request.AreaOrigin, request.Forward,
+                        request.Settings.Width, request.Settings.Length);
+                    if (!drawnPaths.Add(path))
+                        continue;
+                    DrawHitAreaGizmo(request, attack.Attack5AreaColor,
+                        $"Attack5 projectile path {index + 1}",
+                        labelRow++, selection.Attack5.MinDistance,
+                        selection.Attack5.MaxDistance,
+                        attack.Attack5AreaFillOpacity);
+                }
             }
         }
 
@@ -1150,17 +1274,79 @@ namespace Alpha.Enemy.Boss
                     break;
             }
 
+            DrawHitAreaHeightGizmo(request, outline);
             Handles.color = outline;
             float reach = settings.Shape == EDetectionAreaShape.ForwardBox
                 ? settings.Length : settings.Radius;
             string size = settings.Shape == EDetectionAreaShape.ForwardBox
-                ? $"{settings.Width:0.#}×{settings.Length:0.#}m"
-                : $"r{settings.Radius:0.#}m";
+                ? $"{settings.Width:0.#}×{settings.Length:0.#}×{settings.Height:0.#}m"
+                : $"r{settings.Radius:0.#}m / h{settings.Height:0.#}m";
             Handles.Label(center + forward * Mathf.Min(reach, 12f) +
                 Vector3.up * (0.5f + labelRow * 0.35f),
                 $"{label}: {size}\npre-attack stop start/end: " +
                 $"{minimumStopDistance:0.#}/{maximumStopDistance:0.#}m");
             Handles.color = previousColor;
+        }
+
+        // 판정의 중심 높이를 기준으로 실제 위·아래 경계를 그린다.
+        private static void DrawHitAreaHeightGizmo(in DetectionAreaRequest request,
+            Color outline)
+        {
+            DetectionAreaSettings settings = request.Settings;
+            Vector3 up = request.Up.normalized;
+            Vector3 forward = request.Forward.normalized;
+            Vector3 right = request.Rotation * Vector3.right;
+            Vector3 bottom = request.AreaOrigin - up * (settings.Height * 0.5f);
+            Vector3 top = request.AreaOrigin + up * (settings.Height * 0.5f);
+            Handles.color = outline;
+
+            if (settings.Shape == EDetectionAreaShape.ForwardBox)
+            {
+                Vector3 side = right * (settings.Width * 0.5f);
+                Vector3 end = forward * settings.Length;
+                Vector3[] corners =
+                {
+                    bottom - side, bottom + side,
+                    bottom + side + end, bottom - side + end
+                };
+                for (int index = 0; index < corners.Length; index++)
+                {
+                    int next = (index + 1) % corners.Length;
+                    Handles.DrawLine(corners[index], corners[next]);
+                    Handles.DrawLine(corners[index] + up * settings.Height,
+                        corners[next] + up * settings.Height);
+                    Handles.DrawLine(corners[index],
+                        corners[index] + up * settings.Height);
+                }
+                return;
+            }
+
+            if (settings.Shape == EDetectionAreaShape.Radial ||
+                settings.Angle >= 359.9f)
+            {
+                Handles.DrawWireDisc(bottom, up, settings.Radius);
+                Handles.DrawWireDisc(top, up, settings.Radius);
+                Vector3[] directions = { forward, right, -forward, -right };
+                foreach (Vector3 direction in directions)
+                    Handles.DrawLine(bottom + direction * settings.Radius,
+                        top + direction * settings.Radius);
+                return;
+            }
+
+            Vector3 left = Quaternion.AngleAxis(-settings.Angle * 0.5f, up) * forward;
+            Vector3 sectorRight = Quaternion.AngleAxis(settings.Angle * 0.5f, up) * forward;
+            Handles.DrawWireArc(bottom, up, left, settings.Angle, settings.Radius);
+            Handles.DrawWireArc(top, up, left, settings.Angle, settings.Radius);
+            Handles.DrawLine(bottom, top);
+            foreach (Vector3 direction in new[] { left, forward, sectorRight })
+            {
+                Handles.DrawLine(bottom + direction * settings.Radius,
+                    top + direction * settings.Radius);
+            }
+            Handles.DrawLine(bottom, bottom + left * settings.Radius);
+            Handles.DrawLine(bottom, bottom + sectorRight * settings.Radius);
+            Handles.DrawLine(top, top + left * settings.Radius);
+            Handles.DrawLine(top, top + sectorRight * settings.Radius);
         }
 
         private void DrawAttack1RangeGizmo(CrabBossAttackModule attack,
@@ -1193,8 +1379,10 @@ namespace Alpha.Enemy.Boss
             Handles.DrawWireArc(center, Vector3.up, left, angle, radius);
             Handles.DrawLine(center, center + left * radius);
             Handles.DrawLine(center, center + right * radius);
+            DrawHitAreaHeightGizmo(request, outlineColor);
             Handles.Label(center + forward * radius + Vector3.up * 0.3f,
-                $"Attack1 hit: {radius:0.##}m / {angle:0.#}°\n" +
+                $"Attack1 hit: {radius:0.##}m / {angle:0.#}° / " +
+                $"h{request.Settings.Height:0.#}m\n" +
                 $"pre-attack stop start/end: {selection.MinDistance:0.#}/" +
                 $"{selection.MaxDistance:0.#}m");
             Handles.color = previousColor;

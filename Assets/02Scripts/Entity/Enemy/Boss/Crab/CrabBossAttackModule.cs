@@ -15,8 +15,12 @@ namespace Alpha.Enemy.Boss
         [Tooltip("Shape은 Forward Sector로 유지하고 Target Layers를 피격 대상에 맞게 설정합니다.")]
         [SerializeField]
         private DetectionAreaSettings _attack1Area = CreateDefaultAttack1Area();
-        [Tooltip("Attack1 공격 예고 Indicator의 색상입니다.")]
-        [SerializeField] private Color _attack1WarningColor = new(1f, 0.3f, 0.08f, 0.12f);
+        [Tooltip("Attack1 예고와 채움에 공통으로 사용하는 RGB 색상입니다. 알파는 아래 값으로 설정합니다.")]
+        [SerializeField] private Color _attack1WarningColor = new(1f, 0.3f, 0.08f, 1f);
+        [Tooltip("Attack1 예고의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack1WarningAlpha = 80;
+        [Tooltip("Attack1 채움의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack1FillAlpha = 150;
         [Tooltip("Once는 HitStart에서 한 번, Continuous는 Hit Duration 동안 판정합니다.")]
         [SerializeField] private CrabBossHitMode _attack1HitMode = CrabBossHitMode.Once;
         [Tooltip("HitStart 이후 판정을 유지할 클립 시간(초)입니다.")]
@@ -34,8 +38,12 @@ namespace Alpha.Enemy.Boss
         [Tooltip("Shape은 Radial로 유지합니다. 공격 위치는 Flow가 고정해 전달합니다.")]
         [SerializeField]
         private DetectionAreaSettings _attack2Area = CreateDefaultAttack2Area();
-        [Tooltip("Attack2 공격 예고 Indicator의 색상입니다.")]
-        [SerializeField] private Color _attack2WarningColor = new(0.35f, 0.45f, 1f, 0.5f);
+        [Tooltip("Attack2 예고와 채움에 공통으로 사용하는 RGB 색상입니다. 알파는 아래 값으로 설정합니다.")]
+        [SerializeField] private Color _attack2WarningColor = new(0.35f, 0.45f, 1f, 1f);
+        [Tooltip("Attack2 예고의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack2WarningAlpha = 80;
+        [Tooltip("Attack2 채움의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack2FillAlpha = 150;
         [Tooltip("Once는 HitStart에서 한 번, Continuous는 Hit Duration 동안 판정합니다.")]
         [SerializeField] private CrabBossHitMode _attack2HitMode = CrabBossHitMode.Once;
         [Tooltip("HitStart 이후 판정을 유지할 클립 시간(초)입니다.")]
@@ -53,8 +61,12 @@ namespace Alpha.Enemy.Boss
         [Tooltip("착지 피해와 예고 표시가 공유하는 범위입니다.")]
         [SerializeField] private DetectionAreaSettings _attack3Area =
             CreateDefaultAttack3Area();
-        [Tooltip("Attack3 공격 예고 Indicator의 색상입니다.")]
-        [SerializeField] private Color _attack3WarningColor = new(1f, 0.35f, 0.05f, 0.6f);
+        [Tooltip("Attack3 예고와 채움에 공통으로 사용하는 RGB 색상입니다. 알파는 아래 값으로 설정합니다.")]
+        [SerializeField] private Color _attack3WarningColor = new(1f, 0.35f, 0.05f, 1f);
+        [Tooltip("Attack3 예고의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack3WarningAlpha = 80;
+        [Tooltip("Attack3 채움의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack3FillAlpha = 150;
         [Tooltip("Once는 HitStart에서 한 번, Continuous는 Hit Duration 동안 판정합니다.")]
         [SerializeField] private CrabBossHitMode _attack3HitMode = CrabBossHitMode.Once;
         [Tooltip("HitStart 이후 판정을 유지할 클립 시간(초)입니다.")]
@@ -73,8 +85,12 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private DetectionAreaSettings _attack4Area = CreateDefaultAttack4Area();
         [Tooltip("HitStart 이후 돌진을 완료할 애니메이션 클립 시간(초)입니다.")]
         [SerializeField, Min(0.01f)] private float _attack4DashDurationSeconds = 0.3f;
-        [Tooltip("Attack4 공격 예고 Indicator의 색상입니다.")]
-        [SerializeField] private Color _attack4WarningColor = new(1f, 0.4f, 0.05f, 0.6f);
+        [Tooltip("Attack4 예고와 채움에 공통으로 사용하는 RGB 색상입니다. 알파는 아래 값으로 설정합니다.")]
+        [SerializeField] private Color _attack4WarningColor = new(1f, 0.4f, 0.05f, 1f);
+        [Tooltip("Attack4 예고의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack4WarningAlpha = 80;
+        [Tooltip("Attack4 채움의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack4FillAlpha = 150;
         [Tooltip("Attack4 피해 범위를 Scene 뷰에 표시합니다.")]
         [SerializeField] private bool _showAttack4HitArea = true;
         [SerializeField] private Color _attack4HitAreaColor = new(1f, 0.75f, 0.1f, 0.7f);
@@ -82,10 +98,39 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Range(0f, 1f)] private float _attack4HitAreaFillOpacity = 0.25f;
         [SerializeField] private DamageProfile _attack4Damage = new();
 
-        internal Color Attack1WarningColor => _attack1WarningColor;
-        internal Color Attack2WarningColor => _attack2WarningColor;
-        internal Color Attack3WarningColor => _attack3WarningColor;
-        internal Color Attack4WarningColor => _attack4WarningColor;
+        [Header("Attack 5: Three Projectile Volleys")]
+        [Tooltip("EffectView의 Spawn Point를 기준으로 표시하는 투사체 경로입니다. Length는 충돌 종료 모드의 최대 사거리입니다.")]
+        [SerializeField] private DetectionAreaSettings _attack5Area =
+            CreateDefaultAttack5Area();
+        [Tooltip("Attack5 경로 예고와 채움에 공통으로 사용하는 RGB 색상입니다. 알파는 아래 값으로 설정합니다.")]
+        [SerializeField] private Color _attack5WarningColor =
+            new(1f, 0.19607843f, 0.19607843f, 1f);
+        [Tooltip("Attack5 경로 예고의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack5WarningAlpha = 80;
+        [Tooltip("Attack5 경로가 채워질 때의 알파값입니다 (0~255).")]
+        [SerializeField, Range(0, 255)] private int _attack5FillAlpha = 150;
+        [Tooltip("Attack5 투사체 경로를 Scene 뷰에 표시합니다.")]
+        [SerializeField] private bool _showAttack5Areas = true;
+        [SerializeField] private Color _attack5AreaColor =
+            new(0.3f, 1f, 0.5f, 0.7f);
+        [SerializeField, Range(0f, 1f)] private float _attack5AreaFillOpacity = 0.12f;
+
+        internal Color Attack1WarningColor => WithAlpha(_attack1WarningColor, _attack1WarningAlpha);
+        internal Color Attack1FillColor => WithAlpha(_attack1WarningColor, _attack1FillAlpha);
+        internal Color Attack2WarningColor => WithAlpha(_attack2WarningColor, _attack2WarningAlpha);
+        internal Color Attack2FillColor => WithAlpha(_attack2WarningColor, _attack2FillAlpha);
+        internal Color Attack3WarningColor => WithAlpha(_attack3WarningColor, _attack3WarningAlpha);
+        internal Color Attack3FillColor => WithAlpha(_attack3WarningColor, _attack3FillAlpha);
+        internal Color Attack4WarningColor => WithAlpha(_attack4WarningColor, _attack4WarningAlpha);
+        internal Color Attack4FillColor => WithAlpha(_attack4WarningColor, _attack4FillAlpha);
+        internal Color Attack5WarningColor => WithAlpha(_attack5WarningColor, _attack5WarningAlpha);
+        internal Color Attack5FillColor => WithAlpha(_attack5WarningColor, _attack5FillAlpha);
+
+        private static Color WithAlpha(Color color, int alpha)
+        {
+            color.a = Mathf.Clamp(alpha, 0, 255) / 255f;
+            return color;
+        }
         internal CrabBossHitTiming Attack1HitTiming =>
             new(_attack1HitMode, _attack1HitDurationSeconds);
         internal CrabBossHitTiming Attack2HitTiming =>
@@ -94,6 +139,26 @@ namespace Alpha.Enemy.Boss
             new(_attack3HitMode, _attack3HitDurationSeconds);
         internal CrabBossHitTiming Attack4HitTiming => new(CrabBossHitMode.Once, 0f);
         internal float Attack4DashDurationSeconds => _attack4DashDurationSeconds;
+
+        internal bool IsAttack5AreaConfigured =>
+            _attack5Area != null &&
+            _attack5Area.Shape == EDetectionAreaShape.ForwardBox &&
+            _attack5Area.IsValid;
+        internal float Attack5Range => IsAttack5AreaConfigured ? _attack5Area.Length : 0f;
+
+        // EffectView가 실제 생성에 사용할 자세를 전달한다.
+        internal bool TryGetAttack5Area(in Pose spawnPose,
+            out DetectionAreaRequest request)
+        {
+            request = default;
+            if (!IsAttack5AreaConfigured)
+                return false;
+
+            request = new DetectionAreaRequest(spawnPose.position,
+                spawnPose.rotation * Vector3.forward,
+                spawnPose.rotation * Vector3.up, Owner, _attack5Area);
+            return request.IsValid;
+        }
 
 #if UNITY_EDITOR
         internal bool ShowAttack1HitArea => _showAttack1HitArea;
@@ -108,6 +173,9 @@ namespace Alpha.Enemy.Boss
         internal bool ShowAttack4HitArea => _showAttack4HitArea;
         internal Color Attack4HitAreaColor => _attack4HitAreaColor;
         internal float Attack4HitAreaFillOpacity => _attack4HitAreaFillOpacity;
+        internal bool ShowAttack5Areas => _showAttack5Areas;
+        internal Color Attack5AreaColor => _attack5AreaColor;
+        internal float Attack5AreaFillOpacity => _attack5AreaFillOpacity;
 #endif
 
         private readonly Collider[] _overlapBuffer = new Collider[HitBufferCapacity];
@@ -377,6 +445,7 @@ namespace Alpha.Enemy.Boss
             _attack3Damage ??= new DamageProfile();
             _attack4Area ??= CreateDefaultAttack4Area();
             _attack4Damage ??= new DamageProfile();
+            _attack5Area ??= CreateDefaultAttack5Area();
             _attack1Area.Validate();
             _attack1Damage.Validate();
             _attack2Area.Validate();
@@ -385,6 +454,7 @@ namespace Alpha.Enemy.Boss
             _attack3Damage.Validate();
             _attack4Area.Validate();
             _attack4Damage.Validate();
+            _attack5Area.Validate();
         }
 
         private static DetectionAreaSettings CreateDefaultAttack1Area() =>
@@ -402,6 +472,10 @@ namespace Alpha.Enemy.Boss
         private static DetectionAreaSettings CreateDefaultAttack4Area() =>
             new(EDetectionAreaShape.ForwardBox, new Vector3(0f, 2f, 0f), 1 << 6,
                 8f, 20f, 1f, 360f, 4f);
+
+        private static DetectionAreaSettings CreateDefaultAttack5Area() =>
+            new(EDetectionAreaShape.ForwardBox, Vector3.zero, 1 << 6,
+                2f, 30f, 1f, 90f, 2f);
     }
 
     internal enum CrabBossHitMode

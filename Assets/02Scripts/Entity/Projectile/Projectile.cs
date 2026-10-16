@@ -1,10 +1,17 @@
 using System;
+using System.Collections.Generic;
 using Alpha.Combat;
 using Alpha.Item.Weapon.Range;
 using UnityEngine;
 
 namespace Alpha.Projectile
 {
+    public enum EProjectileCollisionMode
+    {
+        StopOnHit,
+        PierceUntilDuration
+    }
+
     // Projectile이 실제 충돌한 위치와 표면 방향을 자신의 View에 전달한다.
     public readonly struct ProjectileImpactResult
     {
@@ -29,6 +36,7 @@ namespace Alpha.Projectile
         public event Action<ProjectileImpactResult> OnImpacted;
 
         private const int MaximumPredictionSteps = 2048;
+        private const int PiercingHitBufferCapacity = 128;
 
         // 공격 대상의 Trigger 피격 영역도 항상 충돌 검색에 포함한다.
         private const QueryTriggerInteraction TargetTriggerInteraction =
@@ -48,6 +56,10 @@ namespace Alpha.Projectile
         [SerializeField]
         private LayerMask _hitMask = 65;
 
+        [Tooltip("지정된 공격 대상 외에 충돌 시 투사체를 종료할 환경 Layer입니다.")]
+        [SerializeField]
+        private LayerMask _environmentHitMask;
+
         [Tooltip("비행 Cast 형상으로 사용할 Sphere, Box 또는 Capsule Collider입니다. 실제 물리 충돌에는 사용하지 않습니다.")]
         [SerializeField]
         private Collider _collisionShape;
@@ -57,12 +69,23 @@ namespace Alpha.Projectile
         [SerializeField]
         private ProjectileDamageArea _damageArea;
 
+        [Tooltip("InitializeFromPrefab으로 발사할 때 사용할 피해 설정입니다. 무기 발사 요청의 피해는 기존 요청 값을 사용합니다.")]
+        [SerializeField] private DamageProfile _prefabDamage = new();
+
+        [Tooltip("충돌 시 종료하거나, 대상을 관통하며 Hit Duration 동안 비행합니다.")]
+        [SerializeField] private EProjectileCollisionMode _collisionMode;
+
+        [Tooltip("관통 모드에서 발사 후 유지할 시간입니다. 애니메이션 HitEnd와 무관합니다.")]
+        [SerializeField, Min(0.01f)] private float _hitDuration = 1f;
+
         [Header("Debug")]
         [Tooltip("발사, 충돌 대상, 피해 적용 결과와 종료 사유를 Console에 출력합니다.")]
         [SerializeField]
         private bool _logLifecycle;
 
         private Transform _attacker;
+        private Transform _requiredHitTarget;
+        private bool _restrictStopHits;
         private Vector3 _launchOrigin;
         private Vector3 _velocity;
         private Vector3 _gravity;
@@ -71,6 +94,13 @@ namespace Alpha.Projectile
         private AttackImpactInfo _attackImpact;
         private float _maximumDistance;
         private float _damageAreaRemainingTime;
+        private float _hitTimeRemaining;
+
+        private readonly RaycastHit[] _piercingHitBuffer =
+            new RaycastHit[PiercingHitBufferCapacity];
+        private readonly Collider[] _overlapHitBuffer =
+            new Collider[PiercingHitBufferCapacity];
+        private readonly HashSet<IDamageable> _piercedTargets = new();
 
         private bool _isActive;
         private bool _isWaitingForDamageArea;
@@ -93,10 +123,31 @@ namespace Alpha.Projectile
         public bool IsConfigurationValid =>
             Speed > 0f &&
             TryCalculateCollisionPreviewRadius(out _) &&
-            (_damageArea == null ||
-             _damageArea.IsConfigurationValid);
+            (_collisionMode != EProjectileCollisionMode.PierceUntilDuration ||
+             (_hitDuration > 0f && _damageArea == null)) &&
+            (_damageArea == null || _damageArea.IsConfigurationValid);
 
-        // 포물선은 표시하지 않고 실제 비행식과 Collider Cast로 최종 폭발점만 계산한다.
+        public bool IsPrefabDamageValid =>
+            IsConfigurationValid && _prefabDamage != null && _prefabDamage.IsValid;
+
+        // Effect 프리팹이 피해를 소유하는 공격에서 사용한다.
+        public bool InitializeFromPrefab(Transform attacker, Transform target,
+            Vector3 origin, Vector3 direction, float maxDistance)
+        {
+            if (!IsPrefabDamageValid || target == null)
+                return false;
+
+            RangeAttackRequest request = new(attacker, origin, origin, direction,
+                _prefabDamage.Damage, maxDistance, _prefabDamage.Impact);
+            if (!Initialize(request))
+                return false;
+
+            _requiredHitTarget = target;
+            _restrictStopHits = true;
+            return true;
+        }
+
+        // 종료 모드의 충돌점 또는 관통 모드의 지속 시간 종료 위치를 예측한다.
         public bool TryPredictImpact(
             Vector3 p_origin,
             Vector3 p_direction,
@@ -111,6 +162,18 @@ namespace Alpha.Projectile
                 p_maximumDistance <= 0f)
             {
                 return false;
+            }
+
+            if (_collisionMode == EProjectileCollisionMode.PierceUntilDuration)
+            {
+                Vector3 initialVelocity = p_direction.normalized * Speed;
+                Vector3 end = p_origin + CalculateDisplacement(initialVelocity,
+                    Gravity, _hitDuration);
+                Vector3 endVelocity = initialVelocity + Gravity * _hitDuration;
+                p_result = new ProjectileImpactResult(end,
+                    endVelocity.sqrMagnitude > 0.0001f
+                        ? -endVelocity.normalized : -p_direction.normalized);
+                return true;
             }
 
             Vector3 position = p_origin;
@@ -202,6 +265,8 @@ namespace Alpha.Projectile
             }
 
             _attacker = p_request.Attacker;
+            _requiredHitTarget = null;
+            _restrictStopHits = false;
             _launchOrigin = p_request.Origin;
             _velocity = p_request.Direction * Speed;
             _gravity = Gravity;
@@ -209,6 +274,8 @@ namespace Alpha.Projectile
             _attackImpact = p_request.Impact;
             _maximumDistance = p_request.MaxDistance;
             _damageAreaRemainingTime = 0f;
+            _hitTimeRemaining = _hitDuration;
+            _piercedTargets.Clear();
             _isWaitingForDamageArea = false;
 
             if (_damageArea != null)
@@ -242,6 +309,9 @@ namespace Alpha.Projectile
                 GetComponentInChildren<ProjectileDamageArea>(true);
             _speed = Mathf.Max(0.01f, _speed);
             _gravityScale = Mathf.Max(0f, _gravityScale);
+            _hitDuration = Mathf.Max(0.01f, _hitDuration);
+            _prefabDamage ??= new DamageProfile();
+            _prefabDamage.Validate();
         }
 
         private void Update()
@@ -260,6 +330,12 @@ namespace Alpha.Projectile
             // Cinematic 정지 중에는 투사체 수명과 위치를 그대로 유지한다.
             if (deltaTime <= 0f)
                 return;
+
+            if (_collisionMode == EProjectileCollisionMode.PierceUntilDuration)
+            {
+                TickPiercing(deltaTime);
+                return;
+            }
 
             Vector3 displacement =
                 CalculateDisplacement(
@@ -297,13 +373,22 @@ namespace Alpha.Projectile
             bool reachesMaximumDistance =
                 moveDistance >= distanceToBoundary - 0.0001f;
 
+            if (TryGetOverlappingStopHit(moveDirection,
+                    out Collider overlappingCollider,
+                    out Vector3 overlapPoint,
+                    out Vector3 overlapNormal))
+            {
+                HandleHit(overlappingCollider, overlapPoint, overlapNormal,
+                    moveDirection);
+                return;
+            }
+
             if (TryCastMovement(
                     moveDirection,
                     moveDistance,
                     out RaycastHit hit))
             {
-                HandleHit(
-                    hit,
+                HandleHit(hit.collider, hit.point, hit.normal,
                     moveDirection);
                 return;
             }
@@ -342,6 +427,121 @@ namespace Alpha.Projectile
                 out p_hit);
         }
 
+        // SphereCast는 시작 위치에서 이미 겹친 대상을 보고하지 않아 별도로 검사한다.
+        private bool TryGetOverlappingStopHit(Vector3 direction,
+            out Collider hitCollider, out Vector3 hitPoint,
+            out Vector3 hitNormal)
+        {
+            hitCollider = null;
+            hitPoint = default;
+            hitNormal = default;
+            if (!_restrictStopHits || _collisionShape is not SphereCollider sphere ||
+                !TryGetSphereWorldShapeAtPose(sphere, transform.position,
+                    transform.rotation, out Vector3 center, out float radius))
+                return false;
+
+            int hitCount = Physics.OverlapSphereNonAlloc(center, radius,
+                _overlapHitBuffer, _hitMask, TargetTriggerInteraction);
+            float nearestDistance = float.PositiveInfinity;
+            for (int index = 0; index < hitCount; index++)
+            {
+                Collider candidate = _overlapHitBuffer[index];
+                if (candidate == null || IsAttackerCollider(candidate) ||
+                    !IsAllowedStopHit(candidate))
+                    continue;
+
+                Vector3 point = candidate.ClosestPoint(center);
+                float distance = (point - center).sqrMagnitude;
+                if (distance >= nearestDistance)
+                    continue;
+
+                hitCollider = candidate;
+                hitPoint = point;
+                nearestDistance = distance;
+            }
+
+            if (hitCollider == null)
+                return false;
+
+            hitNormal = center - hitPoint;
+            hitNormal = hitNormal.sqrMagnitude > 0.0001f
+                ? hitNormal.normalized : -direction;
+            return true;
+        }
+
+        // 관통 모드는 이번 이동 경로의 모든 대상을 검사하고 같은 Entity에는 한 번만 피해를 준다.
+        private void TickPiercing(float deltaTime)
+        {
+            float step = Mathf.Min(deltaTime, _hitTimeRemaining);
+            if (step <= 0f)
+            {
+                Release("HitDurationCompleted");
+                return;
+            }
+
+            Vector3 displacement = CalculateDisplacement(_velocity, _gravity, step);
+            float distance = displacement.magnitude;
+            if (distance > 0.0001f)
+            {
+                Vector3 direction = displacement / distance;
+                int hitCount = CollectPiercingHits(direction, distance);
+                for (int index = 0; index < hitCount; index++)
+                {
+                    RaycastHit hit = _piercingHitBuffer[index];
+                    if (hit.collider == null || hit.collider.transform == _attacker ||
+                        hit.collider.transform.IsChildOf(_attacker) ||
+                        !DamageSystem.TryGetDamageable(hit.collider,
+                            out IDamageable damageable) ||
+                        !_piercedTargets.Add(damageable))
+                        continue;
+
+                    DamageInfo damageInfo = new(_attacker, _damage, hit.point,
+                        hit.normal, direction, p_impact: _attackImpact,
+                        p_deliveryType: EDamageDeliveryType.Ranged);
+                    DamageSystem.TryApply(hit.collider, damageInfo);
+                }
+
+                transform.position += displacement;
+            }
+
+            _velocity += _gravity * step;
+            if (_velocity.sqrMagnitude > 0.0001f)
+                transform.rotation = Quaternion.LookRotation(_velocity.normalized);
+
+            _hitTimeRemaining -= step;
+            if (_hitTimeRemaining <= 0f)
+                Release("HitDurationCompleted");
+        }
+
+        private int CollectPiercingHits(Vector3 direction, float distance)
+        {
+            switch (_collisionShape)
+            {
+                case SphereCollider sphere when TryGetSphereWorldShapeAtPose(
+                    sphere, transform.position, transform.rotation,
+                    out Vector3 center, out float radius):
+                    return Physics.SphereCastNonAlloc(center, radius, direction,
+                        _piercingHitBuffer, distance, _hitMask, TargetTriggerInteraction);
+
+                case BoxCollider box when TryGetBoxWorldShapeAtPose(
+                    box, transform.position, transform.rotation,
+                    out Vector3 boxCenter, out Vector3 extents, out Quaternion orientation):
+                    return Physics.BoxCastNonAlloc(boxCenter, extents, direction,
+                        _piercingHitBuffer, orientation, distance, _hitMask,
+                        TargetTriggerInteraction);
+
+                case CapsuleCollider capsule when TryGetCapsuleWorldShapeAtPose(
+                    capsule, transform.position, transform.rotation,
+                    out Vector3 point1, out Vector3 point2, out float capsuleRadius):
+                    return Physics.CapsuleCastNonAlloc(point1, point2, capsuleRadius,
+                        direction, _piercingHitBuffer, distance, _hitMask,
+                        TargetTriggerInteraction);
+
+                default:
+                    return 0;
+            }
+        }
+
         private bool TryCastMovementAtPose(
             Vector3 p_rootPosition,
             Quaternion p_rootRotation,
@@ -350,6 +550,7 @@ namespace Alpha.Projectile
             LayerMask p_hitMask,
             out RaycastHit p_hit)
         {
+            int hitCount;
             switch (_collisionShape)
             {
                 case SphereCollider sphere:
@@ -360,17 +561,19 @@ namespace Alpha.Projectile
                             out Vector3 sphereCenter,
                             out float sphereRadius))
                     {
-                        return Physics.SphereCast(
+                        hitCount = Physics.SphereCastNonAlloc(
                             sphereCenter,
                             sphereRadius,
                             p_moveDirection,
-                            out p_hit,
+                            _piercingHitBuffer,
                             p_moveDistance,
                             p_hitMask,
                             TargetTriggerInteraction);
+                        break;
                     }
 
-                    break;
+                    p_hit = default;
+                    return false;
 
                 case BoxCollider box:
                     if (TryGetBoxWorldShapeAtPose(
@@ -381,18 +584,20 @@ namespace Alpha.Projectile
                             out Vector3 halfExtents,
                             out Quaternion orientation))
                     {
-                        return Physics.BoxCast(
+                        hitCount = Physics.BoxCastNonAlloc(
                             boxCenter,
                             halfExtents,
                             p_moveDirection,
-                            out p_hit,
+                            _piercingHitBuffer,
                             orientation,
                             p_moveDistance,
                             p_hitMask,
                             TargetTriggerInteraction);
+                        break;
                     }
 
-                    break;
+                    p_hit = default;
+                    return false;
 
                 case CapsuleCollider capsule:
                     if (TryGetCapsuleWorldShapeAtPose(
@@ -403,22 +608,62 @@ namespace Alpha.Projectile
                             out Vector3 point2,
                             out float capsuleRadius))
                     {
-                        return Physics.CapsuleCast(
+                        hitCount = Physics.CapsuleCastNonAlloc(
                             point1,
                             point2,
                             capsuleRadius,
                             p_moveDirection,
-                            out p_hit,
+                            _piercingHitBuffer,
                             p_moveDistance,
                             p_hitMask,
                             TargetTriggerInteraction);
+                        break;
                     }
 
-                    break;
+                    p_hit = default;
+                    return false;
+
+                default:
+                    p_hit = default;
+                    return false;
             }
 
             p_hit = default;
-            return false;
+            float nearestDistance = float.PositiveInfinity;
+            for (int index = 0; index < hitCount; index++)
+            {
+                RaycastHit candidate = _piercingHitBuffer[index];
+                Collider collider = candidate.collider;
+                if (collider == null || IsAttackerCollider(collider) ||
+                    !IsAllowedStopHit(collider) ||
+                    candidate.distance >= nearestDistance)
+                    continue;
+
+                p_hit = candidate;
+                nearestDistance = candidate.distance;
+            }
+
+            return p_hit.collider != null;
+        }
+
+        private bool IsAttackerCollider(Collider collider)
+        {
+            return _attacker != null &&
+                   (collider.transform == _attacker ||
+                    collider.transform.IsChildOf(_attacker));
+        }
+
+        private bool IsAllowedStopHit(Collider collider)
+        {
+            if (!_restrictStopHits)
+                return true;
+
+            Transform hitTransform = collider.transform;
+            return (_requiredHitTarget != null &&
+                    (hitTransform == _requiredHitTarget ||
+                     hitTransform.IsChildOf(_requiredHitTarget))) ||
+                   (_environmentHitMask.value &
+                    (1 << collider.gameObject.layer)) != 0;
         }
 
         private bool TryGetSphereWorldShapeAtPose(
@@ -748,39 +993,33 @@ namespace Alpha.Projectile
                 Mathf.Abs(p_value.z));
         }
 
-        private void HandleHit(
-            RaycastHit p_hit,
-            Vector3 p_direction)
+        private void HandleHit(Collider collider, Vector3 point,
+            Vector3 normal, Vector3 direction)
         {
-            transform.position = p_hit.point;
+            transform.position = point;
 
             bool didApplyDirectDamage =
                 _damageArea == null &&
-                ApplyDirectDamage(
-                    p_hit,
-                    p_direction);
+                ApplyDirectDamage(collider, point, normal, direction);
 
             string layerName = LayerMask.LayerToName(
-                p_hit.collider.gameObject.layer);
+                collider.gameObject.layer);
 
             DamageSystem.TryGetDamageable(
-                p_hit.collider,
+                collider,
                 out IDamageable damageable);
 
             LogLifecycle(
-                $"Hit | Collider={p_hit.collider.name}, " +
-                $"Layer={layerName}({p_hit.collider.gameObject.layer}), " +
+                $"Hit | Collider={collider.name}, " +
+                $"Layer={layerName}({collider.gameObject.layer}), " +
                 $"Damageable={damageable?.GetType().Name ?? "None"}, " +
                 $"DirectDamageApplied={didApplyDirectDamage}, " +
                 $"DamageArea={_damageArea != null}, " +
-                $"Point={p_hit.point}, " +
-                $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, p_hit.point)}");
+                $"Point={point}, " +
+                $"DistanceFromOrigin={Vector3.Distance(_launchOrigin, point)}");
 
             // 지형이나 피해 불가능 대상에 명중해도 투사체는 종료한다.
-            CompleteImpact(
-                p_hit.point,
-                p_hit.normal,
-                "Impact");
+            CompleteImpact(point, normal, "Impact");
         }
 
         // 충돌 대상이 없는 최대 사거리에서도 자식 피해 Collider와 폭발 표현을 실행한다.
@@ -829,22 +1068,21 @@ namespace Alpha.Projectile
             Release(p_releaseReason);
         }
 
-        private bool ApplyDirectDamage(
-            RaycastHit p_hit,
-            Vector3 p_direction)
+        private bool ApplyDirectDamage(Collider collider, Vector3 point,
+            Vector3 normal, Vector3 direction)
         {
             DamageInfo damageInfo = new(
                 _attacker,
                 _damage,
-                p_hit.point,
-                p_hit.normal,
-                p_direction,
+                point,
+                normal,
+                direction,
                 p_impact: _attackImpact,
                 p_deliveryType:
                     EDamageDeliveryType.Ranged);
 
             if (!DamageSystem.TryApply(
-                    p_hit.collider,
+                    collider,
                     damageInfo))
             {
                 return false;
@@ -881,6 +1119,8 @@ namespace Alpha.Projectile
             _isActive = false;
             _isWaitingForDamageArea = false;
             _damageAreaRemainingTime = 0f;
+            _hitTimeRemaining = 0f;
+            _piercedTargets.Clear();
             _damageArea?.Deactivate();
             Destroy(gameObject);
         }

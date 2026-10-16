@@ -13,6 +13,8 @@ namespace Alpha.Enemy.Boss
         private static readonly int Attack3Name = Animator.StringToHash("Attack3");
         private static readonly int Attack4State = Animator.StringToHash("Base Layer.Attack4");
         private static readonly int Attack4Name = Animator.StringToHash("Attack4");
+        private static readonly int Attack5State = Animator.StringToHash("Base Layer.Attack5");
+        private static readonly int Attack5Name = Animator.StringToHash("Attack5");
         private static readonly int ChaseState = Animator.StringToHash("Base Layer.Chase");
         private static readonly int IdleState = Animator.StringToHash("Base Layer.Idle");
         private static readonly int DeathState = Animator.StringToHash("Base Layer.Death");
@@ -23,6 +25,7 @@ namespace Alpha.Enemy.Boss
         private bool _attackEntered;
         private bool _attackHitSent;
         private bool _indicatorStartSent;
+        private int _attack5SwingCount;
         private bool _isMoving;
         private int _framesWaitingForEntry;
         private int _activeAttackNameHash;
@@ -41,6 +44,7 @@ namespace Alpha.Enemy.Boss
         public event Action Attack2Hit;
         public event Action Attack3Hit;
         public event Action Attack4Hit;
+        public event Action<int> Attack5HitStarted;
         public event Action IndicatorStarted;
         public event Action<string> EffectStarted;
         public event Action<int> AttackAnimationStarted;
@@ -49,7 +53,9 @@ namespace Alpha.Enemy.Boss
         public event Action Attack2Finished;
         public event Action Attack3Finished;
         public event Action Attack4Finished;
+        public event Action Attack5Finished;
         public Vector3? AttackTargetPosition { get; private set; }
+        public string Attack5WarningEffectEventName { get; private set; }
 
         private void Awake()
         {
@@ -85,6 +91,7 @@ namespace Alpha.Enemy.Boss
         public bool PlayAttack3() => PlayAttack(Attack3State, Attack3Name, null);
 
         public bool PlayAttack4() => PlayAttack(Attack4State, Attack4Name, null);
+        public bool PlayAttack5() => PlayAttack(Attack5State, Attack5Name, null);
 
         // IndicatorStart에서 확정된 착지·공격 위치를 이펙트에 전달한다.
         public void SetAttackTargetPosition(Vector3 targetPosition)
@@ -105,6 +112,8 @@ namespace Alpha.Enemy.Boss
             _attackEntered = false;
             _attackHitSent = false;
             _indicatorStartSent = false;
+            _attack5SwingCount = 0;
+            Attack5WarningEffectEventName = null;
             ResetHitClock();
             ResetIndicatorClock();
             _framesWaitingForEntry = 0;
@@ -119,9 +128,13 @@ namespace Alpha.Enemy.Boss
         // 클립의 IndicatorStart 키를 현재 공격의 표시 시작 신호로 전달한다.
         public void IndicatorStart(AnimationEvent animationEvent)
         {
-            if (!_attackPlaying || _indicatorStartSent)
+            // Attack5는 세 휘두르기마다 예고를 다시 시작한다.
+            if (!_attackPlaying ||
+                (_indicatorStartSent && _activeAttackNameHash != Attack5Name))
                 return;
 
+            _indicatorClockAvailable = false;
+            Attack5WarningEffectEventName = null;
             AnimationClip clip = animationEvent?.animatorClipInfo.clip;
             if (clip == null && _animator != null)
             {
@@ -146,6 +159,21 @@ namespace Alpha.Enemy.Boss
                     _indicatorStartNormalizedTime = startTime / clip.length;
                     _indicatorHitNormalizedTime = hitTime / clip.length;
                     _indicatorClockAvailable = true;
+
+                    if (_activeAttackNameHash == Attack5Name)
+                    {
+                        foreach (AnimationEvent clipEvent in clip.events)
+                        {
+                            string functionName = clipEvent.functionName;
+                            if (Mathf.Abs(clipEvent.time - hitTime) <= 0.001f &&
+                                functionName.StartsWith("Effect") &&
+                                functionName.EndsWith("Start"))
+                            {
+                                Attack5WarningEffectEventName = functionName;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -176,7 +204,21 @@ namespace Alpha.Enemy.Boss
         // HitStart 키는 공격 판정 시점이다.
         public void HitStart(AnimationEvent animationEvent)
         {
-            if (!_attackPlaying || _attackHitSent)
+            if (!_attackPlaying)
+                return;
+
+            if (_activeAttackNameHash == Attack5Name)
+            {
+                // 각 IndicatorStart에 대응하는 HitStart 한 번씩 장판을 닫는다.
+                if (!_indicatorStartSent || _attack5SwingCount >= 3)
+                    return;
+                _indicatorStartSent = false;
+                ResetIndicatorClock();
+                Attack5HitStarted?.Invoke(_attack5SwingCount++);
+                return;
+            }
+
+            if (_attackHitSent)
                 return;
 
             AnimationClip clip = animationEvent?.animatorClipInfo.clip;
@@ -347,6 +389,8 @@ namespace Alpha.Enemy.Boss
                 Attack3Finished?.Invoke();
             else if (finishedNameHash == Attack4Name)
                 Attack4Finished?.Invoke();
+            else if (finishedNameHash == Attack5Name)
+                Attack5Finished?.Invoke();
         }
 
         private void EndAttackAnimation()
@@ -365,6 +409,8 @@ namespace Alpha.Enemy.Boss
             _attackEntered = false;
             _attackHitSent = false;
             _indicatorStartSent = false;
+            _attack5SwingCount = 0;
+            Attack5WarningEffectEventName = null;
             ResetIndicatorClock();
             if (!preserveHitClock)
                 ResetHitClock();

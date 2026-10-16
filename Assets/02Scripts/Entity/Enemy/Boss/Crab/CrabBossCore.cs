@@ -61,7 +61,7 @@ namespace Alpha.Enemy.Boss
             _attackSelection.Bind(transform, _locomotion);
             _attack.Bind(transform, _attack1Origin != null ? _attack1Origin : transform);
             _animation.Bind(_animator);
-            _attackEffectView.Bind(_animation);
+            _attackEffectView.Bind(_animation, _attack, _targetDetection, transform);
             _collisionView.SetContactBlocking(true);
 
             _living.Bind(_healthContext);
@@ -70,7 +70,7 @@ namespace Alpha.Enemy.Boss
 
             _stateFlow.Bind(transform, _targetDetection, _locomotion,
                 _attackSelection, _attack, _animation,
-                _attackAreaView, _collisionView);
+                _attackAreaView, _attackEffectView, _collisionView);
             _bound = true;
         }
 

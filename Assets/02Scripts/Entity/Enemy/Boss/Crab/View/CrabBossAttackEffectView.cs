@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectileEntity = Alpha.Projectile.Projectile;
 
 namespace Alpha.Enemy.Boss
 {
@@ -48,6 +49,24 @@ namespace Alpha.Enemy.Boss
         public float TailDuration => _tailDuration;
         public bool IsValid => _effectPrefab != null;
 
+        // 생성과 공격 예고가 같은 위치·회전을 사용한다.
+        public bool TryGetSpawnPose(Transform fallback, Vector3? targetPosition,
+            out Pose pose)
+        {
+            pose = default;
+            if (_spawnAtTargetPosition && !targetPosition.HasValue)
+                return false;
+
+            Transform point = _spawnPoint != null ? _spawnPoint : fallback;
+            if (point == null)
+                return false;
+
+            pose = _spawnAtTargetPosition
+                ? new Pose(targetPosition.Value, Quaternion.identity)
+                : new Pose(point.position, point.rotation);
+            return true;
+        }
+
         public void Validate()
         {
             _startEventName = _startEventName?.Trim();
@@ -59,6 +78,8 @@ namespace Alpha.Enemy.Boss
     [DisallowMultipleComponent]
     public sealed class CrabBossAttackEffectView : MonoBehaviour
     {
+        private static readonly int Attack5Name = Animator.StringToHash("Attack5");
+
         private readonly struct TimedEffect
         {
             public readonly GameObject Instance;
@@ -74,15 +95,24 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private List<CrabBossAttackEffectTrack> _attackEffects = new();
 
         private CrabBossAnimationView _animation;
+        private CrabBossAttackModule _attack;
+        private TargetDetectionModule _targetDetection;
+        private Transform _owner;
+        private Transform _attackTarget;
         private CrabBossAttackEffectTrack _activeTrack;
         private readonly List<TimedEffect> _liveEffects = new();
         private bool[] _started = Array.Empty<bool>();
         private int _activeStateHash;
 
-        public void Bind(CrabBossAnimationView animation)
+        public void Bind(CrabBossAnimationView animation,
+            CrabBossAttackModule attack, TargetDetectionModule targetDetection,
+            Transform owner)
         {
             Unbind();
             _animation = animation;
+            _attack = attack;
+            _targetDetection = targetDetection;
+            _owner = owner;
             if (isActiveAndEnabled)
                 Subscribe();
         }
@@ -92,6 +122,77 @@ namespace Alpha.Enemy.Boss
             Unsubscribe();
             StopActiveAttack(true);
             _animation = null;
+            _attack = null;
+            _targetDetection = null;
+            _owner = null;
+        }
+
+        public int Attack5ProjectileCount => GetAttack5ProjectileCount(null);
+
+        public int GetAttack5ProjectileCount(string eventName)
+        {
+            CrabBossAttackEffectTrack track = FindTrack(Attack5Name);
+            if (track == null)
+                return 0;
+
+            int count = 0;
+            foreach (CrabBossAttackEffectTiming timing in track.Effects)
+                if (TryGetProjectile(timing, out _) &&
+                    (string.IsNullOrEmpty(eventName) ||
+                     string.Equals(timing.StartEventName, eventName,
+                         StringComparison.Ordinal)))
+                    count++;
+            return count;
+        }
+
+        public bool IsAttack5Ready
+        {
+            get
+            {
+                CrabBossAttackEffectTrack track = FindTrack(Attack5Name);
+                if (track == null || Attack5ProjectileCount == 0)
+                    return false;
+
+                foreach (CrabBossAttackEffectTiming timing in track.Effects)
+                {
+                    if (!TryGetProjectile(timing, out ProjectileEntity projectile))
+                        continue;
+                    if (!projectile.IsPrefabDamageValid || timing.SpawnPoint == null ||
+                        timing.SpawnAtTargetPosition || timing.FollowSpawnPoint ||
+                        !timing.TryGetSpawnPose(transform, null, out _))
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        public bool TryGetAttack5ProjectilePose(int index, out Pose pose,
+            string eventName = null)
+        {
+            pose = default;
+            CrabBossAttackEffectTrack track = FindTrack(Attack5Name);
+            if (track == null || index < 0)
+                return false;
+
+            foreach (CrabBossAttackEffectTiming timing in track.Effects)
+            {
+                if (!TryGetProjectile(timing, out _) ||
+                    (!string.IsNullOrEmpty(eventName) &&
+                     !string.Equals(timing.StartEventName, eventName,
+                         StringComparison.Ordinal)))
+                    continue;
+                if (index-- == 0)
+                    return timing.TryGetSpawnPose(transform, null, out pose);
+            }
+            return false;
+        }
+
+        private static bool TryGetProjectile(CrabBossAttackEffectTiming timing,
+            out ProjectileEntity projectile)
+        {
+            projectile = null;
+            return timing != null && timing.IsValid &&
+                timing.EffectPrefab.TryGetComponent(out projectile);
         }
 
         private void OnEnable() => Subscribe();
@@ -133,6 +234,9 @@ namespace Alpha.Enemy.Boss
                 return;
 
             _activeStateHash = stateHash;
+            _attackTarget = null;
+            if (stateHash == Attack5Name && _targetDetection != null)
+                _targetDetection.TryGetTarget(out _attackTarget);
             int count = _activeTrack.Effects.Count;
             _started = new bool[count];
         }
@@ -173,16 +277,22 @@ namespace Alpha.Enemy.Boss
                 return;
 
             Vector3? targetPosition = _animation.AttackTargetPosition;
+            bool repeatForAttack5 = _activeStateHash == Attack5Name;
             for (int index = 0; index < _started.Length; index++)
             {
                 CrabBossAttackEffectTiming timing = _activeTrack.Effects[index];
-                if (_started[index] || timing == null || !timing.IsValid ||
+                if ((!repeatForAttack5 && _started[index]) || timing == null ||
+                    !timing.IsValid ||
                     !string.Equals(timing.StartEventName, eventName, StringComparison.Ordinal) ||
                     (timing.SpawnAtTargetPosition && !targetPosition.HasValue))
                     continue;
 
-                _started[index] = true;
-                GameObject instance = PlayEffect(timing, targetPosition);
+                if (!repeatForAttack5)
+                    _started[index] = true;
+                GameObject instance = PlayEffect(timing, targetPosition,
+                    out bool selfManaged);
+                if (instance == null || selfManaged)
+                    continue;
                 if (timing.TailDuration <= 0f)
                     Destroy(instance);
                 else
@@ -192,16 +302,16 @@ namespace Alpha.Enemy.Boss
         }
 
         private GameObject PlayEffect(CrabBossAttackEffectTiming timing,
-            Vector3? targetPosition)
+            Vector3? targetPosition, out bool selfManaged)
         {
+            selfManaged = false;
+            if (!timing.TryGetSpawnPose(transform, targetPosition, out Pose pose))
+                return null;
+
             Transform spawnPoint = timing.SpawnPoint != null
                 ? timing.SpawnPoint : transform;
-            Vector3 position = timing.SpawnAtTargetPosition
-                ? targetPosition.Value : spawnPoint.position;
-            Quaternion rotation = timing.SpawnAtTargetPosition
-                ? Quaternion.identity : spawnPoint.rotation;
             GameObject instance = Instantiate(timing.EffectPrefab,
-                position, rotation);
+                pose.position, pose.rotation);
             instance.SetActive(false);
             if (timing.FollowSpawnPoint && !timing.SpawnAtTargetPosition)
                 instance.transform.SetParent(spawnPoint, true);
@@ -230,6 +340,23 @@ namespace Alpha.Enemy.Boss
                 }
             }
 
+            if (_activeStateHash == Attack5Name &&
+                instance.TryGetComponent(out ProjectileEntity projectile))
+            {
+                if (_attack == null || _owner == null ||
+                    _targetDetection == null ||
+                    _attackTarget == null ||
+                    !_attackTarget.CompareTag("Player") ||
+                    !_attack.IsAttack5AreaConfigured ||
+                    !projectile.InitializeFromPrefab(_owner, _attackTarget, pose.position,
+                        pose.rotation * Vector3.forward, _attack.Attack5Range))
+                {
+                    Destroy(instance);
+                    return null;
+                }
+                selfManaged = true;
+            }
+
             instance.SetActive(true);
             foreach (ParticleSystem particle in particles)
             {
@@ -250,6 +377,7 @@ namespace Alpha.Enemy.Boss
 
             _activeTrack = null;
             _activeStateHash = 0;
+            _attackTarget = null;
             _started = Array.Empty<bool>();
         }
 
