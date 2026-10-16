@@ -8,6 +8,7 @@ namespace Alpha.Combat
     [DisallowMultipleComponent]
     public sealed class DamageReceiverModule : MonoBehaviour, IDamageable
     {
+        [Tooltip("Impact 무적을 사용하지 않는 Entity의 기본 재피격 간격입니다. Player는 Impact 값을 사용합니다.")]
         [SerializeField, Min(0f)]
         private float _minTimeBetweenDamaged = 0.1f;
 
@@ -17,6 +18,8 @@ namespace Alpha.Combat
         private Transform _owner;
         private Func<float, bool> _tryDecreaseHealth;
         private float _lastDamagedTime = float.NegativeInfinity;
+        private float _impactInvulnerabilityEndTime = float.NegativeInfinity;
+        private bool _useImpactInvulnerability;
 
         public bool IsBound =>
             _owner != null &&
@@ -30,13 +33,15 @@ namespace Alpha.Combat
         // Core가 Entity 경계와 실제 체력 감소 기능을 연결한다.
         public void Bind(
             Transform p_owner,
-            Func<float, bool> p_tryDecreaseHealth)
+            Func<float, bool> p_tryDecreaseHealth,
+            bool p_useImpactInvulnerability = false)
         {
             _owner = p_owner != null
                 ? p_owner
                 : throw new ArgumentNullException(nameof(p_owner));
             _tryDecreaseHealth = p_tryDecreaseHealth ??
                 throw new ArgumentNullException(nameof(p_tryDecreaseHealth));
+            _useImpactInvulnerability = p_useImpactInvulnerability;
 
             ResetSession();
         }
@@ -45,6 +50,7 @@ namespace Alpha.Combat
         {
             _owner = null;
             _tryDecreaseHealth = null;
+            _useImpactInvulnerability = false;
             _invulnerabilityOwners.Clear();
             ResetSession();
         }
@@ -74,6 +80,11 @@ namespace Alpha.Combat
             }
 
             _lastDamagedTime = Time.time;
+            if (_useImpactInvulnerability)
+            {
+                _impactInvulnerabilityEndTime = _lastDamagedTime +
+                    p_damageInfo.Impact.DamageInvulnerabilityDuration;
+            }
             OnDamaged?.Invoke(p_damageInfo);
             return true;
         }
@@ -108,8 +119,9 @@ namespace Alpha.Combat
 
         private bool IsInvulnerable =>
             IsExternallyInvulnerable ||
-            Time.time <
-            _lastDamagedTime + _minTimeBetweenDamaged;
+            Time.time < (_useImpactInvulnerability
+                ? _impactInvulnerabilityEndTime
+                : _lastDamagedTime + _minTimeBetweenDamaged);
 
         private bool IsDuplicateAttack(IDamageSource p_damageSource)
         {
@@ -139,6 +151,7 @@ namespace Alpha.Combat
         private void ResetSession()
         {
             _lastDamagedTime = float.NegativeInfinity;
+            _impactInvulnerabilityEndTime = float.NegativeInfinity;
             _lastReceivedAttackIds.Clear();
         }
     }

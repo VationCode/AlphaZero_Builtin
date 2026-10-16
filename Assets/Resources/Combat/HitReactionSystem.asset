@@ -18,23 +18,28 @@ MonoBehaviour:
     _knockbackDistance: 0
     _knockbackDuration: 0
     _recoveryDuration: 1.5
+    _damageInvulnerabilityDuration: 0.1
   - _type: Light
     _hitType: 1
     _knockbackDistance: 0.1
     _knockbackDuration: 0.2
     _recoveryDuration: 0.25
+    _damageInvulnerabilityDuration: 0.5
   - _type: Heavy
     _hitType: 2
-    _knockbackDistance: 2
-    _knockbackDuration: 1.5
-    _recoveryDuration: 2
+    _knockbackDistance: 4
+    _knockbackDuration: 1
+    _recoveryDuration: 1.5
+    _damageInvulnerabilityDuration: 0.1
   - _type: Knockdown
     _hitType: 3
     _knockbackDistance: 0
     _knockbackDuration: 0
     _recoveryDuration: 2
+    _damageInvulnerabilityDuration: 0.1
   - _type: BossRush
     _hitType: 3
     _knockbackDistance: 15
     _knockbackDuration: 1
     _recoveryDuration: 2
+    _damageInvulnerabilityDuration: 0.1

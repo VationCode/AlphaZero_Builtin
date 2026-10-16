@@ -53,4 +53,4 @@ MonoBehaviour:
       _height: 1.8
       _targetLayers:
         serializedVersion: 2
-        m_Bits: 128
+        m_Bits: 192

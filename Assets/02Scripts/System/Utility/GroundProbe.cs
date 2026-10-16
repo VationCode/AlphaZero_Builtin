@@ -28,7 +28,8 @@ namespace Alpha.Utility
         public bool TryFindGround(
             Vector3 p_position,
             Transform p_ignoredRoot,
-            out Vector3 p_groundPoint)
+            out Vector3 p_groundPoint,
+            float p_minNormalY = -1f)
         {
             p_groundPoint = default;
 
@@ -61,6 +62,7 @@ namespace Alpha.Utility
                     IsIgnoredCollider(
                         hit.collider,
                         p_ignoredRoot) ||
+                    hit.normal.y < p_minNormalY ||
                     hit.distance >= nearestDistance)
                 {
                     continue;

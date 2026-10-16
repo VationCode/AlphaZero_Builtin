@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CutScene
   - MeleeDamage
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -13,13 +14,13 @@ TagManager:
   - 
   - Water
   - UI
-  - Player
-  - Enemy
+  - Character
+  - 
   - Interaction
-  - Area
-  - BossPlayerBlocker
-  - BossAttack
-  - BossWorldBody
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 

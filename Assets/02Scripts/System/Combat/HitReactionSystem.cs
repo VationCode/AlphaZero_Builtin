@@ -20,10 +20,13 @@ namespace Alpha.Combat
             [SerializeField, Min(0f)] private float _knockbackDuration;
             [Tooltip("피격 유지 시간입니다. Knockdown/Launch는 누워 있는 시간입니다.")]
             [SerializeField, Min(0f)] private float _recoveryDuration;
+            [Tooltip("이 Impact로 실제 피해를 받은 대상의 피해 무적 시간입니다.")]
+            [SerializeField, Min(0f)] private float _damageInvulnerabilityDuration = 0.1f;
 
             public string Type => _type;
             public AttackImpactInfo CreateInfo() => new(
-                _hitType, _knockbackDistance, _knockbackDuration, _recoveryDuration);
+                _hitType, _knockbackDistance, _knockbackDuration, _recoveryDuration,
+                _damageInvulnerabilityDuration);
         }
 
         [SerializeField] private ReactionSetting[] _types = Array.Empty<ReactionSetting>();

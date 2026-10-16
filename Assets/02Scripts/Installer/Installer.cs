@@ -1,12 +1,10 @@
 using Alpha.AlphaCamera;
-using Alpha.Boss;
 using Alpha.Mouse;
 using Alpha.Player;
 using Alpha.Player.Combat;
 using Alpha.Player.Equipment;
 using Alpha.Player.Inventory;
 using Alpha.UI;
-using Unity.Cinemachine;
 using UnityEngine;
 
 // Scene의 Entity·System·UI 의존성을 조립하고 초기화 순서를 관리한다.
@@ -20,9 +18,6 @@ public class Installer : MonoBehaviour
 
     [Header("Camera")]
     [SerializeField] private CameraCore _cameraCore;
-
-    [Header("Boss Cinematic")]
-    [SerializeField] private BossCinematicRoot _bossCinematicRoot;
 
     [Header("Data")]
     [SerializeField] private ResourceLoadSystem _resourceLoader;
@@ -39,19 +34,7 @@ public class Installer : MonoBehaviour
     // Player에 외부 참조를 전달하고 상태 표시 UI 이벤트를 연결한다.
     private void Awake()
     {
-        ResolveSceneReferences();
-
         _playerCore.Bind(_input, _cameraCore, _mouseSystem, _itemDatabase, _resourceLoader);
-
-        _bossCinematicRoot?.BindInput(_input);
-
-        if (_bossCinematicRoot?.Flow != null && _uiManager != null)
-        {
-            _bossCinematicRoot.Flow.OnGameplayHudVisibilityRequested -=
-                _uiManager.SetGameplayHudVisible;
-            _bossCinematicRoot.Flow.OnGameplayHudVisibilityRequested +=
-                _uiManager.SetGameplayHudVisible;
-        }
 
         _playerCore.LocomotionContext.OnStateChanged += _uiManager.StateUI.ChangeLocoState;
 
@@ -66,12 +49,6 @@ public class Installer : MonoBehaviour
             _playerCore.CombatModule);
 
         bool didBindCamera = _cameraCore.Bind(_input);
-        CinemachineBrain brain =
-            _cameraCore.RenderCamera?.GetComponent<CinemachineBrain>();
-
-        // 다른 Camera 기능의 초기화 결과와 무관하게 Cinematic Brain은 연결한다.
-        _bossCinematicRoot?.BindCamera(brain);
-
         // 카메라가 준비된 경우 마우스와 기본 시점을 함께 설정한다.
         if (didBindCamera)
         {
@@ -210,28 +187,9 @@ public class Installer : MonoBehaviour
         _uiManager?.RangeChargeGaugeView?.Unbind();
         DisconnectViewRequests();
 
-        if (_bossCinematicRoot?.Flow != null && _uiManager != null)
-        {
-            _bossCinematicRoot.Flow.OnGameplayHudVisibilityRequested -=
-                _uiManager.SetGameplayHudVisible;
-        }
-
         if (_playerCore?.InventoryFlow != null)
         {
             _playerCore.InventoryFlow.OnViewStateChanged -= HandleInventoryStateChanged;
         }
-    }
-
-    // 씬 직렬화 참조가 풀려도 Boss 하위 Cinematic Root를 복구한다.
-    private void ResolveSceneReferences()
-    {
-        _bossCinematicRoot ??=
-            FindFirstObjectByType<BossCinematicRoot>(
-                FindObjectsInactive.Include);
-    }
-
-    private void OnValidate()
-    {
-        ResolveSceneReferences();
     }
 }

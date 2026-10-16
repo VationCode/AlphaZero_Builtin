@@ -102,6 +102,10 @@ namespace Alpha.Combat
         [SerializeField, Min(0f)]
         private float _recoveryDuration = 0.25f;
 
+        [Tooltip("이 공격으로 피해를 받은 대상의 피해 무적 시간입니다.")]
+        [SerializeField, Min(0f)]
+        private float _damageInvulnerabilityDuration = 0.1f;
+
         public EHitType HitType => CreateInfo().HitType;
         public float KnockbackDistance =>
             CreateInfo().KnockbackDistance;
@@ -122,12 +126,14 @@ namespace Alpha.Combat
             EHitType p_hitType,
             float p_knockbackDistance,
             float p_knockbackDuration,
-            float p_recoveryDuration)
+            float p_recoveryDuration,
+            float p_damageInvulnerabilityDuration = 0.1f)
         {
             _hitType = p_hitType;
             _knockbackDistance = p_knockbackDistance;
             _knockbackDuration = p_knockbackDuration;
             _recoveryDuration = p_recoveryDuration;
+            _damageInvulnerabilityDuration = p_damageInvulnerabilityDuration;
             EnsureKnockbackSettings();
             Validate();
         }
@@ -162,7 +168,8 @@ namespace Alpha.Combat
                 _hitType,
                 knockbackSettings?.Distance ?? 0f,
                 knockbackSettings?.Duration ?? 0f,
-                _recoveryDuration);
+                _recoveryDuration,
+                _damageInvulnerabilityDuration);
         }
 
         public void Validate()
@@ -176,6 +183,7 @@ namespace Alpha.Combat
             _knockdownKnockback.Validate();
             _launchKnockback.Validate();
             _recoveryDuration = Mathf.Max(0f, _recoveryDuration);
+            _damageInvulnerabilityDuration = Mathf.Max(0f, _damageInvulnerabilityDuration);
         }
 
         private HitTypeKnockbackSettings GetSelectedKnockbackSettings()
@@ -227,6 +235,7 @@ namespace Alpha.Combat
         public float KnockbackDistance { get; }
         public float KnockbackDuration { get; }
         public float RecoveryDuration { get; }
+        public float DamageInvulnerabilityDuration { get; }
         public bool HasImpact => HitType != EHitType.None ||
             (KnockbackDistance > 0f && KnockbackDuration > 0f);
 
@@ -234,12 +243,14 @@ namespace Alpha.Combat
             EHitType p_hitType,
             float p_knockbackDistance,
             float p_knockbackDuration,
-            float p_recoveryDuration)
+            float p_recoveryDuration,
+            float p_damageInvulnerabilityDuration = 0f)
         {
             HitType = p_hitType;
             KnockbackDistance = Mathf.Max(0f, p_knockbackDistance);
             KnockbackDuration = Mathf.Max(0f, p_knockbackDuration);
             RecoveryDuration = Mathf.Max(0f, p_recoveryDuration);
+            DamageInvulnerabilityDuration = Mathf.Max(0f, p_damageInvulnerabilityDuration);
         }
     }
 

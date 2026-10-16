@@ -22,7 +22,8 @@ namespace Alpha.Player.Actions
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
-        [Header("Hit HitType Immunity")]
+        [Header("Hit Reaction Immunity")]
+        [Tooltip("동일 Hit Type의 피격 반응만 제한합니다. 피해 무적 시간은 Attack Impact에서 설정합니다.")]
         [SerializeField]
         private HitReactionImmunitySettings _hitReactionImmunitySettings =
             new();

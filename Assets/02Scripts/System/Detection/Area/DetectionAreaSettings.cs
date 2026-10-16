@@ -58,6 +58,20 @@ namespace Alpha.Detection
         public float Height => _height;
         public LayerMask TargetLayers => _targetLayers;
 
+        public DetectionAreaSettings() { }
+
+        // Entity 전용 설정을 에셋 변경 없이 실행용 탐지 데이터로 변환할 때 사용한다.
+        public DetectionAreaSettings(EDetectionAreaShape p_shape, Vector3 p_localOffset,
+            LayerMask p_targetLayers, float p_width, float p_length, float p_radius,
+            float p_angle, float p_height)
+        {
+            _shape = p_shape;
+            _localOffset = p_localOffset;
+            _targetLayers = p_targetLayers;
+            _width = p_width; _length = p_length; _radius = p_radius;
+            _angle = p_angle; _height = p_height;
+        }
+
         // 기준 위치에서 현재 영역이 수평으로 도달할 수 있는 최대 거리다.
         public float MaximumHorizontalReach =>
             CalculateMaximumHorizontalReach();

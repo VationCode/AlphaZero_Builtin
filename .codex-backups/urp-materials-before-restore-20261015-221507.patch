@@ -1,0 +1,5494 @@
+diff --git a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGAsset.mat b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGAsset.mat
+index 5282875a..537921f2 100644
+--- a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGAsset.mat	
++++ b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGAsset.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: M_9CGAsset
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: bf80d24d4a5ffe94ebf9ce5caea7760d, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -41,7 +50,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: bf80d24d4a5ffe94ebf9ce5caea7760d, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.7
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.7
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGMan.mat b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGMan.mat
+index 89d4bd3b..28098387 100644
+--- a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGMan.mat	
++++ b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_9CGMan.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: M_9CGMan
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 86ab680fd2cfc8a4e9e6432c00368923, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 9d763f2f26b89c74aa1b0d0cfccfa714, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -41,7 +50,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 86ab680fd2cfc8a4e9e6432c00368923, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 0
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Floor.mat b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Floor.mat
+index c0f721d5..1bf86f9f 100644
+--- a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Floor.mat	
++++ b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Floor.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: M_Floor
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 624928f440b55d449a17e3381391d1b5, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -41,7 +50,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 624928f440b55d449a17e3381391d1b5, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_FloorSub.mat b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_FloorSub.mat
+index 466c2a25..2779da49 100644
+--- a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_FloorSub.mat	
++++ b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_FloorSub.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: M_FloorSub
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 407f3bfebd0a8a34db09f33591b3c90f, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -41,7 +50,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 407f3bfebd0a8a34db09f33591b3c90f, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Text.mat b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Text.mat
+index cd993053..b4e50cf3 100644
+--- a/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Text.mat	
++++ b/Assets/00Arts/Anim/Scythe Animation Pack/Materials/Materials/M_Text.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: M_Text
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -41,7 +50,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: fecffa6eaae963943aa7e774c67e59cb, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Armor_Skin1.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Armor_Skin1.mat
+index 64c9418c..b7440ed5 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Armor_Skin1.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Armor_Skin1.mat	
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Mat_SciFi_Dragon_Armor_Skin1
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: d30d7c4150e7fb341b52eccc9507e94c, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 6139ae08acd90064b84893c581202269, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: d30d7c4150e7fb341b52eccc9507e94c, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,12 +70,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -75,13 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Body_Skin1.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Body_Skin1.mat
+index c9f180ba..ece07797 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Body_Skin1.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Body_Skin1.mat	
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Mat_SciFi_Dragon_Body_Skin1
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: b35c5b71935bce743b9f5c6cfdd32983, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 1d4d40e3adb90be4686879641958a7f5, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: b35c5b71935bce743b9f5c6cfdd32983, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,12 +70,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -75,13 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Hair_Skin1.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Hair_Skin1.mat
+index f51e4160..bab541c1 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Hair_Skin1.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/Sci-Fi Dragon/Materials/Skin1/Mat_SciFi_Dragon_Hair_Skin1.mat	
+@@ -8,26 +8,36 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Mat_SciFi_Dragon_Hair_Skin1
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+-  - _ALPHABLEND_ON
++  - _ALPHAPREMULTIPLY_ON
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  - _SURFACE_TYPE_TRANSPARENT
++  m_InvalidKeywords:
++  - _ALPHABLEND_ON
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: 3000
+   stringTagMap:
+     RenderType: Transparent
+-  disabledShaderPasses: []
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  - DepthOnly
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: d30d7c4150e7fb341b52eccc9507e94c, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 6139ae08acd90064b84893c581202269, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -49,7 +59,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: d30d7c4150e7fb341b52eccc9507e94c, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -64,12 +74,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 10
++    - _DstBlendAlpha: 10
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -77,13 +114,21 @@ Material:
+     - _Mode: 2
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+-    - _SrcBlend: 5
++    - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 1
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 0
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Armor_Skin2.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Armor_Skin2.mat
+index 5f755d29..aa7611d6 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Armor_Skin2.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Armor_Skin2.mat	
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: SciFi_Crab_Armor_Skin2
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: db1085173cae9514bb48d64c4edf4ea9, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 8a5e0a981eba168429f8477e7c40387a, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: db1085173cae9514bb48d64c4edf4ea9, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,12 +70,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -75,13 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Body_Skin2.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Body_Skin2.mat
+index 10dc4e98..f51aa6b0 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Body_Skin2.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Body_Skin2.mat	
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: SciFi_Crab_Body_Skin2
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 9e45c4df1edaa4a478692b0d487d2c89, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 52b9173bfc91bd94aaccd4df8b517833, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 9e45c4df1edaa4a478692b0d487d2c89, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,12 +70,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -75,13 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Claw_Skin2.mat b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Claw_Skin2.mat
+index ed1f151c..4e6a19b8 100644
+--- a/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Claw_Skin2.mat	
++++ b/Assets/00Arts/Character/Sci-Fi Boss pack/SciFi_Crab/Materials/Skin2/SciFi_Crab_Claw_Skin2.mat	
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: SciFi_Crab_Claw_Skin2
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 2
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 1a0d0b627813e9248be0284191afed99, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 23671e5b70a8e9c40a8f6a761b374cb7, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 1a0d0b627813e9248be0284191afed99, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,12 +70,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -75,13 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/alien/Materials/03 - Default.mat b/Assets/00Arts/Character/alien/Materials/03 - Default.mat
+index 558402fe..1f18e2e6 100644
+--- a/Assets/00Arts/Character/alien/Materials/03 - Default.mat	
++++ b/Assets/00Arts/Character/alien/Materials/03 - Default.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: 03 - Default
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0.20000002, g: 0.20000002, b: 0.20000002, a: 1}
++    - _BaseColor: {r: 0.19999999, g: 0.19999999, b: 0.19999999, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/alien/Materials/aliens body diffuse.mat b/Assets/00Arts/Character/alien/Materials/aliens body diffuse.mat
+index 8b1b912a..4200852a 100644
+--- a/Assets/00Arts/Character/alien/Materials/aliens body diffuse.mat	
++++ b/Assets/00Arts/Character/alien/Materials/aliens body diffuse.mat	
+@@ -8,30 +8,86 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: aliens body diffuse
+-  m_Shader: {fileID: 4, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ValidKeywords: []
++  m_Shader: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
++  - _GLOSSINESS_FROM_BASE_ALPHA
++  - _NORMALMAP
++  - _SPECULAR_COLOR
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: aa16f8813949976459f3dd40d51f7c71, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: e5f63c5b52062374d8e37799a4db1b67, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _EmissionMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: aa16f8813949976459f3dd40d51f7c71, type: 3}
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
++    - _BumpScale: 1
++    - _Cull: 2
++    - _Cutoff: 0.5
++    - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _GlossinessSource: 0
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
+     - _Shininess: 0.3435202
++    - _Smoothness: 0.3435202
++    - _SmoothnessSource: 1
++    - _SpecSource: 0
++    - _SpecularHighlights: 0
++    - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
++    - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
++    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.2205882, g: 0.2205882, b: 0.2205882, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/alien/Materials/aliens gun diffuse.mat b/Assets/00Arts/Character/alien/Materials/aliens gun diffuse.mat
+index f43777bb..3f0b881d 100644
+--- a/Assets/00Arts/Character/alien/Materials/aliens gun diffuse.mat	
++++ b/Assets/00Arts/Character/alien/Materials/aliens gun diffuse.mat	
+@@ -8,30 +8,86 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: aliens gun diffuse
+-  m_Shader: {fileID: 4, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ValidKeywords: []
++  m_Shader: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
++  - _GLOSSINESS_FROM_BASE_ALPHA
++  - _NORMALMAP
++  - _SPECULAR_COLOR
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: f90564c92d6db6f46a1ed4704cacaef7, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 5f1900e7ed873eb4b9755def93000561, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _EmissionMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: f90564c92d6db6f46a1ed4704cacaef7, type: 3}
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
++    - _BumpScale: 1
++    - _Cull: 2
++    - _Cutoff: 0.5
++    - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _GlossinessSource: 0
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
+     - _Shininess: 0.5826614
++    - _Smoothness: 0.5826614
++    - _SmoothnessSource: 1
++    - _SpecSource: 0
++    - _SpecularHighlights: 0
++    - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
++    - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
++    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.2647059, g: 0.2647059, b: 0.2647059, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/alien/Materials/оружие дифуз.mat b/Assets/00Arts/Character/alien/Materials/оружие дифуз.mat
+index 69401b3a..2cb151ae 100644
+--- a/Assets/00Arts/Character/alien/Materials/оружие дифуз.mat	
++++ b/Assets/00Arts/Character/alien/Materials/оружие дифуз.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: "\u043E\u0440\u0443\u0436\u0438\u0435 \u0434\u0438\u0444\u0443\u0437"
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0.588, g: 0.588, b: 0.588, a: 1}
++    - _BaseColor: {r: 0.58799994, g: 0.58799994, b: 0.58799994, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Character/alien/Mesh/Materials/оружие дифуз.mat b/Assets/00Arts/Character/alien/Mesh/Materials/оружие дифуз.mat
+index 69401b3a..2cb151ae 100644
+--- a/Assets/00Arts/Character/alien/Mesh/Materials/оружие дифуз.mat	
++++ b/Assets/00Arts/Character/alien/Mesh/Materials/оружие дифуз.mat	
+@@ -8,18 +8,27 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: "\u043E\u0440\u0443\u0436\u0438\u0435 \u0434\u0438\u0444\u0443\u0437"
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+   m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -56,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0
+     - _GlossyReflections: 1
+@@ -69,12 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0.588, g: 0.588, b: 0.588, a: 1}
++    - _BaseColor: {r: 0.58799994, g: 0.58799994, b: 0.58799994, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Effect/MasterStylizedProjectiles/Projectiles/Common/Materials/NullParticle.mat b/Assets/00Arts/Effect/MasterStylizedProjectiles/Projectiles/Common/Materials/NullParticle.mat
+index 7f096b71..601e0b12 100644
+--- a/Assets/00Arts/Effect/MasterStylizedProjectiles/Projectiles/Common/Materials/NullParticle.mat
++++ b/Assets/00Arts/Effect/MasterStylizedProjectiles/Projectiles/Common/Materials/NullParticle.mat
+@@ -21,14 +21,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: NullParticle
+-  m_Shader: {fileID: 211, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0406db5a14f94604a8c57ccfbc9f3b46, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+-  - _ALPHABLEND_ON
++  - _SURFACE_TYPE_TRANSPARENT
+   m_InvalidKeywords:
++  - _ALPHABLEND_ON
+   - _FLIPBOOKBLENDING_OFF
+-  - _SURFACE_TYPE_TRANSPARENT
+   m_LightmapFlags: 0
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -134,3 +134,4 @@ Material:
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun.mat b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun.mat
+index 1fc58ae3..add2ba01 100644
+--- a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun.mat
++++ b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun.mat
+@@ -8,24 +8,32 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: HandRailGun
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+   - _EMISSION
+-  - _METALLICGLOSSMAP
++  - _METALLICSPECGLOSSMAP
+   - _NORMALMAP
+-  m_InvalidKeywords: []
++  - _OCCLUSIONMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 1
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 510adea5bb5e2f84ea39ce907b22e8ee, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: cd3ff3b14c1e14a4aabf06d29e0e9b90, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 510adea5bb5e2f84ea39ce907b22e8ee, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,22 +70,61 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.46
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
++    - _GlossMapScale: 0
+     - _Glossiness: 0.5
++    - _GlossyReflections: 0
+     - _Metallic: 0
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
++    - _SmoothnessTextureChannel: 0
++    - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 1.033, b: 0.990255, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_glass.mat b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_glass.mat
+index e37e65f6..e436320a 100644
+--- a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_glass.mat
++++ b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_glass.mat
+@@ -8,12 +8,12 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: HandRailGun_glass
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+-  - _ALPHAPREMULTIPLY_ON
+   - _EMISSION
++  - _SURFACE_TYPE_TRANSPARENT
+   m_InvalidKeywords: []
+   m_LightmapFlags: 1
+   m_EnableInstancingVariants: 0
+@@ -21,11 +21,17 @@ Material:
+   m_CustomRenderQueue: 3000
+   stringTagMap:
+     RenderType: Transparent
+-  disabledShaderPasses: []
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  - DepthOnly
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -62,12 +68,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 1
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 10
++    - _DstBlendAlpha: 10
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 1
+     - _GlossyReflections: 1
+@@ -75,13 +108,21 @@ Material:
+     - _Mode: 3
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 1
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 1
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 0
+     m_Colors:
+-    - _Color: {r: 0.07352942, g: 0.07352942, b: 0.07352942, a: 0}
++    - _BaseColor: {r: 0.0735294, g: 0.0735294, b: 0.0735294, a: 0}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_screen.mat b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_screen.mat
+index 309ceb6d..44860938 100644
+--- a/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_screen.mat
++++ b/Assets/00Arts/Item/HandRailGun/Materials/HandRailGun_screen.mat
+@@ -8,12 +8,12 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: HandRailGun_screen
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+-  - _ALPHAPREMULTIPLY_ON
+   - _EMISSION
++  - _SURFACE_TYPE_TRANSPARENT
+   m_InvalidKeywords: []
+   m_LightmapFlags: 1
+   m_EnableInstancingVariants: 0
+@@ -21,11 +21,17 @@ Material:
+   m_CustomRenderQueue: 3000
+   stringTagMap:
+     RenderType: Transparent
+-  disabledShaderPasses: []
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  - DepthOnly
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: d94b9dc644f835d4a93a767dc47da352, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -47,7 +53,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: d94b9dc644f835d4a93a767dc47da352, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -62,22 +68,61 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 1
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 10
++    - _DstBlendAlpha: 10
++    - _EnvironmentReflections: 1
++    - _GlossMapScale: 0
+     - _Glossiness: 0.5
++    - _GlossyReflections: 0
+     - _Metallic: 0
+     - _Mode: 3
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
++    - _SmoothnessTextureChannel: 0
++    - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 1
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 0
+     m_Colors:
+-    - _Color: {r: 1, g: 0.9632353, b: 0.9632353, a: 1}
++    - _BaseColor: {r: 1, g: 0.9632353, b: 0.9632353, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1.224, g: 1.224, b: 1.224, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunA.mat b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunA.mat
+index 29bdbefe..2903a2c0 100644
+--- a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunA.mat	
++++ b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunA.mat	
+@@ -2,23 +2,38 @@
+ %TAG !u! tag:unity3d.com,2011:
+ --- !u!21 &2100000
+ Material:
+-  serializedVersion: 6
++  serializedVersion: 8
+   m_ObjectHideFlags: 0
+   m_CorrespondingSourceObject: {fileID: 0}
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Material_ScifiShotgunA
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ShaderKeywords: _METALLICGLOSSMAP _NORMALMAP _PARALLAXMAP
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
++  - _METALLICSPECGLOSSMAP
++  - _NORMALMAP
++  - _OCCLUSIONMAP
++  - _PARALLAXMAP
++  m_InvalidKeywords:
++  - _METALLICGLOSSMAP
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 0ea9f7473ee378146afeedc6c2174de2, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 6c0cb7051cb6e3c469424eda4a3b23e5, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -40,7 +55,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 0ea9f7473ee378146afeedc6c2174de2, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -55,11 +70,39 @@ Material:
+         m_Texture: {fileID: 2800000, guid: 8cf2b2e7af2f11840bd945cd450a98cb, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 0.95
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -67,11 +110,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.95
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
++  m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunB.mat b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunB.mat
+index 6c09fd25..d7d2edec 100644
+--- a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunB.mat	
++++ b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/Material_ScifiShotgunB.mat	
+@@ -2,23 +2,35 @@
+ %TAG !u! tag:unity3d.com,2011:
+ --- !u!21 &2100000
+ Material:
+-  serializedVersion: 6
++  serializedVersion: 8
+   m_ObjectHideFlags: 0
+   m_CorrespondingSourceObject: {fileID: 0}
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Material_ScifiShotgunB
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ShaderKeywords: _EMISSION _NORMALMAP
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
++  - _EMISSION
++  - _NORMALMAP
++  m_InvalidKeywords: []
+   m_LightmapFlags: 1
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 7f1778de90656ec40b6ae4452feb8cbd, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: ec144d80239414342a970870e365b544, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -40,7 +52,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 7f1778de90656ec40b6ae4452feb8cbd, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -55,11 +67,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -67,11 +107,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
++  m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p1g2.mat b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p1g2.mat
+index c3421c8b..9b4b532e 100644
+--- a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p1g2.mat	
++++ b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p1g2.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: p1g2
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+@@ -17,12 +17,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -59,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0
+     - _GlossyReflections: 1
+@@ -72,13 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0.8000001, g: 0.26600155, b: 0.2310182, a: 1}
++    - _BaseColor: {r: 0.8000001, g: 0.26600152, b: 0.23101816, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p2g2.mat b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p2g2.mat
+index 1a70d776..a951ff63 100644
+--- a/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p2g2.mat	
++++ b/Assets/00Arts/Item/MONQO Sci-fi Shotgun/Materials/p2g2.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: p2g2
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+@@ -17,12 +17,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -59,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0
+     - _GlossyReflections: 1
+@@ -72,13 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0.8000001, g: 0.73512644, b: 0.07988645, a: 1}
++    - _BaseColor: {r: 0.8000001, g: 0.73512644, b: 0.07988643, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Barrel.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Barrel.mat
+index 57e37b1b..75849067 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Barrel.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Barrel.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Barrel
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: c3bf2596a47921b46836ba1d34de76f5, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: adb6704526ae6e746892fa3522a69f1c, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: c3bf2596a47921b46836ba1d34de76f5, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsule.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsule.mat
+index d18d6ecc..97fb2b21 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsule.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsule.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: BarrelCapsule
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 8857500d7464607488a5f4094e880424, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: a5b94a14f67464e469a76ae9c323dd58, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 8857500d7464607488a5f4094e880424, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsuleHolder.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsuleHolder.mat
+index aaa6e344..c47990d2 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsuleHolder.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCapsuleHolder.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: BarrelCapsuleHolder
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 26200f122495eb24fa74cd94cbde69d6, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 26d5f540724f6894e99e6f93557afa14, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 26200f122495eb24fa74cd94cbde69d6, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverMid.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverMid.mat
+index 54e9be2c..7fa10027 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverMid.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverMid.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: BarrelCoverMid
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: e0cafe1d206edcb4bb2c74bba991d40b, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 6affbcaac59872d40b81b97bc6c9988f, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: e0cafe1d206edcb4bb2c74bba991d40b, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverUpper.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverUpper.mat
+index 056356a4..ef7b5421 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverUpper.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelCoverUpper.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: BarrelCoverUpper
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: a353043a2e66c3444bd68f70067ea856, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 637c47c599301e64394282d6e321472c, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: a353043a2e66c3444bd68f70067ea856, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelEnclosure.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelEnclosure.mat
+index 430fd33e..74d488cc 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelEnclosure.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/BarrelEnclosure.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: BarrelEnclosure
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 1fb9afb10867fa94d8c2dbb32bf5e8ae, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: f61f8ad66053fce4f9fbe8ae535fab46, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 1fb9afb10867fa94d8c2dbb32bf5e8ae, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Bolts.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Bolts.mat
+index e9d1d509..d032f9cc 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Bolts.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Bolts.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Bolts
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 3e2f31dbc8d278f4fad807d2368614da, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 4315bb571add69f4e97a188704e8a5ab, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 3e2f31dbc8d278f4fad807d2368614da, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/ButtStock.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/ButtStock.mat
+index f1e2b98b..ecbf4538 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/ButtStock.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/ButtStock.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: ButtStock
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: ec674d9f760da034d907e2f0e9db6353, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: a9e78887fff563b4c91a6c3f182cb92a, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: ec674d9f760da034d907e2f0e9db6353, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionBolts.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionBolts.mat
+index 461b1743..41ed25cf 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionBolts.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionBolts.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionBolts
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 001ffe643d448fa4f8e9000f8b9403e7, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: dd26e7d4b5b8aa24ca48ed6f8798ef90, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 001ffe643d448fa4f8e9000f8b9403e7, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCore.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCore.mat
+index 1c5dad83..09b34e40 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCore.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCore.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionCore
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 1350af3706ad7f1418d68869f7008ed8, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: b9cdb226ec5ee8c46896d771ae178d2f, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 1350af3706ad7f1418d68869f7008ed8, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreEmit.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreEmit.mat
+index 1ab15766..8d8404dd 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreEmit.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreEmit.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionCoreEmit
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: e23d7a846c9763a4a818de79cb5b253c, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: e23d7a846c9763a4a818de79cb5b253c, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreInsert.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreInsert.mat
+index 2d5ca90e..b3b8f78d 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreInsert.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreInsert.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionCoreInsert
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 13805010d3bcadf46a72fc83df89db20, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 0b58ae6ed00d26c4f9d5e4f4cb1e8029, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 13805010d3bcadf46a72fc83df89db20, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreSideView.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreSideView.mat
+index 2304cf64..f19b640e 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreSideView.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionCoreSideView.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionCoreSideView
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 9fd22c48355a18049afc4cbddb96b1f5, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: d5b59e52799bd364dbc8baa649bd6b16, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 9fd22c48355a18049afc4cbddb96b1f5, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionTubes.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionTubes.mat
+index 3ac3a02d..b03432d8 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionTubes.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/FusionTubes.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: FusionTubes
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 976ce82c44157fb4397db8a5255244f0, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: ff0ab4fb37d08c34798374b9a7fd6494, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 976ce82c44157fb4397db8a5255244f0, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Handle.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Handle.mat
+index ba63ea1d..b19e042b 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Handle.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Handle.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Handle
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: a1577f44edf511646846bb5bd94fe9db, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 0419b1e15c448ec458dbe8b0b55fe977, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: a1577f44edf511646846bb5bd94fe9db, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Material.001.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Material.001.mat
+index a7d75b6f..a2cf4cfd 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Material.001.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/Material.001.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Material.001
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+@@ -17,12 +17,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -59,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -72,13 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0, g: 0, b: 0, a: 1}
++    - _BaseColor: {r: 0, g: 0, b: 0, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverAccents.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverAccents.mat
+index 1970a766..8f5745c0 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverAccents.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverAccents.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: RecieverAccents
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: c6d3e64ce895892438b0df6cb57c7fe4, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: bb2bf09bac9dbb44a88127b76e2092dd, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: c6d3e64ce895892438b0df6cb57c7fe4, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverBottom.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverBottom.mat
+index 74be40ab..c3f65d3c 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverBottom.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RecieverBottom.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: RecieverBottom
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: ba1f42bc3858ea34cb2ba5eefa44ccb9, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 5a6a50a8810742345aaa9b4ae84fcc32, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: ba1f42bc3858ea34cb2ba5eefa44ccb9, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RifleRecieverMiddle.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RifleRecieverMiddle.mat
+index 616d5300..38f29e7f 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RifleRecieverMiddle.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/RifleRecieverMiddle.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: RifleRecieverMiddle
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: bf834807aea3c3348bc61ce897e968a0, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 988689c0c1623074180f3cdd2f8cf57b, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: bf834807aea3c3348bc61ce897e968a0, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockMain.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockMain.mat
+index 73525373..64174a32 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockMain.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockMain.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: StockMain
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 6c23ecbde0cbff44c877f4a7a28ca050, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 09960e137d430da4a9ee971179c0a5c3, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 6c23ecbde0cbff44c877f4a7a28ca050, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockTopAccent.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockTopAccent.mat
+index 615f4c5f..b8b5b1b7 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockTopAccent.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockTopAccent.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: StockTopAccent
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 1e427f8cb0a826c4cb9d9fc2d6e0d2f9, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockUpper.mat b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockUpper.mat
+index d7e35c04..0ebf68e4 100644
+--- a/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockUpper.mat	
++++ b/Assets/00Arts/Item/Sci_fi Rifle/source/Materials/StockUpper.mat	
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: StockUpper
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 2800000, guid: 1f02659362b9ecb4b8184971df7fcc9a, type: 3}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 2800000, guid: 6e734a22d43e7b54687192df679bb21d, type: 3}
+         m_Scale: {x: 1, y: 1}
+@@ -45,7 +51,7 @@ Material:
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MainTex:
+-        m_Texture: {fileID: 2800000, guid: 1f02659362b9ecb4b8184971df7fcc9a, type: 3}
++        m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
+     - _MetallicGlossMap:
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.4472136
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.4472136
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/Sword/Neon.mat b/Assets/00Arts/Item/Sword/Neon.mat
+index 3f6546d4..97ce6d7b 100644
+--- a/Assets/00Arts/Item/Sword/Neon.mat
++++ b/Assets/00Arts/Item/Sword/Neon.mat
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Neon
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,7 +18,8 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
++  stringTagMap:
++    RenderType: Opaque
+   disabledShaderPasses:
+   - MOTIONVECTORS
+   m_LockedProperties: 
+@@ -117,7 +118,7 @@ Material:
+     - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _BaseColor: {r: 0.35332614, g: 0.35332614, b: 0.35332614, a: 1}
++    - _BaseColor: {r: 0.35332608, g: 0.35332608, b: 0.35332608, a: 1}
+     - _Color: {r: 0.3533261, g: 0.3533261, b: 0.3533261, a: 1}
+     - _EmissionColor: {r: 4.0357, g: 0, b: 0, a: 20}
+     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+diff --git a/Assets/00Arts/Item/Sword/sword/source/blade.mat b/Assets/00Arts/Item/Sword/sword/source/blade.mat
+index ee92f941..10f9b28c 100644
+--- a/Assets/00Arts/Item/Sword/sword/source/blade.mat
++++ b/Assets/00Arts/Item/Sword/sword/source/blade.mat
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: blade
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords:
+@@ -18,12 +18,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -60,12 +66,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.9849153
+     - _GlossyReflections: 1
+@@ -73,13 +106,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.9849153
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+-    - _Color: {r: 0, g: 0.22228427, b: 0.99215686, a: 1}
++    - _BaseColor: {r: 0, g: 0.22228423, b: 0.9921568, a: 1}
++    - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0.15730688, g: 0.28446564, b: 0.3301887, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Bolt.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Bolt.mat
+index 0efee085..f966bc24 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Bolt.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Bolt.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Bolt
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: 405a1fed34edecd43ad943d7f798cc8e, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 0.8156863, g: 0.14509805, b: 0.7607843, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 1, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Grey.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Grey.mat
+index dde57c4d..4936cbec 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Grey.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Grey.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Grey
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: fed00f1677c2c9a4685f32be47f419cc, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 0.5380651, g: 0.5380651, b: 0.5380651, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 1, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Metal.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Metal.mat
+index 53a72110..9e21ecef 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Metal.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/Metal.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Metal
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: 4118c6b83da552141b2f91dd40ef0f80, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 0.08627451, g: 0.79607844, b: 0.28627452, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 0, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/White.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/White.mat
+index ef6f9ed8..0c0275c3 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/White.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/White.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: White
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: 4aacd572636017642a24a10bd2802b21, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 1, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/blue.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/blue.mat
+index 6bdd26a4..1d984622 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/blue.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/blue.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: blue
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: 4aacd572636017642a24a10bd2802b21, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 0.07058824, g: 0.6745098, b: 0.7647059, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 1, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/glass.mat b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/glass.mat
+index 6ec2a7e1..a377dd1d 100644
+--- a/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/glass.mat
++++ b/Assets/00Arts/Item/sci-fi-Sniper/source/Materials/glass.mat
+@@ -8,14 +8,14 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: glass
+-  m_Shader: {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 0e9d5a909a1f7e84882a534d0d11e49f, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+-  m_ValidKeywords:
++  m_ValidKeywords: []
++  m_InvalidKeywords:
+   - _METALLICGLOSSMAP
+   - _NORMALMAP
+   - _SPECGLOSSMAP
+-  m_InvalidKeywords: []
+   m_LightmapFlags: 6
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+@@ -66,6 +66,18 @@ Material:
+         m_Texture: {fileID: 2800000, guid: f355087472b2ad44f93c9db755aabb55, type: 3}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
+     - _BumpScale: 1
+@@ -79,13 +91,23 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueControl: -1
++    - _QueueOffset: 0
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _UVSec: 0
++    - _UseAoMap: 1
++    - _UseColorMap: 1
++    - _UseEmissiveMap: 0
++    - _UseMetallicMap: 1
++    - _UseNormalMap: 1
++    - _UseRoughnessMap: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _Color: {r: 0.7921569, g: 0.90588236, b: 0.15294118, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _UvOffset: {r: 0, g: 0, b: 0, a: 0}
++    - _UvTiling: {r: 1, g: 1, b: 0, a: 0}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1
+diff --git a/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap.mat b/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap.mat
+index 9528014e..7186e98d 100644
+--- a/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap.mat	
++++ b/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap.mat	
+@@ -21,17 +21,21 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: PrototypeMap
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ValidKeywords: []
+-  m_InvalidKeywords:
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
+   - _SPECULAR_SETUP
++  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 1
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
++  stringTagMap:
++    RenderType: Opaque
+   disabledShaderPasses:
+   - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
+@@ -117,14 +121,14 @@ Material:
+     - _Parallax: 0.02
+     - _QueueOffset: 0
+     - _ReceiveShadows: 1
+-    - _Smoothness: 0.2
++    - _Smoothness: 0.14142135
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _SrcBlendAlpha: 1
+     - _Surface: 0
+     - _UVSec: 0
+-    - _WorkflowMode: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+@@ -132,3 +136,4 @@ Material:
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+diff --git a/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap_Obstacles.mat b/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap_Obstacles.mat
+index 99385a48..1244e2a2 100644
+--- a/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap_Obstacles.mat	
++++ b/Assets/00Arts/Map/AngeloMaN87/Prototype Map/Materials/PrototypeMap_Obstacles.mat	
+@@ -8,17 +8,21 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: PrototypeMap_Obstacles
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+-  m_ValidKeywords: []
+-  m_InvalidKeywords:
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
++  m_Parent: {fileID: 0}
++  m_ModifiedSerializedProperties: 0
++  m_ValidKeywords:
+   - _SPECULAR_SETUP
++  m_InvalidKeywords: []
+   m_LightmapFlags: 4
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
++  stringTagMap:
++    RenderType: Opaque
+   disabledShaderPasses:
+   - MOTIONVECTORS
++  m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
+@@ -104,14 +108,14 @@ Material:
+     - _Parallax: 0.02
+     - _QueueOffset: 0
+     - _ReceiveShadows: 1
+-    - _Smoothness: 0.2
++    - _Smoothness: 0.14142135
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
+     - _SrcBlendAlpha: 1
+     - _Surface: 0
+     - _UVSec: 0
+-    - _WorkflowMode: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
+     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+@@ -119,6 +123,7 @@ Material:
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
++  m_AllowLocking: 1
+ --- !u!114 &3145515322246886175
+ MonoBehaviour:
+   m_ObjectHideFlags: 11
+diff --git a/Assets/06Materials/Enemy.mat b/Assets/06Materials/Enemy.mat
+index e0c8a861..9b8b2116 100644
+--- a/Assets/06Materials/Enemy.mat
++++ b/Assets/06Materials/Enemy.mat
+@@ -8,7 +8,7 @@ Material:
+   m_PrefabInstance: {fileID: 0}
+   m_PrefabAsset: {fileID: 0}
+   m_Name: Enemy
+-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
++  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+   m_Parent: {fileID: 0}
+   m_ModifiedSerializedProperties: 0
+   m_ValidKeywords: []
+@@ -17,12 +17,18 @@ Material:
+   m_EnableInstancingVariants: 0
+   m_DoubleSidedGI: 0
+   m_CustomRenderQueue: -1
+-  stringTagMap: {}
+-  disabledShaderPasses: []
++  stringTagMap:
++    RenderType: Opaque
++  disabledShaderPasses:
++  - MOTIONVECTORS
+   m_LockedProperties: 
+   m_SavedProperties:
+     serializedVersion: 3
+     m_TexEnvs:
++    - _BaseMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     - _BumpMap:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+@@ -59,12 +65,39 @@ Material:
+         m_Texture: {fileID: 0}
+         m_Scale: {x: 1, y: 1}
+         m_Offset: {x: 0, y: 0}
++    - _SpecGlossMap:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_Lightmaps:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_LightmapsInd:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
++    - unity_ShadowMasks:
++        m_Texture: {fileID: 0}
++        m_Scale: {x: 1, y: 1}
++        m_Offset: {x: 0, y: 0}
+     m_Ints: []
+     m_Floats:
++    - _AddPrecomputedVelocity: 0
++    - _AlphaClip: 0
++    - _AlphaToMask: 0
++    - _Blend: 0
++    - _BlendModePreserveSpecular: 1
+     - _BumpScale: 1
++    - _ClearCoatMask: 0
++    - _ClearCoatSmoothness: 0
++    - _Cull: 2
+     - _Cutoff: 0.5
++    - _DetailAlbedoMapScale: 1
+     - _DetailNormalMapScale: 1
+     - _DstBlend: 0
++    - _DstBlendAlpha: 0
++    - _EnvironmentReflections: 1
+     - _GlossMapScale: 1
+     - _Glossiness: 0.5
+     - _GlossyReflections: 1
+@@ -72,13 +105,21 @@ Material:
+     - _Mode: 0
+     - _OcclusionStrength: 1
+     - _Parallax: 0.02
++    - _QueueOffset: 0
++    - _ReceiveShadows: 1
++    - _Smoothness: 0.5
+     - _SmoothnessTextureChannel: 0
+     - _SpecularHighlights: 1
+     - _SrcBlend: 1
++    - _SrcBlendAlpha: 1
++    - _Surface: 0
+     - _UVSec: 0
++    - _WorkflowMode: 1
+     - _ZWrite: 1
+     m_Colors:
++    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+     - _Color: {r: 1, g: 1, b: 1, a: 1}
+     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
++    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+   m_BuildTextureStacks: []
+   m_AllowLocking: 1

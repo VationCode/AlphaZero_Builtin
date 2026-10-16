@@ -36,7 +36,7 @@ namespace Alpha.Combat.Editor
             row.y += EditorGUIUtility.singleLineHeight + 2f;
             using (new EditorGUI.DisabledScope(system == null))
             {
-                if (GUI.Button(EditorGUI.IndentedRect(row), "공용 넉백·넉다운 설정 열기"))
+                if (GUI.Button(EditorGUI.IndentedRect(row), "공용 충격·피해 무적 설정 열기"))
                 {
                     Selection.activeObject = system;
                     EditorGUIUtility.PingObject(system);

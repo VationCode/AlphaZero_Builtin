@@ -399,7 +399,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""MouseScroll"",
                     ""type"": ""Value"",
                     ""id"": ""4d7f9224-2b16-4198-b2f4-528958a9720b"",
-                    ""expectedControlType"": ""Vector2"",
+                    ""expectedControlType"": ""Axis"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true

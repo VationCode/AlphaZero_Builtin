@@ -48,7 +48,7 @@ namespace Alpha.Player
         #endregion
 
         #region ========== Module
-        public LocomotionModule LocomotionModule { get; private set; }
+        public Locomotion.LocomotionModule LocomotionModule { get; private set; }
         public InventoryModule InventoryModule { get; private set; }
         public EquipmentModule EquipmentModule { get; private set; }
         public CombatModule CombatModule { get; private set; }
@@ -106,7 +106,7 @@ namespace Alpha.Player
             ActionFlow = GetComponentInChildren<PlayerActionFlow>(true);
 
             // Module
-            LocomotionModule = GetComponentInChildren<LocomotionModule>(true);
+            LocomotionModule = GetComponentInChildren<Locomotion.LocomotionModule>(true);
             InventoryModule = GetComponentInChildren<InventoryModule>(true);
             EquipmentModule = GetComponentInChildren<EquipmentModule>(true);
             CombatModule = GetComponentInChildren<CombatModule>(true);
@@ -206,7 +206,8 @@ namespace Alpha.Player
             {
                 DamageReceiver.Bind(
                     PlayerTr,
-                    HealthModule.TryDecreaseHealth);
+                    HealthModule.TryDecreaseHealth,
+                    p_useImpactInvulnerability: true);
                 DamageReceiver.OnDamaged -= HandleDamaged;
                 DamageReceiver.OnDamaged += HandleDamaged;
             }
