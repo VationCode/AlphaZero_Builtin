@@ -322,11 +322,17 @@ namespace Alpha.Player.Locomotion
             if (direction.sqrMagnitude <= DirectionEpsilon)
                 return false;
 
-            _knockbackVelocity = direction.normalized * (p_knockbackInfo.Distance / p_knockbackInfo.Duration);
+            Vector3 knockbackDirection = direction.normalized;
+            _knockbackVelocity = knockbackDirection *
+                (p_knockbackInfo.Distance / p_knockbackInfo.Duration);
 
             _knockbackRemainingTime = p_knockbackInfo.Duration;
             
             _isKnockbackActive = true;
+
+            // 피격 이동 방향의 반대를 바라보며 뒤로 날아간다.
+            if (_rotationModule != null)
+                FaceDirection(-knockbackDirection, null, ELocomotionMode.Ground, true);
 
             return true;
         }

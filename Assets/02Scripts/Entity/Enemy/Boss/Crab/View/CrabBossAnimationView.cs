@@ -11,6 +11,8 @@ namespace Alpha.Enemy.Boss
         private static readonly int Attack2Name = Animator.StringToHash("Attack2");
         private static readonly int Attack3State = Animator.StringToHash("Base Layer.Attack3");
         private static readonly int Attack3Name = Animator.StringToHash("Attack3");
+        private static readonly int Attack4State = Animator.StringToHash("Base Layer.Attack4");
+        private static readonly int Attack4Name = Animator.StringToHash("Attack4");
         private static readonly int ChaseState = Animator.StringToHash("Base Layer.Chase");
         private static readonly int IdleState = Animator.StringToHash("Base Layer.Idle");
         private static readonly int DeathState = Animator.StringToHash("Base Layer.Death");
@@ -38,6 +40,7 @@ namespace Alpha.Enemy.Boss
         public event Action Attack1Hit;
         public event Action Attack2Hit;
         public event Action Attack3Hit;
+        public event Action Attack4Hit;
         public event Action IndicatorStarted;
         public event Action<string> EffectStarted;
         public event Action<int> AttackAnimationStarted;
@@ -45,6 +48,7 @@ namespace Alpha.Enemy.Boss
         public event Action Attack1Finished;
         public event Action Attack2Finished;
         public event Action Attack3Finished;
+        public event Action Attack4Finished;
         public Vector3? AttackTargetPosition { get; private set; }
 
         private void Awake()
@@ -79,6 +83,8 @@ namespace Alpha.Enemy.Boss
         public bool PlayAttack2() => PlayAttack(Attack2State, Attack2Name, null);
 
         public bool PlayAttack3() => PlayAttack(Attack3State, Attack3Name, null);
+
+        public bool PlayAttack4() => PlayAttack(Attack4State, Attack4Name, null);
 
         // IndicatorStart에서 확정된 착지·공격 위치를 이펙트에 전달한다.
         public void SetAttackTargetPosition(Vector3 targetPosition)
@@ -193,6 +199,8 @@ namespace Alpha.Enemy.Boss
                 Attack2Hit?.Invoke();
             else if (_activeAttackNameHash == Attack3Name)
                 Attack3Hit?.Invoke();
+            else if (_activeAttackNameHash == Attack4Name)
+                Attack4Hit?.Invoke();
         }
 
         // 클립 종료 후에도 남은 Hit Duration은 마지막 상태 속도로 진행한다.
@@ -337,6 +345,8 @@ namespace Alpha.Enemy.Boss
                 Attack2Finished?.Invoke();
             else if (finishedNameHash == Attack3Name)
                 Attack3Finished?.Invoke();
+            else if (finishedNameHash == Attack4Name)
+                Attack4Finished?.Invoke();
         }
 
         private void EndAttackAnimation()

@@ -11,6 +11,7 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private BossStateFlow _stateFlow;
         [SerializeField] private BossLocomotionModule _locomotion;
         [SerializeField] private TargetDetectionModule _targetDetection;
+        [SerializeField] private CrabBossAttackSelectionModule _attackSelection;
         [SerializeField] private CrabBossAttackModule _attack;
         [SerializeField] private CrabBossAnimationView _animation;
         [SerializeField] private CrabBossAttackAreaView _attackAreaView;
@@ -31,6 +32,7 @@ namespace Alpha.Enemy.Boss
             _stateFlow ??= GetComponentInChildren<BossStateFlow>(true);
             _locomotion ??= GetComponentInChildren<BossLocomotionModule>(true);
             _targetDetection ??= GetComponentInChildren<TargetDetectionModule>(true);
+            _attackSelection ??= GetComponentInChildren<CrabBossAttackSelectionModule>(true);
             _attack ??= GetComponentInChildren<CrabBossAttackModule>(true);
             _animation ??= GetComponentInChildren<CrabBossAnimationView>(true);
             _attackAreaView ??= GetComponentInChildren<CrabBossAttackAreaView>(true);
@@ -42,9 +44,10 @@ namespace Alpha.Enemy.Boss
 
             Rigidbody body = GetComponent<Rigidbody>();
             if (body == null || _stateFlow == null || _locomotion == null ||
-                _targetDetection == null || _attack == null || _animation == null ||
+                _targetDetection == null || _attackSelection == null ||
+                _attack == null || _animation == null ||
                 _attackAreaView == null || _attackEffectView == null ||
-                _collisionView == null ||
+                _collisionView == null || !_collisionView.HasBodyColliders ||
                 _animator == null || _living == null ||
                 _damageReceiver == null)
             {
@@ -55,6 +58,7 @@ namespace Alpha.Enemy.Boss
 
             _locomotion.Bind(body);
             _targetDetection.Bind(gameObject);
+            _attackSelection.Bind(transform, _locomotion);
             _attack.Bind(transform, _attack1Origin != null ? _attack1Origin : transform);
             _animation.Bind(_animator);
             _attackEffectView.Bind(_animation);
@@ -64,7 +68,8 @@ namespace Alpha.Enemy.Boss
             _damageReceiver.Bind(transform, _living.TryDecreaseHealth);
             _living.OnDeath += HandleDeath;
 
-            _stateFlow.Bind(transform, _targetDetection, _locomotion, _attack, _animation,
+            _stateFlow.Bind(transform, _targetDetection, _locomotion,
+                _attackSelection, _attack, _animation,
                 _attackAreaView, _collisionView);
             _bound = true;
         }

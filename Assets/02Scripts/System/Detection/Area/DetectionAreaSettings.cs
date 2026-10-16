@@ -101,6 +101,14 @@ namespace Alpha.Detection
             _height = Mathf.Max(0.01f, _height);
         }
 
+        // 가변 거리 공격은 Inspector 설정을 유지하고 실행용 길이만 바꾼다.
+        public DetectionAreaSettings WithLength(float length)
+        {
+            DetectionAreaSettings copy = (DetectionAreaSettings)MemberwiseClone();
+            copy._length = Mathf.Max(0.01f, length);
+            return copy;
+        }
+
         // 파생 설정의 실행용 복사본만 확대할 때 사용한다. 원본 Inspector 값은 유지한다.
         protected void ScaleHorizontal(float p_scale)
         {

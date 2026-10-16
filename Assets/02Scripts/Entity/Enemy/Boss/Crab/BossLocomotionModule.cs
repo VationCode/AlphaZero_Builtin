@@ -29,6 +29,9 @@ namespace Alpha.Enemy.Boss
         private Vector3 _jumpStart;
         private Vector3 _jumpDestination;
         private bool _jumpActive;
+        private Vector3 _dashStart;
+        private Vector3 _dashDestination;
+        private bool _dashActive;
 
         public Vector3 Position => _body != null ? _body.position : transform.position;
         public Vector3 Forward => _body != null ? _body.rotation * Vector3.forward : transform.forward;
@@ -36,7 +39,48 @@ namespace Alpha.Enemy.Boss
         public void Bind(Rigidbody body)
         {
             _jumpActive = false;
+            _dashActive = false;
             _body = body;
+        }
+
+        // Flow가 확정한 고정 거리의 도착점까지 수평으로 돌진한다.
+        public void BeginDashTo(Vector3 destination)
+        {
+            if (_body == null)
+                return;
+
+            Stop();
+            _dashStart = _body.position;
+            _dashDestination = new Vector3(destination.x, _dashStart.y, destination.z);
+            _dashActive = true;
+        }
+
+        public void AdvanceDash(float progress)
+        {
+            if (!_dashActive || _body == null)
+                return;
+
+            Vector3 position = Vector3.Lerp(_dashStart, _dashDestination,
+                Mathf.Clamp01(progress));
+            position.y = _body.position.y;
+            _body.MovePosition(position);
+        }
+
+        public void CompleteDash()
+        {
+            if (!_dashActive || _body == null)
+                return;
+
+            _body.position = new Vector3(_dashDestination.x,
+                _body.position.y, _dashDestination.z);
+            _dashActive = false;
+            Stop();
+        }
+
+        public void CancelDash()
+        {
+            _dashActive = false;
+            Stop();
         }
 
         // 클립이 높이 변화를 그리는 동안 Rigidbody의 수평 위치만 착지점으로 옮긴다.
