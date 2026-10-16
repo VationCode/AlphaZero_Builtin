@@ -13,7 +13,7 @@ namespace Alpha.GroundWave
         [SerializeField, Min(0.1f)] private float _eruptionSpacing = 4f;
         [SerializeField, Min(0.01f)] private float _damageRadius = 2f;
         [SerializeField] private LayerMask _damageMask = 64;
-        [SerializeField] private LayerMask _groundMask = 1;
+        [SerializeField] private LayerMask _groundMask = 1 << 7;
         [SerializeField, Min(0f)] private float _probeHeight = 5f;
         [SerializeField, Min(0.01f)] private float _probeDepth = 20f;
 

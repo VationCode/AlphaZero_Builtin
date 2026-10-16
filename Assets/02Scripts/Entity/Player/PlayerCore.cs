@@ -78,6 +78,13 @@ namespace Alpha.Player
             ActionFlow?.AllowsCombat == true;
         public bool CanUseLocomotion =>
             ActionFlow?.AllowsLocomotion == true;
+        public bool IsKnockbackActive =>
+            LocomotionModule?.IsKnockbackActive == true;
+
+        // 외부 Entity가 요청한 물리 겹침 해소를 Player의 이동 기능에 전달한다.
+        public bool TryMoveForContactClearance(Vector3 horizontalDisplacement) =>
+            LocomotionModule != null &&
+            LocomotionModule.TryMoveForContactClearance(horizontalDisplacement);
 
         // Installer가 소유한 입력·카메라·마우스·데이터 참조를 전달받는다.
         public void Bind(

@@ -137,6 +137,23 @@ namespace Alpha.Player.Locomotion
             ApplyMovement(velocity, p_deltaPosition);
         }
 
+        // 피해·피격 반응과 무관한 물리 겹침 해소 이동이다.
+        public bool TryMoveForContactClearance(Vector3 p_horizontalDisplacement)
+        {
+            if (_controller == null || !_controller.enabled || _context == null)
+                return false;
+
+            p_horizontalDisplacement.y = 0f;
+            if (p_horizontalDisplacement.sqrMagnitude <= 0.0001f)
+                return false;
+
+            Vector3 before = _controller.transform.position;
+            _controller.Move(p_horizontalDisplacement);
+            Vector3 actual = _controller.transform.position - before;
+            actual.y = 0f;
+            return actual.sqrMagnitude > 0.0001f;
+        }
+
         private void ApplyMovement(Vector3 p_velocity, Vector3 p_deltaPosition)
         {
             Velocity = p_velocity;

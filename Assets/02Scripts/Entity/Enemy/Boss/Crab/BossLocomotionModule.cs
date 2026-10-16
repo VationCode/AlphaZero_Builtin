@@ -26,12 +26,58 @@ namespace Alpha.Enemy.Boss
         [Tooltip("목표 방향에 도달했다고 판단할 각도")]
         private float _facingTolerance = 5f;
 
+        private Vector3 _jumpStart;
+        private Vector3 _jumpDestination;
+        private bool _jumpActive;
+
         public Vector3 Position => _body != null ? _body.position : transform.position;
         public Vector3 Forward => _body != null ? _body.rotation * Vector3.forward : transform.forward;
 
         public void Bind(Rigidbody body)
         {
+            _jumpActive = false;
             _body = body;
+        }
+
+        // 클립이 높이 변화를 그리는 동안 Rigidbody의 수평 위치만 착지점으로 옮긴다.
+        public void BeginJumpTo(Vector3 targetPosition)
+        {
+            if (_body == null)
+                return;
+
+            Stop();
+            _jumpStart = _body.position;
+            _jumpDestination = new Vector3(targetPosition.x, _jumpStart.y, targetPosition.z);
+            _jumpActive = true;
+        }
+
+        public void AdvanceJump(float progress)
+        {
+            if (!_jumpActive || _body == null)
+                return;
+
+            Vector3 position = Vector3.Lerp(_jumpStart, _jumpDestination,
+                Mathf.Clamp01(progress));
+            position.y = _body.position.y;
+            _body.MovePosition(position);
+        }
+
+        public void CompleteJump()
+        {
+            if (!_jumpActive || _body == null)
+                return;
+
+            // HitStart 전에 착지점으로 맞춰 이펙트와 피해 범위가 몸 위치와 일치한다.
+            _body.position = new Vector3(_jumpDestination.x,
+                _body.position.y, _jumpDestination.z);
+            _jumpActive = false;
+            Stop();
+        }
+
+        public void CancelJump()
+        {
+            _jumpActive = false;
+            Stop();
         }
 
 

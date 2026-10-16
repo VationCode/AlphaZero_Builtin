@@ -1,4 +1,5 @@
 using Alpha.Detection;
+using Alpha.Player;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -15,7 +16,10 @@ namespace Alpha.Enemy.Boss
         private const int Attack2AreaId = 2;
         private const int Attack1FillAreaId = 3;
         private const int Attack2FillAreaId = 4;
+        private const int Attack3AreaId = 5;
+        private const int Attack3FillAreaId = 6;
         private const float StartDistanceTolerance = 0.05f;
+        private const float FallbackContactClearanceSpeed = 5f;
 
         private enum State
         {
@@ -31,7 +35,8 @@ namespace Alpha.Enemy.Boss
         {
             None,
             Attack1,
-            Attack2
+            Attack2,
+            Attack3
         }
 
         private enum HitMode
@@ -89,12 +94,25 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack2HitDurationSeconds = 0.2f;
         [SerializeField] private Color _attack2WarningColor = new(0.35f, 0.45f, 1f, 0.5f);
 
+        [Header("Attack3 Selection")]
+        [SerializeField, Min(0f)] private float _attack3MinSelectionDistance = 4f;
+        [SerializeField, Min(0.01f)] private float _attack3MaxSelectionDistance = 20f;
+        [SerializeField, Range(0f, 180f)] private float _attack3MaxSelectionAngle = 180f;
+        [SerializeField, Min(0f)] private float _attack3SelectionWeight = 1f;
+        [SerializeField, Min(0f)] private float _attack3Cooldown = 2f;
+        [SerializeField, Min(1)] private int _attack3MinRepeatCount = 1;
+        [SerializeField, Min(1)] private int _attack3MaxRepeatCount = 1;
+        [SerializeField] private HitMode _attack3HitMode = HitMode.Once;
+        [SerializeField, Min(0f)] private float _attack3HitDurationSeconds = 0.2f;
+        [SerializeField] private Color _attack3WarningColor = new(1f, 0.35f, 0.05f, 0.6f);
+
         private TargetDetectionModule _targetDetection;
         private Transform _boss;
         private BossLocomotionModule _locomotion;
         private CrabBossAttackModule _attack;
         private CrabBossAnimationView _animation;
         private CrabBossAttackAreaView _attackAreaView;
+        private CrabBossCollisionView _collisionView;
 
         private Transform _target;
         private Transform _distanceTarget;
@@ -104,10 +122,14 @@ namespace Alpha.Enemy.Boss
         private float _timeRemaining;
         private float _nextAttack1SelectionTime;
         private float _nextAttack2SelectionTime;
+        private float _nextAttack3SelectionTime;
         private bool _isFacingLockedPosition;
         private bool _attack1HitApplied;
         private bool _attack2HitApplied;
+        private bool _attack3HitApplied;
+        private bool _attack3ContactClearanceActive;
         private bool _attack2TargetLocked;
+        private bool _attack3TargetLocked;
         private bool _indicatorStarted;
         private bool _hitWindowActive;
         private bool _attackAnimationFinished;
@@ -118,7 +140,8 @@ namespace Alpha.Enemy.Boss
 
         public void Bind(Transform boss, TargetDetectionModule targetDetection,
             BossLocomotionModule locomotion, CrabBossAttackModule attack,
-            CrabBossAnimationView animation, CrabBossAttackAreaView attackAreaView)
+            CrabBossAnimationView animation, CrabBossAttackAreaView attackAreaView,
+            CrabBossCollisionView collisionView)
         {
             Unbind();
 
@@ -128,8 +151,10 @@ namespace Alpha.Enemy.Boss
             _attack = attack;
             _animation = animation;
             _attackAreaView = attackAreaView;
+            _collisionView = collisionView;
             _bound = _boss != null && _targetDetection != null && _locomotion != null &&
-                     _attack != null && _animation != null && _attackAreaView != null;
+                     _attack != null && _animation != null && _attackAreaView != null &&
+                     _collisionView != null;
 
             if (!_bound)
                 return;
@@ -138,20 +163,26 @@ namespace Alpha.Enemy.Boss
             _animation.Attack1Finished += HandleAttack1Finished;
             _animation.Attack2Hit += HandleAttack2Hit;
             _animation.Attack2Finished += HandleAttack2Finished;
+            _animation.Attack3Hit += HandleAttack3Hit;
+            _animation.Attack3Finished += HandleAttack3Finished;
             _animation.IndicatorStarted += HandleIndicatorStarted;
             _state = State.Waiting;
             _nextAttack1SelectionTime = 0f;
             _nextAttack2SelectionTime = 0f;
+            _nextAttack3SelectionTime = 0f;
             _selectedAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
+            _attack3TargetLocked = false;
             _attackAnimationFinished = false;
+            _attack3ContactClearanceActive = false;
         }
 
         public void Unbind()
         {
             CloseHitWindow();
             _attackAreaView?.HideAll();
+            _collisionView?.SetContactBlocking(true);
 
             if (_animation != null)
             {
@@ -159,17 +190,20 @@ namespace Alpha.Enemy.Boss
                 _animation.Attack1Finished -= HandleAttack1Finished;
                 _animation.Attack2Hit -= HandleAttack2Hit;
                 _animation.Attack2Finished -= HandleAttack2Finished;
+                _animation.Attack3Hit -= HandleAttack3Hit;
+                _animation.Attack3Finished -= HandleAttack3Finished;
                 _animation.IndicatorStarted -= HandleIndicatorStarted;
                 _animation.CancelAttack();
             }
 
-            _locomotion?.Stop();
+            _locomotion?.CancelJump();
             _boss = null;
             _targetDetection = null;
             _locomotion = null;
             _attack = null;
             _animation = null;
             _attackAreaView = null;
+            _collisionView = null;
             _target = null;
             _distanceTarget = null;
             _distanceTargetCollider = null;
@@ -178,7 +212,9 @@ namespace Alpha.Enemy.Boss
             _selectedAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
+            _attack3TargetLocked = false;
             _attackAnimationFinished = false;
+            _attack3ContactClearanceActive = false;
         }
 
         public void HandleDeath()
@@ -188,11 +224,13 @@ namespace Alpha.Enemy.Boss
 
             _state = State.Dead;
             CloseHitWindow();
+            _collisionView.SetContactBlocking(true);
             _target = null;
             _selectedAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
-            _locomotion.Stop();
+            _attack3TargetLocked = false;
+            _locomotion.CancelJump();
             _attackAreaView.HideAll();
             _animation.SetMoving(false);
             _animation.PlayDeath();
@@ -260,6 +298,15 @@ namespace Alpha.Enemy.Boss
 
         private void FixedUpdate()
         {
+            if (_bound && (_attack3ContactClearanceActive ||
+                           _collisionView.IsContactRestorePending))
+            {
+                if (!ClearPlayerContact())
+                    _attack3ContactClearanceActive = false;
+                if (_collisionView.IsContactRestorePending)
+                    _collisionView.TryRestoreContactBlocking();
+            }
+
             if (!_bound || _state == State.Dead ||
                 (_target == null && _state != State.Attacking && _state != State.Recovering))
                 return;
@@ -298,10 +345,17 @@ namespace Alpha.Enemy.Boss
 
                 case State.Attacking:
                 {
-                    _locomotion.Stop();
-                    // Attack2는 IndicatorStart 이전까지 움직이는 타깃을 향한다.
-                    Vector3 aim = _selectedAttack == AttackKind.Attack2 &&
-                                  !_attack2TargetLocked && _target != null
+                    if (_selectedAttack == AttackKind.Attack3 && _attack3TargetLocked &&
+                        !_attack3HitApplied &&
+                        _animation.TryGetIndicatorProgress(out float jumpProgress))
+                        _locomotion.AdvanceJump(jumpProgress);
+                    else
+                        _locomotion.Stop();
+
+                    // 위치를 고정하기 전에는 움직이는 타깃을 향한다.
+                    bool targeting = (_selectedAttack == AttackKind.Attack2 && !_attack2TargetLocked) ||
+                                     (_selectedAttack == AttackKind.Attack3 && !_attack3TargetLocked);
+                    Vector3 aim = targeting && _target != null
                         ? _target.position : _aimPosition;
                     _locomotion.RotateTo(aim);
                     if (_hitWindowActive)
@@ -332,20 +386,27 @@ namespace Alpha.Enemy.Boss
             {
                 _attackAreaView.Hide(Attack1FillAreaId);
                 _attackAreaView.Hide(Attack2FillAreaId);
+                _attackAreaView.Hide(Attack3FillAreaId);
                 _attackAreaView.Hide(Attack1AreaId);
                 _attackAreaView.Hide(Attack2AreaId);
+                _attackAreaView.Hide(Attack3AreaId);
                 return;
             }
 
-            if (_selectedAttack == AttackKind.Attack1)
+            if (_selectedAttack != AttackKind.Attack1)
+            {
+                _attackAreaView.Hide(Attack1AreaId);
+                _attackAreaView.Hide(Attack1FillAreaId);
+            }
+            if (_selectedAttack != AttackKind.Attack2)
             {
                 _attackAreaView.Hide(Attack2AreaId);
                 _attackAreaView.Hide(Attack2FillAreaId);
             }
-            else
+            if (_selectedAttack != AttackKind.Attack3)
             {
-                _attackAreaView.Hide(Attack1AreaId);
-                _attackAreaView.Hide(Attack1FillAreaId);
+                _attackAreaView.Hide(Attack3AreaId);
+                _attackAreaView.Hide(Attack3FillAreaId);
             }
 
             // 이벤트 사이의 애니메이션 진행도에 따라 진한 영역만 확장한다.
@@ -362,6 +423,7 @@ namespace Alpha.Enemy.Boss
         {
             AttackKind.Attack1 => ShowAttack1Warning(progress),
             AttackKind.Attack2 => ShowAttack2Warning(progress),
+            AttackKind.Attack3 => ShowAttack3Warning(progress),
             _ => false
         };
 
@@ -382,9 +444,21 @@ namespace Alpha.Enemy.Boss
                 baseColor, _attack2WarningColor, progress);
         }
 
+        private bool ShowAttack3Warning(float progress)
+        {
+            if (!_attack3TargetLocked ||
+                !_attack.TryGetAttack3Area(_aimPosition, out var request))
+                return false;
+
+            Color baseColor = _attack3WarningColor;
+            baseColor.a *= 0.3f;
+            return ShowWarningArea(Attack3AreaId, Attack3FillAreaId, request,
+                baseColor, _attack3WarningColor, progress, centeredBox: true);
+        }
+
         private bool ShowWarningArea(int baseId, int fillId,
             in DetectionAreaRequest request, Color baseColor, Color? fillColor,
-            float progress)
+            float progress, bool centeredBox = false)
         {
             if (!_attackAreaView.Show(baseId, request, color: baseColor))
                 return false;
@@ -396,31 +470,36 @@ namespace Alpha.Enemy.Boss
             }
 
             return _attackAreaView.Show(fillId, request, color: fillColor,
-                revealProgress: progress, sortingOrder: 1);
+                revealProgress: progress, sortingOrder: 1,
+                revealFromCenter: centeredBox);
         }
 
         private bool SelectedHitApplied() => _selectedAttack switch
         {
             AttackKind.Attack1 => _attack1HitApplied,
             AttackKind.Attack2 => _attack2HitApplied,
+            AttackKind.Attack3 => _attack3HitApplied,
             _ => true
         };
 
         // 가능한 공격만 후보에 넣고 가중치 비율로 하나를 선택한다.
         private AttackKind SelectAttack(Transform target)
         {
-            bool attack1Available = CanSelectAttack1(target);
-            bool attack2Available = CanSelectAttack2(target);
-            if (attack1Available && !attack2Available)
-                return AttackKind.Attack1;
-            if (attack2Available && !attack1Available)
-                return AttackKind.Attack2;
-            if (!attack1Available)
+            float attack1Weight = CanSelectAttack1(target) ? _attack1SelectionWeight : 0f;
+            float attack2Weight = CanSelectAttack2(target) ? _attack2SelectionWeight : 0f;
+            float attack3Weight = CanSelectAttack3(target) ? _attack3SelectionWeight : 0f;
+            float totalWeight = attack1Weight + attack2Weight + attack3Weight;
+            if (totalWeight <= 0f)
                 return AttackKind.None;
 
-            float totalWeight = _attack1SelectionWeight + _attack2SelectionWeight;
-            return Random.value * totalWeight < _attack1SelectionWeight
-                ? AttackKind.Attack1 : AttackKind.Attack2;
+            float selection = Random.value * totalWeight;
+            if (selection < attack1Weight)
+                return AttackKind.Attack1;
+            if (selection < attack1Weight + attack2Weight)
+                return AttackKind.Attack2;
+            // Random.value가 1을 반환해도 비활성 공격을 선택하지 않는다.
+            return attack3Weight > 0f ? AttackKind.Attack3 :
+                attack2Weight > 0f ? AttackKind.Attack2 : AttackKind.Attack1;
         }
 
         private float GetApproachDistance()
@@ -429,7 +508,9 @@ namespace Alpha.Enemy.Boss
                 ? _attack1StartDistance : 0f;
             float attack2Distance = _attack2SelectionWeight > 0f
                 ? _attack2MaxSelectionDistance : 0f;
-            return Mathf.Max(attack1Distance, attack2Distance);
+            float attack3Distance = _attack3SelectionWeight > 0f
+                ? _attack3MaxSelectionDistance : 0f;
+            return Mathf.Max(attack1Distance, attack2Distance, attack3Distance);
         }
 
         // 선택은 위치와 시간만 검사한다. 실제 명중은 타격 순간 AttackModule이 판정한다.
@@ -451,6 +532,16 @@ namespace Alpha.Enemy.Boss
 
             return IsWithinSelectionArea(target, _attack2MinSelectionDistance,
                 _attack2MaxSelectionDistance, _attack2MaxSelectionAngle);
+        }
+
+        private bool CanSelectAttack3(Transform target)
+        {
+            if (target == null || _attack3SelectionWeight <= 0f ||
+                Time.time < _nextAttack3SelectionTime)
+                return false;
+
+            return IsWithinSelectionArea(target, _attack3MinSelectionDistance,
+                _attack3MaxSelectionDistance, _attack3MaxSelectionAngle);
         }
 
         private bool IsWithinSelectionArea(Transform target, float minimumDistance,
@@ -501,6 +592,7 @@ namespace Alpha.Enemy.Boss
             {
                 AttackKind.Attack1 => RollRepeatCount(_attack1MinRepeatCount, _attack1MaxRepeatCount),
                 AttackKind.Attack2 => RollRepeatCount(_attack2MinRepeatCount, _attack2MaxRepeatCount),
+                AttackKind.Attack3 => RollRepeatCount(_attack3MinRepeatCount, _attack3MaxRepeatCount),
                 _ => 0
             };
             BeginPreparation();
@@ -517,13 +609,15 @@ namespace Alpha.Enemy.Boss
         private void BeginPreparation()
         {
             CloseHitWindow();
-            _locomotion.Stop();
+            _locomotion.CancelJump();
             _animation.SetMoving(false);
-            // Attack1은 여기서 조준하고, Attack2 위치는 IndicatorStart에서 확정한다.
+            // Attack1은 여기서 조준하고, 대상 위치 공격은 IndicatorStart에서 확정한다.
             _aimPosition = _target.position;
             _attack1HitApplied = false;
             _attack2HitApplied = false;
+            _attack3HitApplied = false;
             _attack2TargetLocked = false;
+            _attack3TargetLocked = false;
             _attackAnimationFinished = false;
             _indicatorStarted = false;
             _isFacingLockedPosition = false;
@@ -537,6 +631,7 @@ namespace Alpha.Enemy.Boss
             {
                 AttackKind.Attack1 => _animation.PlayAttack1(),
                 AttackKind.Attack2 => _animation.PlayAttack2(),
+                AttackKind.Attack3 => _animation.PlayAttack3(),
                 _ => false
             };
             if (!started)
@@ -547,6 +642,9 @@ namespace Alpha.Enemy.Boss
                 return;
             }
 
+            // 점프 공격 중에는 대상이 보스의 접촉 구체 안으로 들어올 수 있다.
+            if (_selectedAttack == AttackKind.Attack3)
+                _collisionView.SetContactBlocking(false);
             _state = State.Attacking;
         }
 
@@ -555,14 +653,21 @@ namespace Alpha.Enemy.Boss
             if (_state != State.Attacking || SelectedHitApplied())
                 return;
 
-            if (_selectedAttack == AttackKind.Attack2)
+            if (_selectedAttack == AttackKind.Attack2 ||
+                _selectedAttack == AttackKind.Attack3)
             {
                 if (_target == null)
                     return;
 
                 _aimPosition = _target.position;
-                _attack2TargetLocked = true;
-                _animation.SetAttack2TargetPosition(_aimPosition);
+                if (_selectedAttack == AttackKind.Attack2)
+                    _attack2TargetLocked = true;
+                else
+                {
+                    _attack3TargetLocked = true;
+                    _locomotion.BeginJumpTo(_aimPosition);
+                }
+                _animation.SetAttackTargetPosition(_aimPosition);
             }
 
             _indicatorStarted = true;
@@ -595,6 +700,45 @@ namespace Alpha.Enemy.Boss
                 OpenHitWindow(_attack2HitMode, _attack2HitDurationSeconds);
         }
 
+        private void HandleAttack3Hit()
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack3 ||
+                _attack3HitApplied)
+                return;
+
+            _attack3HitApplied = true;
+            _indicatorStarted = false;
+            _attackAreaView.Hide(Attack3AreaId);
+            _attackAreaView.Hide(Attack3FillAreaId);
+            if (!_attack3TargetLocked)
+                return;
+
+            _locomotion.CompleteJump();
+            OpenHitWindow(_attack3HitMode, _attack3HitDurationSeconds);
+            _attack3ContactClearanceActive = true;
+            ClearPlayerContact();
+        }
+
+        private bool ClearPlayerContact()
+        {
+            if (_collisionView == null ||
+                !_collisionView.TryGetPlayerClearance(out CharacterController controller,
+                    out Vector3 displacement))
+                return false;
+
+            // 피격 무적이나 누운 상태여도 Player의 충돌 이동 경로로 몸 밖으로 보낸다.
+            PlayerCore player = controller.GetComponentInParent<PlayerCore>();
+            // 실제 넉백이 진행 중이면 이동량을 중복 적용하지 않는다.
+            if (player == null || player.IsKnockbackActive)
+                return true;
+
+            float speed = _attack.TryGetAttack3KnockbackSpeed(out float knockbackSpeed)
+                ? knockbackSpeed : FallbackContactClearanceSpeed;
+            player.TryMoveForContactClearance(Vector3.ClampMagnitude(displacement,
+                speed * Time.fixedDeltaTime));
+            return true;
+        }
+
         private void OpenHitWindow(HitMode mode, float durationSeconds)
         {
             _attack.BeginHitWindow();
@@ -614,6 +758,9 @@ namespace Alpha.Enemy.Boss
                     break;
                 case AttackKind.Attack2 when _attack2TargetLocked:
                     _attack.ApplyAttack2(_aimPosition);
+                    break;
+                case AttackKind.Attack3 when _attack3TargetLocked:
+                    _attack.ApplyAttack3(_aimPosition);
                     break;
             }
         }
@@ -655,11 +802,31 @@ namespace Alpha.Enemy.Boss
                 FinishSelectedAttack();
         }
 
+        private void HandleAttack3Finished()
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack3)
+                return;
+
+            _attackAreaView.Hide(Attack3AreaId);
+            _attackAreaView.Hide(Attack3FillAreaId);
+            _indicatorStarted = false;
+            _attackAnimationFinished = true;
+            if (!_attack3HitApplied)
+                _locomotion.CancelJump();
+            if (_hitWindowActive && !_animation.TryGetHitElapsedClipSeconds(out _))
+                CloseHitWindow();
+            if (!_hitWindowActive)
+                FinishSelectedAttack();
+        }
+
         private void FinishSelectedAttack()
         {
             CloseHitWindow();
+            if (_selectedAttack == AttackKind.Attack3)
+                ClearPlayerContact();
+            _collisionView.SetContactBlocking(true);
             _attackAnimationFinished = false;
-            _locomotion.Stop();
+            _locomotion.CancelJump();
             if (--_remainingAttackCount > 0)
             {
                 if (_target == null)
@@ -673,10 +840,13 @@ namespace Alpha.Enemy.Boss
                 _nextAttack1SelectionTime = Time.time + _attack1Cooldown;
             else if (_selectedAttack == AttackKind.Attack2)
                 _nextAttack2SelectionTime = Time.time + _attack2Cooldown;
+            else if (_selectedAttack == AttackKind.Attack3)
+                _nextAttack3SelectionTime = Time.time + _attack3Cooldown;
 
             _selectedAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
+            _attack3TargetLocked = false;
             _timeRemaining = _recoveryDuration;
             _state = State.Recovering;
         }
@@ -684,19 +854,21 @@ namespace Alpha.Enemy.Boss
         private void ReturnToWaiting()
         {
             CloseHitWindow();
+            _collisionView?.SetContactBlocking(true);
             if (_state == State.Waiting)
                 return;
 
             _attackAreaView.HideAll();
             _animation.CancelAttack();
             _animation.SetMoving(false);
-            _locomotion.Stop();
+            _locomotion.CancelJump();
             _target = null;
             _distanceTarget = null;
             _distanceTargetCollider = null;
             _selectedAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
+            _attack3TargetLocked = false;
             _attackAnimationFinished = false;
             _indicatorStarted = false;
             _timeRemaining = 0f;
@@ -706,6 +878,7 @@ namespace Alpha.Enemy.Boss
         private void OnDisable()
         {
             _attackAreaView?.HideAll();
+            _collisionView?.SetContactBlocking(true);
 
             if (_bound && _state != State.Dead)
                 ReturnToWaiting();
@@ -738,6 +911,15 @@ namespace Alpha.Enemy.Boss
             _attack2MinRepeatCount = Mathf.Max(1, _attack2MinRepeatCount);
             _attack2MaxRepeatCount = Mathf.Max(_attack2MinRepeatCount, _attack2MaxRepeatCount);
             _attack2HitDurationSeconds = Mathf.Max(0f, _attack2HitDurationSeconds);
+            _attack3MinSelectionDistance = Mathf.Max(0f, _attack3MinSelectionDistance);
+            _attack3MaxSelectionDistance = Mathf.Max(
+                _attack3MinSelectionDistance + 0.01f, _attack3MaxSelectionDistance);
+            _attack3MaxSelectionAngle = Mathf.Clamp(_attack3MaxSelectionAngle, 0f, 180f);
+            _attack3SelectionWeight = Mathf.Max(0f, _attack3SelectionWeight);
+            _attack3Cooldown = Mathf.Max(0f, _attack3Cooldown);
+            _attack3MinRepeatCount = Mathf.Max(1, _attack3MinRepeatCount);
+            _attack3MaxRepeatCount = Mathf.Max(_attack3MinRepeatCount, _attack3MaxRepeatCount);
+            _attack3HitDurationSeconds = Mathf.Max(0f, _attack3HitDurationSeconds);
         }
 
 #if UNITY_EDITOR

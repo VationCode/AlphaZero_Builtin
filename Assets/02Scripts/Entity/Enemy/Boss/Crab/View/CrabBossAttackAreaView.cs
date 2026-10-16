@@ -20,6 +20,8 @@ namespace Alpha.Enemy.Boss
         private static readonly int RevealProgressProperty = Shader.PropertyToID("_RevealProgress");
         private static readonly int RevealExtentProperty = Shader.PropertyToID("_RevealExtent");
         private static readonly int RevealBoxProperty = Shader.PropertyToID("_RevealBox");
+        private static readonly int RevealWidthProperty = Shader.PropertyToID("_RevealWidth");
+        private static readonly int RevealCenterBoxProperty = Shader.PropertyToID("_RevealCenterBox");
 
         private enum MeshShape
         {
@@ -52,7 +54,7 @@ namespace Alpha.Enemy.Boss
         }
 
         [SerializeField] private Material _material;
-        [SerializeField] private LayerMask _groundMask = 1 << 0;
+        [SerializeField] private LayerMask _groundMask = 1 << 7;
         [SerializeField, Min(0f)] private float _groundOffset = 0.05f;
 
         private readonly Dictionary<int, Preview> _previews = new();
@@ -60,7 +62,8 @@ namespace Alpha.Enemy.Boss
         // 실제 타격 예고와 상시 선택 범위를 같은 형태 데이터로 그린다.
         // innerRadius를 주면 원형 진동파처럼 안쪽이 빈 장판을 그린다.
         public bool Show(int id, in DetectionAreaRequest request, float innerRadius = 0f,
-            Color? color = null, float revealProgress = 1f, int sortingOrder = 0)
+            Color? color = null, float revealProgress = 1f, int sortingOrder = 0,
+            bool revealFromCenter = false)
         {
             if (!isActiveAndEnabled || _material == null || !request.IsValid)
                 return false;
@@ -101,6 +104,10 @@ namespace Alpha.Enemy.Boss
                         ? request.Settings.Length : request.Settings.Radius);
                 preview.PropertyBlock.SetFloat(RevealBoxProperty,
                     request.Settings.Shape == EDetectionAreaShape.ForwardBox ? 1f : 0f);
+                preview.PropertyBlock.SetFloat(RevealWidthProperty, request.Settings.Width);
+                preview.PropertyBlock.SetFloat(RevealCenterBoxProperty,
+                    revealFromCenter && request.Settings.Shape == EDetectionAreaShape.ForwardBox
+                        ? 1f : 0f);
                 preview.Renderer.SetPropertyBlock(preview.PropertyBlock);
             }
             else

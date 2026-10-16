@@ -15,6 +15,7 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private CrabBossAnimationView _animation;
         [SerializeField] private CrabBossAttackAreaView _attackAreaView;
         [SerializeField] private CrabBossAttackEffectView _attackEffectView;
+        [SerializeField] private CrabBossCollisionView _collisionView;
         [SerializeField] private Animator _animator;
         [SerializeField] private LivingModule _living;
         [SerializeField] private DamageReceiverModule _damageReceiver;
@@ -34,6 +35,7 @@ namespace Alpha.Enemy.Boss
             _animation ??= GetComponentInChildren<CrabBossAnimationView>(true);
             _attackAreaView ??= GetComponentInChildren<CrabBossAttackAreaView>(true);
             _attackEffectView ??= GetComponentInChildren<CrabBossAttackEffectView>(true);
+            _collisionView ??= GetComponentInChildren<CrabBossCollisionView>(true);
             _animator ??= GetComponentInChildren<Animator>(true);
             _living ??= GetComponentInChildren<LivingModule>(true);
             _damageReceiver ??= GetComponent<DamageReceiverModule>();
@@ -42,6 +44,7 @@ namespace Alpha.Enemy.Boss
             if (body == null || _stateFlow == null || _locomotion == null ||
                 _targetDetection == null || _attack == null || _animation == null ||
                 _attackAreaView == null || _attackEffectView == null ||
+                _collisionView == null ||
                 _animator == null || _living == null ||
                 _damageReceiver == null)
             {
@@ -55,13 +58,14 @@ namespace Alpha.Enemy.Boss
             _attack.Bind(transform, _attack1Origin != null ? _attack1Origin : transform);
             _animation.Bind(_animator);
             _attackEffectView.Bind(_animation);
+            _collisionView.SetContactBlocking(true);
 
             _living.Bind(_healthContext);
             _damageReceiver.Bind(transform, _living.TryDecreaseHealth);
             _living.OnDeath += HandleDeath;
 
             _stateFlow.Bind(transform, _targetDetection, _locomotion, _attack, _animation,
-                _attackAreaView);
+                _attackAreaView, _collisionView);
             _bound = true;
         }
 

@@ -11,7 +11,7 @@ namespace Alpha.Utility
 
         [Tooltip("지면으로 판정할 레이어입니다.")]
         [SerializeField]
-        private LayerMask _groundLayers = 1;
+        private LayerMask _groundLayers = 1 << 7;
 
         [Tooltip("탐색 기준 위치에서 Raycast를 시작할 높이입니다.")]
         [SerializeField, Min(0f)]

@@ -22,12 +22,6 @@ namespace Alpha.Player.Actions
         [SerializeField]
         private HitTypeResponseSettings _hitTypeResponseSettings = new();
 
-        [Header("Hit Reaction Immunity")]
-        [Tooltip("동일 Hit Type의 피격 반응만 제한합니다. 피해 무적 시간은 Attack Impact에서 설정합니다.")]
-        [SerializeField]
-        private HitReactionImmunitySettings _hitReactionImmunitySettings =
-            new();
-
         [Header("Hit HitType Timing")]
         [Tooltip("Knockdown에서 LyingDown으로 전환하기까지의 시간입니다.")]
         [SerializeField, Min(0f)]
@@ -198,10 +192,11 @@ namespace Alpha.Player.Actions
         private bool TryEnterHitReaction(
             in ImpactReactionResult p_result)
         {
+            // Player는 피해 무적 시간만 사용하며 반응 종료 후 별도 면역은 두지 않는다.
             if (!_hitReactionFlow.TryBegin(
                     p_result,
                     Time.time,
-                    _hitReactionImmunitySettings,
+                    null,
                     _knockdownFallDuration,
                     _standupDuration))
             {
@@ -416,9 +411,6 @@ namespace Alpha.Player.Actions
         private void OnValidate()
         {
             _hitTypeResponseSettings ??= new HitTypeResponseSettings();
-            _hitReactionImmunitySettings ??=
-                new HitReactionImmunitySettings();
-            _hitReactionImmunitySettings.Validate();
             _knockdownFallDuration =
                 Mathf.Max(0f, _knockdownFallDuration);
             _standupDuration =

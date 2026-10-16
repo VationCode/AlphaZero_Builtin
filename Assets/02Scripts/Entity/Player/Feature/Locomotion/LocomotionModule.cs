@@ -370,6 +370,11 @@ namespace Alpha.Player.Locomotion
             _knockbackRemainingTime = 0f;
         }
 
+        // 보스 몸체와 겹쳤을 때 현재 행동이나 피해 무적 상태와 무관하게 이동한다.
+        public bool TryMoveForContactClearance(Vector3 p_horizontalDisplacement) =>
+            isActiveAndEnabled && _moveModule != null &&
+            _moveModule.TryMoveForContactClearance(p_horizontalDisplacement);
+
 
 
         #endregion ======================================== /Movement

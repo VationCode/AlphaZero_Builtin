@@ -16,7 +16,7 @@ namespace Alpha.Projectile.View
         private float _spawnDistance = 4f;
 
         [SerializeField]
-        private LayerMask _groundMask = 1;
+        private LayerMask _groundMask = 1 << 7;
 
         [SerializeField, Min(0f)]
         private float _groundProbeHeight = 10f;

@@ -20,7 +20,7 @@ namespace Alpha.Player.View.Combat
         [Header("Ground Projection")]
         [Tooltip("범위 표시를 배치할 바닥 Layer입니다. Enemy와 벽 전용 Layer는 제외합니다.")]
         [SerializeField]
-        private LayerMask _groundMask = 1;
+        private LayerMask _groundMask = 1 << 7;
 
         [SerializeField, Min(0f)]
         private float _groundProbeHeight = 2f;

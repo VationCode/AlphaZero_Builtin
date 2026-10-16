@@ -158,7 +158,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1855519137295756756}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -192,7 +192,7 @@ GameObject:
   - component: {fileID: 4946357698843301124}
   - component: {fileID: 4946357698843301125}
   - component: {fileID: 4946357698843301126}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Effect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -254,7 +254,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4990770888551286957}
   - component: {fileID: 4990770888551286955}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Action
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -344,7 +344,7 @@ GameObject:
   - component: {fileID: 5656520701355414788}
   - component: {fileID: 5656520701355414789}
   - component: {fileID: 5656520701355414786}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Audio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -500,7 +500,7 @@ GameObject:
   - component: {fileID: 6536687439481801986}
   - component: {fileID: 5317132400321718897}
   - component: {fileID: 5234987524635677959}
-  m_Layer: 7
+  m_Layer: 6
   m_Name: Alien
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -692,7 +692,7 @@ MonoBehaviour:
   _groundProbe:
     _groundLayers:
       serializedVersion: 2
-      m_Bits: 1
+      m_Bits: 128
     _castHeight: 10
     _castDepth: 30
 --- !u!114 &5535127368305267975

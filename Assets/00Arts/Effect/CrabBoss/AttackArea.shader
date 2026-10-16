@@ -6,6 +6,8 @@ Shader "Alpha/CrabBoss/AttackArea"
         [HideInInspector] _RevealProgress ("Reveal Progress", Range(0, 1)) = 1
         [HideInInspector] _RevealExtent ("Reveal Extent", Float) = 1
         [HideInInspector] _RevealBox ("Reveal Box", Float) = 0
+        [HideInInspector] _RevealWidth ("Reveal Width", Float) = 1
+        [HideInInspector] _RevealCenterBox ("Reveal Center Box", Float) = 0
     }
 
     SubShader
@@ -28,6 +30,8 @@ Shader "Alpha/CrabBoss/AttackArea"
             float _RevealProgress;
             float _RevealExtent;
             float _RevealBox;
+            float _RevealWidth;
+            float _RevealCenterBox;
 
             struct Attributes
             {
@@ -50,12 +54,24 @@ Shader "Alpha/CrabBoss/AttackArea"
 
             fixed4 Frag(Varyings input) : SV_Target
             {
-                // 전체 범위 위에 올린 채움만 중심에서 바깥으로 드러낸다.
+                // Attack3 박스만 중심에서 네 면으로 확장하고 기존 예고는 그대로 둔다.
                 if (_RevealProgress < 1)
                 {
-                    float reach = lerp(length(input.localXZ),
-                        max(0, input.localXZ.y), saturate(_RevealBox));
-                    clip(_RevealProgress * _RevealExtent + 0.0001 - reach);
+                    if (_RevealCenterBox > 0.5)
+                    {
+                        float2 halfSize = max(float2(_RevealWidth, _RevealExtent) * 0.5,
+                            float2(0.0001, 0.0001));
+                        float2 distanceFromCenter = abs(input.localXZ - float2(0, halfSize.y));
+                        float normalizedReach = max(distanceFromCenter.x / halfSize.x,
+                            distanceFromCenter.y / halfSize.y);
+                        clip(_RevealProgress + 0.0001 - normalizedReach);
+                    }
+                    else
+                    {
+                        float reach = lerp(length(input.localXZ),
+                            max(0, input.localXZ.y), saturate(_RevealBox));
+                        clip(_RevealProgress * _RevealExtent + 0.0001 - reach);
+                    }
                 }
                 return _Color;
             }
