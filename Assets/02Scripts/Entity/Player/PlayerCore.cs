@@ -214,7 +214,7 @@ namespace Alpha.Player
                 DamageReceiver.Bind(
                     PlayerTr,
                     HealthModule.TryDecreaseHealth,
-                    p_useImpactInvulnerability: true);
+                    () => ActionFlow == null || !ActionFlow.IsDamageInvulnerable);
                 DamageReceiver.OnDamaged -= HandleDamaged;
                 DamageReceiver.OnDamaged += HandleDamaged;
             }

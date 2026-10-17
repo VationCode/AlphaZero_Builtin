@@ -8,18 +8,12 @@ namespace Alpha.Combat
     [DisallowMultipleComponent]
     public sealed class DamageReceiverModule : MonoBehaviour, IDamageable
     {
-        [Tooltip("Impact 무적을 사용하지 않는 Entity의 기본 재피격 간격입니다. Player는 Impact 값을 사용합니다.")]
-        [SerializeField, Min(0f)]
-        private float _minTimeBetweenDamaged = 0.1f;
-
         private readonly Dictionary<int, int> _lastReceivedAttackIds = new();
         private readonly HashSet<object> _invulnerabilityOwners = new();
 
         private Transform _owner;
         private Func<float, bool> _tryDecreaseHealth;
-        private float _lastDamagedTime = float.NegativeInfinity;
-        private float _impactInvulnerabilityEndTime = float.NegativeInfinity;
-        private bool _useImpactInvulnerability;
+        private Func<bool> _canReceiveDamage;
 
         public bool IsBound =>
             _owner != null &&
@@ -30,19 +24,18 @@ namespace Alpha.Combat
 
         public event Action<DamageInfo> OnDamaged;
 
-        // Core가 Entity 경계와 실제 체력 감소 기능을 연결한다.
+        // Core가 Entity의 체력 감소와 피해 허용 상태를 연결한다.
         public void Bind(
             Transform p_owner,
             Func<float, bool> p_tryDecreaseHealth,
-            bool p_useImpactInvulnerability = false)
+            Func<bool> p_canReceiveDamage = null)
         {
             _owner = p_owner != null
                 ? p_owner
                 : throw new ArgumentNullException(nameof(p_owner));
             _tryDecreaseHealth = p_tryDecreaseHealth ??
                 throw new ArgumentNullException(nameof(p_tryDecreaseHealth));
-            _useImpactInvulnerability = p_useImpactInvulnerability;
-
+            _canReceiveDamage = p_canReceiveDamage;
             ResetSession();
         }
 
@@ -50,7 +43,7 @@ namespace Alpha.Combat
         {
             _owner = null;
             _tryDecreaseHealth = null;
-            _useImpactInvulnerability = false;
+            _canReceiveDamage = null;
             _invulnerabilityOwners.Clear();
             ResetSession();
         }
@@ -72,19 +65,14 @@ namespace Alpha.Combat
         {
             if (!IsBound ||
                 !p_damageInfo.IsValid ||
-                IsInvulnerable ||
+                IsExternallyInvulnerable ||
+                (_canReceiveDamage != null && !_canReceiveDamage()) ||
                 IsSelfAttack(p_damageInfo.Attacker) ||
                 !_tryDecreaseHealth(p_damageInfo.Amount))
             {
                 return false;
             }
 
-            _lastDamagedTime = Time.time;
-            if (_useImpactInvulnerability)
-            {
-                _impactInvulnerabilityEndTime = _lastDamagedTime +
-                    p_damageInfo.Impact.DamageInvulnerabilityDuration;
-            }
             OnDamaged?.Invoke(p_damageInfo);
             return true;
         }
@@ -117,12 +105,6 @@ namespace Alpha.Combat
                 damageSource.AttackId;
         }
 
-        private bool IsInvulnerable =>
-            IsExternallyInvulnerable ||
-            Time.time < (_useImpactInvulnerability
-                ? _impactInvulnerabilityEndTime
-                : _lastDamagedTime + _minTimeBetweenDamaged);
-
         private bool IsDuplicateAttack(IDamageSource p_damageSource)
         {
             return _lastReceivedAttackIds.TryGetValue(
@@ -150,8 +132,6 @@ namespace Alpha.Combat
 
         private void ResetSession()
         {
-            _lastDamagedTime = float.NegativeInfinity;
-            _impactInvulnerabilityEndTime = float.NegativeInfinity;
             _lastReceivedAttackIds.Clear();
         }
     }

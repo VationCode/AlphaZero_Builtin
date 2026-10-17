@@ -79,6 +79,17 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private bool _showAttack5SelectionArea = true;
         [SerializeField] private Color _attack5SelectionColor = new(0.3f, 1f, 0.5f, 0.7f);
 
+        [Header("Attack6 Selection")]
+        [SerializeField, Min(0f)] private float _attack6MinSelectionDistance;
+        [SerializeField, Min(0.01f)] private float _attack6MaxSelectionDistance = 25f;
+        [SerializeField, Range(0f, 180f)] private float _attack6MaxSelectionAngle = 180f;
+        [SerializeField, Min(0f)] private float _attack6SelectionWeight = 1f;
+        [SerializeField, Min(0f)] private float _attack6Cooldown = 8f;
+        [SerializeField, Min(1)] private int _attack6MinRepeatCount = 1;
+        [SerializeField, Min(1)] private int _attack6MaxRepeatCount = 1;
+        [SerializeField] private bool _showAttack6SelectionArea = true;
+        [SerializeField] private Color _attack6SelectionColor = new(0.75f, 0.25f, 1f, 0.7f);
+
         private Transform _owner;
         private BossLocomotionModule _locomotion;
 
@@ -109,6 +120,11 @@ namespace Alpha.Enemy.Boss
             _attack5MaxSelectionAngle, _attack5SelectionWeight, _attack5Cooldown,
             _attack5MinRepeatCount, _attack5MaxRepeatCount);
 
+        internal AttackSelectionSettings Attack6 => new(
+            _attack6MinSelectionDistance, _attack6MaxSelectionDistance,
+            _attack6MaxSelectionAngle, _attack6SelectionWeight, _attack6Cooldown,
+            _attack6MinRepeatCount, _attack6MaxRepeatCount);
+
         public void Bind(Transform owner, BossLocomotionModule locomotion)
         {
             _owner = owner;
@@ -133,6 +149,9 @@ namespace Alpha.Enemy.Boss
             ValidateSelection(ref _attack5MinSelectionDistance, ref _attack5MaxSelectionDistance,
                 ref _attack5MaxSelectionAngle, ref _attack5SelectionWeight,
                 ref _attack5Cooldown, ref _attack5MinRepeatCount, ref _attack5MaxRepeatCount);
+            ValidateSelection(ref _attack6MinSelectionDistance, ref _attack6MaxSelectionDistance,
+                ref _attack6MaxSelectionAngle, ref _attack6SelectionWeight,
+                ref _attack6Cooldown, ref _attack6MinRepeatCount, ref _attack6MaxRepeatCount);
         }
 
         private static void ValidateSelection(ref float minimumDistance, ref float maximumDistance,
@@ -154,7 +173,7 @@ namespace Alpha.Enemy.Boss
             if (Camera.current == null || Camera.current.cameraType != CameraType.SceneView ||
                 (!_showAttack1StartDistance && !_showAttack2SelectionArea &&
                  !_showAttack3SelectionArea && !_showAttack4SelectionArea &&
-                 !_showAttack5SelectionArea))
+                 !_showAttack5SelectionArea && !_showAttack6SelectionArea))
                 return;
 
             Transform owner = _owner != null ? _owner :
@@ -184,6 +203,9 @@ namespace Alpha.Enemy.Boss
             if (_showAttack5SelectionArea)
                 DrawSelectionAreaGizmo(position, forward, Attack5,
                     _attack5SelectionColor, "Attack5", 4);
+            if (_showAttack6SelectionArea)
+                DrawSelectionAreaGizmo(position, forward, Attack6,
+                    _attack6SelectionColor, "Attack6", 5);
         }
 
         private static void DrawSelectionAreaGizmo(Vector3 position, Vector3 forward,

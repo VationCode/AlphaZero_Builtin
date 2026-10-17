@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Alpha.Enemy.Boss
 {
-    // GroundBody의 박스는 지면과 계속 충돌하고, 점프·돌진 중 플레이어 충돌만 잠시 푼다.
+    // GroundBody 박스는 지면과 충돌하고, 플레이어와의 거리는 수평 이동으로 유지한다.
     [DisallowMultipleComponent]
     public sealed class CrabBossCollisionView : MonoBehaviour
     {
@@ -10,20 +10,15 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _contactClearancePadding = 0.15f;
 
         private CharacterController _ignoredPlayer;
+        private bool _contactBlocking = true;
         private bool _restoreRequested;
 
+        public bool IsContactBlocking => _contactBlocking;
         public bool IsContactRestorePending => _restoreRequested;
         public bool HasBodyColliders => _bodyColliders != null && _bodyColliders.Length > 0;
 
-        public void SetContactBlocking(bool blocking, Transform target = null)
+        public void RegisterPlayer(Transform target)
         {
-            if (blocking)
-            {
-                _restoreRequested = _ignoredPlayer != null;
-                TryRestoreContactBlocking();
-                return;
-            }
-
             CharacterController player = target != null
                 ? target.GetComponentInParent<CharacterController>() ??
                   target.GetComponentInChildren<CharacterController>()
@@ -31,12 +26,32 @@ namespace Alpha.Enemy.Boss
             if (player == null || !HasBodyColliders)
                 return;
 
-            if (_ignoredPlayer != null && _ignoredPlayer != player)
-                RestoreContactBlockingImmediately();
-
             _ignoredPlayer = player;
+            // 플레이어가 보스 Rigidbody를 밀어 올리지 않도록 몸체와의 물리 충돌은 계속 무시한다.
+            for (int index = 0; index < _bodyColliders.Length; index++)
+            {
+                BoxCollider body = _bodyColliders[index];
+                if (body != null && body.enabled && body.gameObject.activeInHierarchy &&
+                    player.enabled && player.gameObject.activeInHierarchy &&
+                    !Physics.GetIgnoreCollision(body, player))
+                    Physics.IgnoreCollision(body, player, true);
+            }
+        }
+
+        public void SetContactBlocking(bool blocking, Transform target = null)
+        {
+            if (target != null)
+                RegisterPlayer(target);
+
+            if (blocking)
+            {
+                _restoreRequested = true;
+                TryRestoreContactBlocking();
+                return;
+            }
+
+            _contactBlocking = false;
             _restoreRequested = false;
-            SetPlayerCollisionIgnored(true);
         }
 
         // 겹친 박스 중 플레이어를 가장 멀리 밀어내야 하는 방향을 반환한다.
@@ -96,28 +111,9 @@ namespace Alpha.Enemy.Boss
             if (_ignoredPlayer != null && TryGetPlayerClearance(out _, out _))
                 return false;
 
-            RestoreContactBlockingImmediately();
-            return true;
-        }
-
-        private void SetPlayerCollisionIgnored(bool ignored)
-        {
-            if (_ignoredPlayer == null || !HasBodyColliders)
-                return;
-
-            for (int index = 0; index < _bodyColliders.Length; index++)
-            {
-                BoxCollider body = _bodyColliders[index];
-                if (body != null)
-                    Physics.IgnoreCollision(body, _ignoredPlayer, ignored);
-            }
-        }
-
-        private void RestoreContactBlockingImmediately()
-        {
-            SetPlayerCollisionIgnored(false);
-            _ignoredPlayer = null;
+            _contactBlocking = true;
             _restoreRequested = false;
+            return true;
         }
 
         private void FixedUpdate()
@@ -126,7 +122,11 @@ namespace Alpha.Enemy.Boss
                 TryRestoreContactBlocking();
         }
 
-        private void OnDisable() => RestoreContactBlockingImmediately();
+        private void OnEnable()
+        {
+            if (_ignoredPlayer != null)
+                RegisterPlayer(_ignoredPlayer.transform);
+        }
 
         private void OnValidate() =>
             _contactClearancePadding = Mathf.Max(0f, _contactClearancePadding);

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Alpha.Enemy.Boss
 {
-    // 공격별 판정·피해·타격 방식을 소유한다. 타격 창을 여닫는 시점은 Flow가 결정한다.
+    // 공격별 범위·피해와 Attack6 소환을 실행한다. 실행 시점은 Flow가 결정한다.
     [DisallowMultipleComponent]
     public sealed class CrabBossAttackModule : MonoBehaviour
     {
@@ -115,6 +115,25 @@ namespace Alpha.Enemy.Boss
             new(0.3f, 1f, 0.5f, 0.7f);
         [SerializeField, Range(0f, 1f)] private float _attack5AreaFillOpacity = 0.12f;
 
+        [Header("Attack 6: Mini Crab Summon")]
+        [Tooltip("비워두면 전투 시작 위치와 정면으로 점프해 돌아갑니다.")]
+        [SerializeField] private Transform _attack6JumpTarget;
+        [SerializeField] private MiniCrabAgent _attack6MiniCrabPrefab;
+        [SerializeField, Min(1)] private int _attack6SummonCount = 5;
+        [Tooltip("타깃을 중심으로 소환 위치를 정하고 Scene 뷰에 표시할 범위입니다.")]
+        [SerializeField] private DetectionAreaSettings _attack6Area =
+            CreateDefaultAttack6Area();
+        [SerializeField, Min(0f)] private float _attack6MinimumSpawnRadius = 5f;
+        [Tooltip("소환된 미니 게 중심 사이의 최소 수평 거리입니다.")]
+        [SerializeField, Min(0f)] private float _attack6MinimumCrabSpacing = 2.5f;
+        [SerializeField] private LayerMask _attack6GroundLayers = 1 << 7;
+        [SerializeField] private Color _attack6WarningColor = new(0.75f, 0.25f, 1f, 1f);
+        [SerializeField, Range(0, 255)] private int _attack6WarningAlpha = 80;
+        [SerializeField, Range(0, 255)] private int _attack6FillAlpha = 150;
+        [SerializeField] private bool _showAttack6Area = true;
+        [SerializeField] private Color _attack6AreaColor = new(0.75f, 0.25f, 1f, 0.7f);
+        [SerializeField, Range(0f, 1f)] private float _attack6AreaFillOpacity = 0.12f;
+
         internal Color Attack1WarningColor => WithAlpha(_attack1WarningColor, _attack1WarningAlpha);
         internal Color Attack1FillColor => WithAlpha(_attack1WarningColor, _attack1FillAlpha);
         internal Color Attack2WarningColor => WithAlpha(_attack2WarningColor, _attack2WarningAlpha);
@@ -125,6 +144,15 @@ namespace Alpha.Enemy.Boss
         internal Color Attack4FillColor => WithAlpha(_attack4WarningColor, _attack4FillAlpha);
         internal Color Attack5WarningColor => WithAlpha(_attack5WarningColor, _attack5WarningAlpha);
         internal Color Attack5FillColor => WithAlpha(_attack5WarningColor, _attack5FillAlpha);
+        internal Color Attack6WarningColor => WithAlpha(_attack6WarningColor, _attack6WarningAlpha);
+        internal Color Attack6FillColor => WithAlpha(_attack6WarningColor, _attack6FillAlpha);
+        internal bool IsAttack6Ready => _attack6MiniCrabPrefab != null &&
+            _attack6GroundLayers.value != 0 && _attack6Area != null &&
+            _attack6Area.Shape == EDetectionAreaShape.Radial && _attack6Area.IsValid;
+        internal Vector3 GetAttack6JumpPosition(Vector3 fallback) =>
+            _attack6JumpTarget != null ? _attack6JumpTarget.position : fallback;
+        internal Vector3 GetAttack6JumpForward(Vector3 fallback) =>
+            _attack6JumpTarget != null ? _attack6JumpTarget.forward : fallback;
 
         private static Color WithAlpha(Color color, int alpha)
         {
@@ -176,12 +204,17 @@ namespace Alpha.Enemy.Boss
         internal bool ShowAttack5Areas => _showAttack5Areas;
         internal Color Attack5AreaColor => _attack5AreaColor;
         internal float Attack5AreaFillOpacity => _attack5AreaFillOpacity;
+        internal bool ShowAttack6Area => _showAttack6Area;
+        internal Color Attack6AreaColor => _attack6AreaColor;
+        internal float Attack6AreaFillOpacity => _attack6AreaFillOpacity;
+        internal float Attack6MinimumSpawnRadius => _attack6MinimumSpawnRadius;
 #endif
 
         private readonly Collider[] _overlapBuffer = new Collider[HitBufferCapacity];
         private readonly DetectionAreaHit[] _hitBuffer = new DetectionAreaHit[HitBufferCapacity];
         // 같은 범위 검사에서 대상의 여러 Collider가 중복 피해를 주지 않도록 한다.
         private readonly HashSet<IDamageable> _sampledTargets = new();
+        private readonly List<Vector3> _attack6SpawnPositions = new();
 
         private Transform _owner;
         private Transform _attack1Origin;
@@ -206,6 +239,7 @@ namespace Alpha.Enemy.Boss
         public void Bind(Transform owner, Transform attackOrigin)
         {
             EndHitWindow();
+            ClearAttack6Plan();
             _owner = owner != null ? owner : transform;
             _attack1Origin = attackOrigin != null ? attackOrigin : _owner;
         }
@@ -221,6 +255,82 @@ namespace Alpha.Enemy.Boss
             _hitWindowActive = false;
             _sampledTargets.Clear();
         }
+
+        public bool TryGetAttack6Area(Vector3 targetPosition,
+            out DetectionAreaRequest request)
+        {
+            request = default;
+            if (_attack6Area == null || _attack6Area.Shape != EDetectionAreaShape.Radial ||
+                !_attack6Area.IsValid)
+                return false;
+            request = new DetectionAreaRequest(targetPosition, Vector3.forward,
+                Vector3.up, Owner, _attack6Area);
+            return request.IsValid;
+        }
+
+        // IndicatorStart에 소환 위치를 고정한다. 지면 높이는 실제 충돌면에서 얻는다.
+        public void PlanAttack6(Vector3 targetPosition)
+        {
+            ClearAttack6Plan();
+            if (!IsAttack6Ready || !TryGetAttack6Area(targetPosition,
+                    out DetectionAreaRequest area))
+                return;
+
+            float outerRadius = _attack6Area.Radius;
+            float innerRadius = Mathf.Min(_attack6MinimumSpawnRadius, outerRadius);
+            float spacingSquared = _attack6MinimumCrabSpacing * _attack6MinimumCrabSpacing;
+            Vector3 center = area.AreaOrigin;
+            for (int index = 0; index < _attack6SummonCount; index++)
+            {
+                bool found = false;
+                for (int attempt = 0; attempt < 40; attempt++)
+                {
+                    float radius = Mathf.Sqrt(Random.Range(innerRadius * innerRadius,
+                        outerRadius * outerRadius));
+                    Vector2 direction = Random.insideUnitCircle.normalized;
+                    if (direction.sqrMagnitude < 0.0001f)
+                        direction = Vector2.right;
+                    Vector3 probe = center + new Vector3(direction.x * radius,
+                        20f, direction.y * radius);
+                    if (!Physics.Raycast(probe, Vector3.down, out RaycastHit ground,
+                            100f, _attack6GroundLayers, QueryTriggerInteraction.Ignore))
+                        continue;
+                    bool spaced = true;
+                    foreach (Vector3 existing in _attack6SpawnPositions)
+                    {
+                        Vector2 difference = new(ground.point.x - existing.x,
+                            ground.point.z - existing.z);
+                        if (difference.sqrMagnitude >= spacingSquared)
+                            continue;
+                        spaced = false;
+                        break;
+                    }
+                    if (!spaced)
+                        continue;
+                    _attack6SpawnPositions.Add(ground.point);
+                    found = true;
+                    break;
+                }
+                if (!found)
+                    Debug.LogWarning("CrabBossAttackModule: Attack6 소환 지면을 찾지 못했습니다.", this);
+            }
+        }
+
+        public void SummonAttack6()
+        {
+            if (!IsAttack6Ready)
+                return;
+            Collider[] bossColliders = Owner.GetComponentsInChildren<Collider>(true);
+            foreach (Vector3 position in _attack6SpawnPositions)
+            {
+                Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+                MiniCrabAgent crab = Instantiate(_attack6MiniCrabPrefab, position, rotation);
+                crab.Initialize(Owner, bossColliders);
+            }
+            ClearAttack6Plan();
+        }
+
+        public void ClearAttack6Plan() => _attack6SpawnPositions.Clear();
 
         // View도 실제 타격과 같은 원점, 방향, 범위 설정을 읽는다.
         public bool TryGetAttack1Area(out DetectionAreaRequest request)
@@ -437,6 +547,7 @@ namespace Alpha.Enemy.Boss
             _attack2HitDurationSeconds = Mathf.Max(0f, _attack2HitDurationSeconds);
             _attack3HitDurationSeconds = Mathf.Max(0f, _attack3HitDurationSeconds);
             _attack4DashDurationSeconds = Mathf.Max(0.01f, _attack4DashDurationSeconds);
+            _attack6SummonCount = Mathf.Max(1, _attack6SummonCount);
             _attack1Area ??= CreateDefaultAttack1Area();
             _attack1Damage ??= new DamageProfile();
             _attack2Area ??= CreateDefaultAttack2Area();
@@ -446,6 +557,7 @@ namespace Alpha.Enemy.Boss
             _attack4Area ??= CreateDefaultAttack4Area();
             _attack4Damage ??= new DamageProfile();
             _attack5Area ??= CreateDefaultAttack5Area();
+            _attack6Area ??= CreateDefaultAttack6Area();
             _attack1Area.Validate();
             _attack1Damage.Validate();
             _attack2Area.Validate();
@@ -455,6 +567,10 @@ namespace Alpha.Enemy.Boss
             _attack4Area.Validate();
             _attack4Damage.Validate();
             _attack5Area.Validate();
+            _attack6Area.Validate();
+            _attack6MinimumSpawnRadius = Mathf.Clamp(_attack6MinimumSpawnRadius,
+                0f, _attack6Area.Radius);
+            _attack6MinimumCrabSpacing = Mathf.Max(0f, _attack6MinimumCrabSpacing);
         }
 
         private static DetectionAreaSettings CreateDefaultAttack1Area() =>
@@ -476,6 +592,10 @@ namespace Alpha.Enemy.Boss
         private static DetectionAreaSettings CreateDefaultAttack5Area() =>
             new(EDetectionAreaShape.ForwardBox, Vector3.zero, 1 << 6,
                 2f, 30f, 1f, 90f, 2f);
+
+        private static DetectionAreaSettings CreateDefaultAttack6Area() =>
+            new(EDetectionAreaShape.Radial, new Vector3(0f, 0.5f, 0f),
+                1 << 6, 1f, 1f, 12f, 360f, 1f);
     }
 
     internal enum CrabBossHitMode

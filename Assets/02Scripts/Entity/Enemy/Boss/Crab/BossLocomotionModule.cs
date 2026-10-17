@@ -4,6 +4,9 @@ namespace Alpha.Enemy.Boss
 {
     public class BossLocomotionModule : MonoBehaviour
     {
+        // 모델의 점프 애니메이션이 높이를 표현하므로 몸체는 지형을 넘을 여유만 둔다.
+        private const float JumpBodyClearance = 1f;
+
         [Header("Reference")]
         [SerializeField] private Rigidbody _body;
 
@@ -29,6 +32,8 @@ namespace Alpha.Enemy.Boss
         private Vector3 _jumpStart;
         private Vector3 _jumpDestination;
         private bool _jumpActive;
+        private float _jumpApexY;
+        private bool _jumpGravity;
         private Vector3 _dashStart;
         private Vector3 _dashDestination;
         private bool _dashActive;
@@ -38,7 +43,7 @@ namespace Alpha.Enemy.Boss
 
         public void Bind(Rigidbody body)
         {
-            _jumpActive = false;
+            CancelJump();
             _dashActive = false;
             _body = body;
         }
@@ -83,15 +88,21 @@ namespace Alpha.Enemy.Boss
             Stop();
         }
 
-        // 클립이 높이 변화를 그리는 동안 Rigidbody의 수평 위치만 착지점으로 옮긴다.
+        // Attack3과 Attack6가 목적지 높이를 포함한 같은 점프 경로를 사용한다.
         public void BeginJumpTo(Vector3 targetPosition)
         {
             if (_body == null)
                 return;
 
+            CancelJump();
             Stop();
             _jumpStart = _body.position;
-            _jumpDestination = new Vector3(targetPosition.x, _jumpStart.y, targetPosition.z);
+            _jumpDestination = targetPosition;
+            _jumpApexY = Mathf.Max(_jumpStart.y, _jumpDestination.y) +
+                JumpBodyClearance;
+            _jumpGravity = _body.useGravity;
+            _body.useGravity = false;
+            _body.linearVelocity = Vector3.zero;
             _jumpActive = true;
         }
 
@@ -100,9 +111,10 @@ namespace Alpha.Enemy.Boss
             if (!_jumpActive || _body == null)
                 return;
 
-            Vector3 position = Vector3.Lerp(_jumpStart, _jumpDestination,
-                Mathf.Clamp01(progress));
-            position.y = _body.position.y;
+            float time = Mathf.Clamp01(progress);
+            Vector3 position = Vector3.Lerp(_jumpStart, _jumpDestination, time);
+            float midpointY = (_jumpStart.y + _jumpDestination.y) * 0.5f;
+            position.y += 4f * (_jumpApexY - midpointY) * time * (1f - time);
             _body.MovePosition(position);
         }
 
@@ -112,14 +124,17 @@ namespace Alpha.Enemy.Boss
                 return;
 
             // HitStart 전에 착지점으로 맞춰 이펙트와 피해 범위가 몸 위치와 일치한다.
-            _body.position = new Vector3(_jumpDestination.x,
-                _body.position.y, _jumpDestination.z);
+            _body.position = _jumpDestination;
+            _body.useGravity = _jumpGravity;
             _jumpActive = false;
             Stop();
         }
 
         public void CancelJump()
         {
+            if (!_jumpActive || _body == null)
+                return;
+            _body.useGravity = _jumpGravity;
             _jumpActive = false;
             Stop();
         }

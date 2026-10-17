@@ -102,7 +102,7 @@ namespace Alpha.Combat
         [SerializeField, Min(0f)]
         private float _recoveryDuration = 0.25f;
 
-        [Tooltip("이 공격으로 피해를 받은 대상의 피해 무적 시간입니다.")]
+        [Tooltip("공용 피격 타입을 사용하지 않는 공격의 피해 무적 시간입니다.")]
         [SerializeField, Min(0f)]
         private float _damageInvulnerabilityDuration = 0.1f;
 

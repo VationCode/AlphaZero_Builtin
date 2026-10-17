@@ -62,6 +62,9 @@ namespace Alpha.Enemy.Boss
             _attack.Bind(transform, _attack1Origin != null ? _attack1Origin : transform);
             _animation.Bind(_animator);
             _attackEffectView.Bind(_animation, _attack, _targetDetection, transform);
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+                _collisionView.RegisterPlayer(player.transform);
             _collisionView.SetContactBlocking(true);
 
             _living.Bind(_healthContext);

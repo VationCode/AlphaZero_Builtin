@@ -21,6 +21,8 @@ namespace Alpha.Enemy.Boss
         private const int Attack4AreaId = 7;
         private const int Attack4FillAreaId = 8;
         private const int Attack5WarningBaseId = 100;
+        private const int Attack6AreaId = 500;
+        private const int Attack6FillAreaId = 501;
         private const float StartDistanceTolerance = 0.05f;
         private const float FallbackContactClearanceSpeed = 5f;
 
@@ -29,8 +31,12 @@ namespace Alpha.Enemy.Boss
             Waiting,
             Approaching,
             Preparing,
+            Returning,
+            TurningHome,
             Attacking,
             Recovering,
+            RecoveringAtHome,
+            HoldingPosition,
             Dead
         }
 
@@ -41,7 +47,8 @@ namespace Alpha.Enemy.Boss
             Attack2,
             Attack3,
             Attack4,
-            Attack5
+            Attack5,
+            Attack6
         }
 
         [SerializeField, Min(0f)] private float _prepareDuration = 0.3f;
@@ -68,11 +75,19 @@ namespace Alpha.Enemy.Boss
         private float _nextAttack3SelectionTime;
         private float _nextAttack4SelectionTime;
         private float _nextAttack5SelectionTime;
+        private float _nextAttack6SelectionTime;
         private int _attack5WarningCount;
+        private Vector3 _attack6SpawnCenter;
+        private Vector3 _homePosition;
+        private Vector3 _homeForward;
+        private Vector3 _attack6JumpPosition;
+        private Vector3 _attack6JumpForward;
+        private bool _attack6Summoned;
         private bool _isFacingLockedPosition;
         private bool _attack1HitApplied;
         private bool _attack2HitApplied;
         private bool _attack3HitApplied;
+        private bool _attack3ContactRestorePending;
         private bool _attack4HitApplied;
         private bool _contactClearanceActive;
         private bool _attack2TargetLocked;
@@ -84,6 +99,7 @@ namespace Alpha.Enemy.Boss
         private bool _hitWindowActive;
         private bool _attackAnimationFinished;
         private float _activeHitDurationSeconds;
+        private float _attack3ContactRestoreStartTime;
         private AttackKind _selectedAttack;
         private AttackKind _previousAttack;
         private int _remainingAttackCount;
@@ -116,6 +132,11 @@ namespace Alpha.Enemy.Boss
             if (!_bound)
                 return;
 
+            _homePosition = _locomotion.Position;
+            _homeForward = Vector3.ProjectOnPlane(_locomotion.Forward, Vector3.up).normalized;
+            if (_homeForward.sqrMagnitude < 0.0001f)
+                _homeForward = Vector3.forward;
+
             _animation.Attack1Hit += HandleAttack1Hit;
             _animation.Attack1Finished += HandleAttack1Finished;
             _animation.Attack2Hit += HandleAttack2Hit;
@@ -126,6 +147,8 @@ namespace Alpha.Enemy.Boss
             _animation.Attack4Finished += HandleAttack4Finished;
             _animation.Attack5HitStarted += HandleAttack5HitStarted;
             _animation.Attack5Finished += HandleAttack5Finished;
+            _animation.Attack6Hit += HandleAttack6Hit;
+            _animation.Attack6Finished += HandleAttack6Finished;
             _animation.IndicatorStarted += HandleIndicatorStarted;
             _state = State.Waiting;
             _nextAttack1SelectionTime = 0f;
@@ -133,12 +156,14 @@ namespace Alpha.Enemy.Boss
             _nextAttack3SelectionTime = 0f;
             _nextAttack4SelectionTime = 0f;
             _nextAttack5SelectionTime = 0f;
+            _nextAttack6SelectionTime = 0f;
             _attack5WarningCount = 0;
             _selectedAttack = AttackKind.None;
             _previousAttack = AttackKind.None;
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
+            _attack3ContactRestorePending = false;
             _attack4TargetLocked = false;
             _attackAnimationFinished = false;
             _contactClearanceActive = false;
@@ -162,12 +187,15 @@ namespace Alpha.Enemy.Boss
                 _animation.Attack4Finished -= HandleAttack4Finished;
                 _animation.Attack5HitStarted -= HandleAttack5HitStarted;
                 _animation.Attack5Finished -= HandleAttack5Finished;
+                _animation.Attack6Hit -= HandleAttack6Hit;
+                _animation.Attack6Finished -= HandleAttack6Finished;
                 _animation.IndicatorStarted -= HandleIndicatorStarted;
                 _animation.CancelAttack();
             }
 
             _locomotion?.CancelJump();
             _locomotion?.CancelDash();
+            _attack?.ClearAttack6Plan();
             _boss = null;
             _targetDetection = null;
             _locomotion = null;
@@ -187,6 +215,7 @@ namespace Alpha.Enemy.Boss
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
+            _attack3ContactRestorePending = false;
             _attack4TargetLocked = false;
             _attackAnimationFinished = false;
             _contactClearanceActive = false;
@@ -205,9 +234,11 @@ namespace Alpha.Enemy.Boss
             _remainingAttackCount = 0;
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
+            _attack3ContactRestorePending = false;
             _attack4TargetLocked = false;
             _locomotion.CancelJump();
             _locomotion.CancelDash();
+            _attack.ClearAttack6Plan();
             _attackAreaView.HideAll();
             _animation.SetMoving(false);
             _animation.PlayDeath();
@@ -223,8 +254,11 @@ namespace Alpha.Enemy.Boss
                  hitElapsed >= _activeHitDurationSeconds))
                 CloseHitWindow();
 
+            RestoreAttack3ContactAfterHitDuration();
+
             // 클립이 먼저 끝나도 Hit Duration이 남아 있으면 반복·회복을 기다린다.
-            if (_state == State.Attacking && _attackAnimationFinished && !_hitWindowActive)
+            if (_state == State.Attacking && _attackAnimationFinished &&
+                !_hitWindowActive && !_attack3ContactRestorePending)
             {
                 FinishSelectedAttack();
                 return;
@@ -239,20 +273,37 @@ namespace Alpha.Enemy.Boss
                     return;
                 }
 
+                // Attack6의 착지 위치는 타깃을 잃어도 유지한다.
+                if (_state == State.RecoveringAtHome || _state == State.HoldingPosition)
+                {
+                    _target = null;
+                    _locomotion.Stop();
+                    _animation.SetLocomotion(false, false);
+                    if (_state == State.RecoveringAtHome)
+                    {
+                        _timeRemaining -= Time.deltaTime;
+                        if (_timeRemaining <= 0f)
+                            _state = State.HoldingPosition;
+                    }
+                    return;
+                }
+
                 ReturnToWaiting();
                 return;
             }
 
             _target = target;
+            _collisionView.RegisterPlayer(target);
 
             switch (_state)
             {
                 case State.Waiting:
                 case State.Approaching:
+                case State.HoldingPosition:
                     AttackKind selected = SelectAttack(_target);
                     if (selected != AttackKind.None)
                         BeginSelectedAttack(selected);
-                    else
+                    else if (_state != State.HoldingPosition)
                         _state = State.Approaching;
                     break;
 
@@ -265,10 +316,16 @@ namespace Alpha.Enemy.Boss
                     }
                     break;
 
+                case State.Returning:
+                case State.TurningHome:
+                    break;
+
                 case State.Recovering:
+                case State.RecoveringAtHome:
                     _timeRemaining -= Time.deltaTime;
                     if (_timeRemaining <= 0f)
-                        _state = State.Waiting;
+                        _state = _state == State.RecoveringAtHome
+                            ? State.HoldingPosition : State.Waiting;
                     break;
             }
         }
@@ -285,35 +342,66 @@ namespace Alpha.Enemy.Boss
             }
 
             if (!_bound || _state == State.Dead ||
-                (_target == null && _state != State.Attacking && _state != State.Recovering))
+                (_target == null && _state != State.Attacking &&
+                 _state != State.Recovering &&
+                 _state != State.RecoveringAtHome &&
+                 _state != State.HoldingPosition))
                 return;
 
             switch (_state)
             {
+                case State.Returning:
+                {
+                    if (_animation.TryGetReturnJumpProgress(out float progress))
+                    {
+                        _locomotion.AdvanceJump(progress);
+                        if (progress >= 1f)
+                        {
+                            _locomotion.CompleteJump();
+                            _animation.FinishReturnJump();
+                            _state = State.TurningHome;
+                        }
+                    }
+                    break;
+                }
+
+                case State.TurningHome:
+                    _locomotion.Stop();
+                    bool facingHome = _locomotion.RotateTo(_locomotion.Position + _attack6JumpForward);
+                    _animation.SetLocomotion(false, !facingHome);
+                    if (facingHome)
+                    {
+                        _collisionView.SetContactBlocking(true);
+                        BeginPreparation();
+                    }
+                    break;
+
                 case State.Approaching:
                 {
                     Vector3 offset = GetTargetContactPoint(_target) - _locomotion.Position;
                     offset.y = 0f;
                     float approachDistance = GetApproachDistance();
                     float startDistance = approachDistance + StartDistanceTolerance;
-                    if (offset.sqrMagnitude > startDistance * startDistance)
+                    bool moving = offset.sqrMagnitude > startDistance * startDistance;
+                    if (moving)
                     {
                         _locomotion.MoveTo(_target.position, approachDistance);
-                        _animation.SetMoving(true);
                     }
                     else
                     {
                         _locomotion.Stop();
-                        _animation.SetMoving(false);
                     }
 
-                    _locomotion.RotateTo(_target.position);
+                    bool facingTarget = _locomotion.RotateTo(_target.position);
+                    _animation.SetLocomotion(moving, !facingTarget);
                     break;
                 }
 
                 case State.Preparing:
                     _locomotion.Stop();
-                    if (_locomotion.RotateTo(_aimPosition) && !_isFacingLockedPosition)
+                    bool facingAim = _locomotion.RotateTo(_aimPosition);
+                    _animation.SetLocomotion(false, !facingAim);
+                    if (facingAim && !_isFacingLockedPosition)
                     {
                         _isFacingLockedPosition = true;
                         _timeRemaining = _prepareDuration;
@@ -345,7 +433,8 @@ namespace Alpha.Enemy.Boss
                                      (_selectedAttack == AttackKind.Attack4 && !_attack4TargetLocked);
                     Vector3 aim = targeting && _target != null
                         ? _target.position : _aimPosition;
-                    if (_selectedAttack != AttackKind.Attack4 || !_attack4TargetLocked)
+                    if (_selectedAttack != AttackKind.Attack6 &&
+                        (_selectedAttack != AttackKind.Attack4 || !_attack4TargetLocked))
                         _locomotion.RotateTo(aim);
                     if (_hitWindowActive)
                     {
@@ -361,13 +450,24 @@ namespace Alpha.Enemy.Boss
                 case State.Recovering:
                     _locomotion.Stop();
                     if (_target != null)
-                        _locomotion.RotateTo(_target.position);
+                        _animation.SetLocomotion(false, !_locomotion.RotateTo(_target.position));
+                    else
+                        _animation.SetLocomotion(false, false);
+                    break;
+
+                case State.RecoveringAtHome:
+                case State.HoldingPosition:
+                    _locomotion.Stop();
+                    _animation.SetLocomotion(false, false);
                     break;
             }
         }
 
         private void LateUpdate()
         {
+            if (_bound && _collisionView.IsContactBlocking)
+                ClearPlayerContact(true);
+
             if (!_bound || _state == State.Dead)
                 return;
 
@@ -376,6 +476,7 @@ namespace Alpha.Enemy.Boss
             if (!isWarning)
             {
                 HideAttack5Warnings();
+                HideAttack6Warnings();
                 _attackAreaView.Hide(Attack1FillAreaId);
                 _attackAreaView.Hide(Attack2FillAreaId);
                 _attackAreaView.Hide(Attack3FillAreaId);
@@ -426,8 +527,23 @@ namespace Alpha.Enemy.Boss
             AttackKind.Attack3 => ShowAttack3Warning(progress),
             AttackKind.Attack4 => ShowAttack4Warning(progress),
             AttackKind.Attack5 => ShowAttack5Warning(progress),
+            AttackKind.Attack6 => ShowAttack6Warning(progress),
             _ => false
         };
+
+        private bool ShowAttack6Warning(float progress)
+        {
+            return _attack.TryGetAttack6Area(_attack6SpawnCenter,
+                       out DetectionAreaRequest request) &&
+                   ShowWarningArea(Attack6AreaId, Attack6FillAreaId, request,
+                       _attack.Attack6WarningColor, _attack.Attack6FillColor, progress);
+        }
+
+        private void HideAttack6Warnings()
+        {
+            _attackAreaView.Hide(Attack6AreaId);
+            _attackAreaView.Hide(Attack6FillAreaId);
+        }
 
         private bool ShowAttack1Warning(float progress) =>
             _attack.TryGetAttack1Area(out var request) &&
@@ -531,6 +647,7 @@ namespace Alpha.Enemy.Boss
             AttackKind.Attack3 => _attack3HitApplied,
             AttackKind.Attack4 => _attack4HitApplied,
             AttackKind.Attack5 => false,
+            AttackKind.Attack6 => _attack6Summoned,
             _ => true
         };
 
@@ -542,6 +659,7 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack3 = _selection.Attack3;
             AttackSelectionSettings attack4 = _selection.Attack4;
             AttackSelectionSettings attack5 = _selection.Attack5;
+            AttackSelectionSettings attack6 = _selection.Attack6;
             float attack1Weight = CanSelectAttack(target, attack1, _nextAttack1SelectionTime)
                 ? AdjustWeight(AttackKind.Attack1, attack1.Weight) : 0f;
             float attack2Weight = CanSelectAttack(target, attack2, _nextAttack2SelectionTime)
@@ -552,15 +670,18 @@ namespace Alpha.Enemy.Boss
                 ? AdjustWeight(AttackKind.Attack4, attack4.Weight) : 0f;
             float attack5Weight = CanSelectAttack5(target)
                 ? AdjustWeight(AttackKind.Attack5, attack5.Weight) : 0f;
+            float attack6Weight = CanSelectAttack6(target)
+                ? AdjustWeight(AttackKind.Attack6, attack6.Weight) : 0f;
 
             // 다른 공격도 거리·재사용 시간 조건을 만족하면 먼저 타깃을 향해 돈다.
             if (attack3Weight > 0f &&
-                attack1Weight + attack2Weight + attack4Weight + attack5Weight <= 0f &&
+                attack1Weight + attack2Weight + attack4Weight +
+                attack5Weight + attack6Weight <= 0f &&
                 HasReadyAlternativeAtCurrentDistance(target))
                 return AttackKind.None;
 
             float totalWeight = attack1Weight + attack2Weight + attack3Weight +
-                attack4Weight + attack5Weight;
+                attack4Weight + attack5Weight + attack6Weight;
             if (totalWeight <= 0f)
                 return AttackKind.None;
 
@@ -573,8 +694,12 @@ namespace Alpha.Enemy.Boss
                 return AttackKind.Attack3;
             if (selection < attack1Weight + attack2Weight + attack3Weight + attack4Weight)
                 return AttackKind.Attack4;
+            if (selection < attack1Weight + attack2Weight + attack3Weight +
+                attack4Weight + attack5Weight)
+                return AttackKind.Attack5;
             // Random.value가 1을 반환해도 비활성 공격을 선택하지 않는다.
-            return attack5Weight > 0f ? AttackKind.Attack5 :
+            return attack6Weight > 0f ? AttackKind.Attack6 :
+                attack5Weight > 0f ? AttackKind.Attack5 :
                 attack4Weight > 0f ? AttackKind.Attack4 :
                 attack3Weight > 0f ? AttackKind.Attack3 :
                 attack2Weight > 0f ? AttackKind.Attack2 : AttackKind.Attack1;
@@ -589,6 +714,7 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack2 = _selection.Attack2;
             AttackSelectionSettings attack4 = _selection.Attack4;
             AttackSelectionSettings attack5 = _selection.Attack5;
+            AttackSelectionSettings attack6 = _selection.Attack6;
             return (attack1.Weight > 0f && Time.time >= _nextAttack1SelectionTime &&
                     IsWithinSelectionDistance(target, attack1.MinDistance, attack1.MaxDistance)) ||
                    (attack2.Weight > 0f && Time.time >= _nextAttack2SelectionTime &&
@@ -597,7 +723,10 @@ namespace Alpha.Enemy.Boss
                     IsWithinSelectionDistance(target, attack4.MinDistance, attack4.MaxDistance)) ||
                    (IsAttack5Ready && attack5.Weight > 0f &&
                     Time.time >= _nextAttack5SelectionTime &&
-                    IsWithinSelectionDistance(target, attack5.MinDistance, attack5.MaxDistance));
+                    IsWithinSelectionDistance(target, attack5.MinDistance, attack5.MaxDistance)) ||
+                   (IsAttack6Ready && attack6.Weight > 0f &&
+                    Time.time >= _nextAttack6SelectionTime &&
+                    IsWithinSelectionDistance(target, attack6.MinDistance, attack6.MaxDistance));
         }
 
         private float GetApproachDistance()
@@ -609,6 +738,7 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack3 = _selection.Attack3;
             AttackSelectionSettings attack4 = _selection.Attack4;
             AttackSelectionSettings attack5 = _selection.Attack5;
+            AttackSelectionSettings attack6 = _selection.Attack6;
             if (attack1.Weight > 0f)
                 distance = Mathf.Min(distance, attack1.MaxDistance);
             if (attack2.Weight > 0f)
@@ -619,6 +749,8 @@ namespace Alpha.Enemy.Boss
                 distance = Mathf.Min(distance, attack4.MaxDistance);
             if (IsAttack5Ready && attack5.Weight > 0f)
                 distance = Mathf.Min(distance, attack5.MaxDistance);
+            if (IsAttack6Ready && attack6.Weight > 0f)
+                distance = Mathf.Min(distance, attack6.MaxDistance);
             return float.IsPositiveInfinity(distance) ? 0f : distance;
         }
 
@@ -642,6 +774,12 @@ namespace Alpha.Enemy.Boss
         private bool CanSelectAttack5(Transform target) =>
             IsAttack5Ready &&
             CanSelectAttack(target, _selection.Attack5, _nextAttack5SelectionTime);
+
+        private bool IsAttack6Ready => _attack != null && _attack.IsAttack6Ready;
+
+        private bool CanSelectAttack6(Transform target) =>
+            IsAttack6Ready &&
+            CanSelectAttack(target, _selection.Attack6, _nextAttack6SelectionTime);
 
         private bool CanSelectAttack(Transform target, AttackSelectionSettings settings,
             float nextSelectionTime) =>
@@ -706,11 +844,36 @@ namespace Alpha.Enemy.Boss
                 AttackKind.Attack3 => _selection.Attack3,
                 AttackKind.Attack4 => _selection.Attack4,
                 AttackKind.Attack5 => _selection.Attack5,
+                AttackKind.Attack6 => _selection.Attack6,
                 _ => default
             };
             _remainingAttackCount = attack == AttackKind.None ? 0 :
                 RollRepeatCount(settings.MinRepeats, settings.MaxRepeats);
-            BeginPreparation();
+            if (attack == AttackKind.Attack6)
+                BeginReturnJump();
+            else
+                BeginPreparation();
+        }
+
+        private void BeginReturnJump()
+        {
+            CloseHitWindow();
+            _attack.ClearAttack6Plan();
+            _animation.SetMoving(false);
+            _attack6JumpPosition = _attack.GetAttack6JumpPosition(_homePosition);
+            _attack6JumpForward = Vector3.ProjectOnPlane(
+                _attack.GetAttack6JumpForward(_homeForward), Vector3.up).normalized;
+            if (_attack6JumpForward.sqrMagnitude < 0.0001f)
+                _attack6JumpForward = _homeForward;
+            _state = State.Returning;
+            if (!_animation.PlayReturnJump())
+            {
+                Debug.LogError("BossStateFlow: Attack6 복귀 점프 애니메이션을 재생할 수 없습니다.", this);
+                ReturnToWaiting();
+                return;
+            }
+            _collisionView.SetContactBlocking(false, _target);
+            _locomotion.BeginJumpTo(_attack6JumpPosition);
         }
 
         private static int RollRepeatCount(int minimum, int maximum)
@@ -728,11 +891,13 @@ namespace Alpha.Enemy.Boss
             _locomotion.CancelDash();
             _animation.SetMoving(false);
             // Attack1은 여기서 조준하고, 대상 위치 공격은 IndicatorStart에서 확정한다.
-            _aimPosition = _target.position;
+            _aimPosition = _selectedAttack == AttackKind.Attack6
+                ? _locomotion.Position + _attack6JumpForward : _target.position;
             _attack1HitApplied = false;
             _attack2HitApplied = false;
             _attack3HitApplied = false;
             _attack4HitApplied = false;
+            _attack6Summoned = false;
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
             _attack4TargetLocked = false;
@@ -752,6 +917,7 @@ namespace Alpha.Enemy.Boss
                 AttackKind.Attack3 => _animation.PlayAttack3(),
                 AttackKind.Attack4 => _animation.PlayAttack4(),
                 AttackKind.Attack5 => _animation.PlayAttack5(),
+                AttackKind.Attack6 => _animation.PlayAttack6(),
                 _ => false
             };
             if (!started)
@@ -762,9 +928,6 @@ namespace Alpha.Enemy.Boss
                 return;
             }
 
-            // 점프 중에도 지면 충돌은 유지하고 플레이어와의 몸체 충돌만 푼다.
-            if (_selectedAttack == AttackKind.Attack3)
-                _collisionView.SetContactBlocking(false, _target);
             _state = State.Attacking;
         }
 
@@ -785,6 +948,8 @@ namespace Alpha.Enemy.Boss
                 else
                 {
                     _attack3TargetLocked = true;
+                    // 점프 중에는 플레이어와의 수평 거리 유지를 잠시 중단한다.
+                    _collisionView.SetContactBlocking(false, _target);
                     _locomotion.BeginJumpTo(_aimPosition);
                 }
                 _animation.SetAttackTargetPosition(_aimPosition);
@@ -808,6 +973,13 @@ namespace Alpha.Enemy.Boss
                 _attack4Destination = start + direction.normalized *
                     _attack4Area.Settings.Length;
                 _attack4TargetLocked = true;
+            }
+            else if (_selectedAttack == AttackKind.Attack6)
+            {
+                if (_target == null)
+                    return;
+                _attack6SpawnCenter = _target.position;
+                _attack.PlanAttack6(_attack6SpawnCenter);
             }
 
             _indicatorStarted = true;
@@ -855,8 +1027,29 @@ namespace Alpha.Enemy.Boss
 
             _locomotion.CompleteJump();
             OpenHitWindow(_attack.Attack3HitTiming);
+            _attack3ContactRestorePending = true;
+            _attack3ContactRestoreStartTime = Time.time;
             _contactClearanceActive = true;
             ClearPlayerContact();
+            RestoreAttack3ContactAfterHitDuration();
+        }
+
+        // Hit Duration 안에 수평 겹침을 풀고, 안전해진 뒤 거리 유지를 재개한다.
+        private void RestoreAttack3ContactAfterHitDuration()
+        {
+            if (!_attack3ContactRestorePending)
+                return;
+
+            float duration = _attack.Attack3HitTiming.DurationSeconds;
+            bool elapsed = _animation.TryGetHitElapsedClipSeconds(out float clipSeconds)
+                ? clipSeconds >= duration
+                : Time.time - _attack3ContactRestoreStartTime >= duration;
+            if (!elapsed)
+                return;
+
+            _attack3ContactRestorePending = false;
+            ClearPlayerContact(true);
+            _collisionView.SetContactBlocking(true);
         }
 
         private void HandleAttack4Hit()
@@ -890,7 +1083,18 @@ namespace Alpha.Enemy.Boss
             // 같은 시점의 Effect1Start가 EffectView에 실제 투사체 생성을 요청한다.
         }
 
-        private bool ClearPlayerContact()
+        private void HandleAttack6Hit()
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack6 ||
+                _attack6Summoned)
+                return;
+            _attack6Summoned = true;
+            _indicatorStarted = false;
+            HideAttack6Warnings();
+            _attack.SummonAttack6();
+        }
+
+        private bool ClearPlayerContact(bool resolveFully = false)
         {
             if (_collisionView == null ||
                 !_collisionView.TryGetPlayerClearance(out CharacterController controller,
@@ -899,15 +1103,28 @@ namespace Alpha.Enemy.Boss
 
             // 피격 무적이나 누운 상태여도 Player의 충돌 이동 경로로 몸 밖으로 보낸다.
             PlayerCore player = controller.GetComponentInParent<PlayerCore>();
-            // 실제 넉백이 진행 중이면 이동량을 중복 적용하지 않는다.
-            if (player == null || player.IsKnockbackActive)
+            bool clearingAttack3 = resolveFully ||
+                (_selectedAttack == AttackKind.Attack3 &&
+                 _attack3ContactRestorePending);
+            if (player == null || (player.IsKnockbackActive && !clearingAttack3))
                 return true;
 
             float speed = _selectedAttack == AttackKind.Attack3 &&
                 _attack.TryGetAttack3KnockbackSpeed(out float knockbackSpeed)
                 ? knockbackSpeed : FallbackContactClearanceSpeed;
-            player.TryMoveForContactClearance(Vector3.ClampMagnitude(displacement,
-                speed * Time.fixedDeltaTime));
+            if (clearingAttack3 && !resolveFully)
+            {
+                float elapsed = _animation.TryGetHitElapsedClipSeconds(out float clipSeconds)
+                    ? clipSeconds : Time.time - _attack3ContactRestoreStartTime;
+                float remaining = Mathf.Max(Time.fixedDeltaTime,
+                    _attack.Attack3HitTiming.DurationSeconds - elapsed);
+                speed = Mathf.Max(speed, displacement.magnitude / remaining);
+            }
+
+            // 마지막 프레임에는 남은 수평 겹침을 시도하되, 장애물에 막히면 거리 유지를 보류한다.
+            Vector3 movement = resolveFully ? displacement :
+                Vector3.ClampMagnitude(displacement, speed * Time.fixedDeltaTime);
+            player.TryMoveForContactClearance(movement);
             return true;
         }
 
@@ -990,7 +1207,7 @@ namespace Alpha.Enemy.Boss
                 _locomotion.CancelJump();
             if (_hitWindowActive && !_animation.TryGetHitElapsedClipSeconds(out _))
                 CloseHitWindow();
-            if (!_hitWindowActive)
+            if (!_hitWindowActive && !_attack3ContactRestorePending)
                 FinishSelectedAttack();
         }
 
@@ -1020,8 +1237,18 @@ namespace Alpha.Enemy.Boss
             FinishSelectedAttack();
         }
 
+        private void HandleAttack6Finished()
+        {
+            if (_state != State.Attacking || _selectedAttack != AttackKind.Attack6)
+                return;
+            HideAttack6Warnings();
+            _attack.ClearAttack6Plan();
+            FinishSelectedAttack();
+        }
+
         private void FinishSelectedAttack()
         {
+            _attack3ContactRestorePending = false;
             CloseHitWindow();
             if (_selectedAttack == AttackKind.Attack3 ||
                 _selectedAttack == AttackKind.Attack4)
@@ -1029,15 +1256,23 @@ namespace Alpha.Enemy.Boss
             _collisionView.SetContactBlocking(true);
             _attackAnimationFinished = false;
             _locomotion.CancelJump();
+            _animation.FinishReturnJump();
             _locomotion.CancelDash();
             if (--_remainingAttackCount > 0)
             {
                 if (_target == null)
                     ReturnToWaiting();
                 else
-                    BeginPreparation();
+                {
+                    if (_selectedAttack == AttackKind.Attack6)
+                        BeginReturnJump();
+                    else
+                        BeginPreparation();
+                }
                 return;
             }
+
+            bool holdPosition = _selectedAttack == AttackKind.Attack6;
 
             if (_selectedAttack == AttackKind.Attack1)
                 _nextAttack1SelectionTime = Time.time + _selection.Attack1.Cooldown;
@@ -1049,6 +1284,8 @@ namespace Alpha.Enemy.Boss
                 _nextAttack4SelectionTime = Time.time + _selection.Attack4.Cooldown;
             else if (_selectedAttack == AttackKind.Attack5)
                 _nextAttack5SelectionTime = Time.time + _selection.Attack5.Cooldown;
+            else if (_selectedAttack == AttackKind.Attack6)
+                _nextAttack6SelectionTime = Time.time + _selection.Attack6.Cooldown;
 
             _previousAttack = _selectedAttack;
             _selectedAttack = AttackKind.None;
@@ -1056,18 +1293,23 @@ namespace Alpha.Enemy.Boss
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
             _attack4TargetLocked = false;
+            _attack.ClearAttack6Plan();
+            HideAttack6Warnings();
             _timeRemaining = _recoveryDuration;
-            _state = State.Recovering;
+            _state = holdPosition ? State.RecoveringAtHome : State.Recovering;
         }
 
         private void ReturnToWaiting()
         {
+            _attack3ContactRestorePending = false;
             CloseHitWindow();
             _collisionView?.SetContactBlocking(true);
             if (_state == State.Waiting)
                 return;
 
             _attackAreaView.HideAll();
+            _attack?.ClearAttack6Plan();
+            HideAttack6Warnings();
             _animation.CancelAttack();
             _animation.SetMoving(false);
             _locomotion.CancelJump();
@@ -1204,13 +1446,32 @@ namespace Alpha.Enemy.Boss
                         attack.Attack5AreaFillOpacity);
                 }
             }
+            if (attack.ShowAttack6Area &&
+                attack.TryGetAttack6Area(GetPreviewTargetPosition(position,
+                    AttackKind.Attack6, _indicatorStarted), out var attack6Area))
+            {
+                DrawHitAreaGizmo(attack6Area, attack.Attack6AreaColor,
+                    "Attack6 summon", 5,
+                    selection.Attack6.MinDistance, selection.Attack6.MaxDistance,
+                    attack.Attack6AreaFillOpacity);
+                if (attack.Attack6MinimumSpawnRadius > 0f)
+                {
+                    Color previousColor = Handles.color;
+                    Handles.color = attack.Attack6AreaColor;
+                    Vector3 center = attack6Area.AreaOrigin;
+                    center.y = attack6Area.Origin.y + 0.12f;
+                    Handles.DrawWireDisc(center, Vector3.up,
+                        attack.Attack6MinimumSpawnRadius);
+                    Handles.color = previousColor;
+                }
+            }
         }
 
         private Vector3 GetPreviewTargetPosition(Vector3 fallback, AttackKind attack,
             bool locked)
         {
             if (Application.isPlaying && _selectedAttack == attack && locked)
-                return _aimPosition;
+                return attack == AttackKind.Attack6 ? _attack6SpawnCenter : _aimPosition;
             return Application.isPlaying && _target != null
                 ? _target.position : fallback;
         }

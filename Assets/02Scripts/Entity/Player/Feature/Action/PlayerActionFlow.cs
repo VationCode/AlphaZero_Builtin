@@ -41,6 +41,7 @@ namespace Alpha.Player.Actions
         private bool _hasCurrentState;
         private bool _isDead;
         private bool _isCombatInputBlocked;
+        private float _damageInvulnerabilityEndTime = float.NegativeInfinity;
 
         public EPlayerActionState CurrentState { get; private set; } =
             EPlayerActionState.Normal;
@@ -62,6 +63,10 @@ namespace Alpha.Player.Actions
 
         public bool IsReacting =>
             CurrentState == EPlayerActionState.HitReaction;
+
+        // 공용 피격 타입의 무적 시간이 피해 수신 가능 여부를 결정한다.
+        public bool IsDamageInvulnerable =>
+            Time.time < _damageInvulnerabilityEndTime;
 
         public bool IsDead => _isDead;
         public bool IsDeathFalling => _isDeathFalling;
@@ -85,6 +90,7 @@ namespace Alpha.Player.Actions
             _externalActionBlockers.Clear();
             _hasCurrentState = false;
             _isDead = false;
+            _damageInvulnerabilityEndTime = float.NegativeInfinity;
 
             ChangeState(EPlayerActionState.Normal);
         }
@@ -156,6 +162,10 @@ namespace Alpha.Player.Actions
                 return;
             }
 
+            _damageInvulnerabilityEndTime = Mathf.Max(
+                _damageInvulnerabilityEndTime,
+                Time.time + p_damageInfo.Impact.DamageInvulnerabilityDuration);
+
             ImpactReactionResult reactionResult =
                 ImpactReactionSystem.Resolve(
                     p_damageInfo,
@@ -192,7 +202,7 @@ namespace Alpha.Player.Actions
         private bool TryEnterHitReaction(
             in ImpactReactionResult p_result)
         {
-            // Player는 피해 무적 시간만 사용하며 반응 종료 후 별도 면역은 두지 않는다.
+            // 피격 반응의 우선순위와 피해 무적 시간은 각각 별도로 진행한다.
             if (!_hitReactionFlow.TryBegin(
                     p_result,
                     Time.time,

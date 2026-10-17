@@ -15,18 +15,22 @@ namespace Alpha.Enemy.Boss
         private static readonly int Attack4Name = Animator.StringToHash("Attack4");
         private static readonly int Attack5State = Animator.StringToHash("Base Layer.Attack5");
         private static readonly int Attack5Name = Animator.StringToHash("Attack5");
+        private static readonly int Attack6State = Animator.StringToHash("Base Layer.Attack6");
+        private static readonly int Attack6Name = Animator.StringToHash("Attack6");
         private static readonly int ChaseState = Animator.StringToHash("Base Layer.Chase");
+        private static readonly int WalkBackState = Animator.StringToHash("Base Layer.Walk_B");
         private static readonly int IdleState = Animator.StringToHash("Base Layer.Idle");
         private static readonly int DeathState = Animator.StringToHash("Base Layer.Death");
 
         [SerializeField] private Animator _animator;
 
         private bool _attackPlaying;
+        private bool _returnJumpPlaying;
         private bool _attackEntered;
         private bool _attackHitSent;
         private bool _indicatorStartSent;
         private int _attack5SwingCount;
-        private bool _isMoving;
+        private int _locomotionState;
         private int _framesWaitingForEntry;
         private int _activeAttackNameHash;
         private int _activeAttackStateHash;
@@ -45,6 +49,7 @@ namespace Alpha.Enemy.Boss
         public event Action Attack3Hit;
         public event Action Attack4Hit;
         public event Action<int> Attack5HitStarted;
+        public event Action Attack6Hit;
         public event Action IndicatorStarted;
         public event Action<string> EffectStarted;
         public event Action<int> AttackAnimationStarted;
@@ -54,6 +59,7 @@ namespace Alpha.Enemy.Boss
         public event Action Attack3Finished;
         public event Action Attack4Finished;
         public event Action Attack5Finished;
+        public event Action Attack6Finished;
         public Vector3? AttackTargetPosition { get; private set; }
         public string Attack5WarningEffectEventName { get; private set; }
 
@@ -67,20 +73,23 @@ namespace Alpha.Enemy.Boss
         {
             CancelAttack();
             _animator = animator;
-            _isMoving = false;
+            _locomotionState = 0;
         }
 
-        public void SetMoving(bool moving)
+        public void SetMoving(bool moving) => SetLocomotion(moving, false);
+
+        // 제자리 회전은 이동보다 우선하여 Walk_B로 보여준다.
+        public void SetLocomotion(bool moving, bool turning)
         {
-            if (_attackPlaying || _isMoving == moving || _animator == null ||
+            if (_attackPlaying || _returnJumpPlaying || _animator == null ||
                 !_animator.isActiveAndEnabled)
                 return;
 
-            int state = moving ? ChaseState : IdleState;
-            if (!_animator.HasState(0, state))
+            int state = turning ? WalkBackState : moving ? ChaseState : IdleState;
+            if (_locomotionState == state || !_animator.HasState(0, state))
                 return;
 
-            _isMoving = moving;
+            _locomotionState = state;
             _animator.CrossFadeInFixedTime(state, 0.1f, 0);
         }
 
@@ -92,6 +101,36 @@ namespace Alpha.Enemy.Boss
 
         public bool PlayAttack4() => PlayAttack(Attack4State, Attack4Name, null);
         public bool PlayAttack5() => PlayAttack(Attack5State, Attack5Name, null);
+        public bool PlayAttack6() => PlayAttack(Attack6State, Attack6Name, null);
+
+        // Attack3 클립의 점프 동작만 사용한다. 공격 이벤트는 _attackPlaying이 아니므로 무시된다.
+        public bool PlayReturnJump()
+        {
+            if (_attackPlaying || _animator == null || !_animator.isActiveAndEnabled ||
+                !_animator.HasState(0, Attack3State))
+                return false;
+            _returnJumpPlaying = true;
+            _locomotionState = 0;
+            _indicatorStartSent = false;
+            ResetIndicatorClock();
+            _animator.Play(Attack3State, 0, 0f);
+            return true;
+        }
+
+        public void FinishReturnJump()
+        {
+            if (!_returnJumpPlaying)
+                return;
+            _returnJumpPlaying = false;
+            _indicatorStartSent = false;
+            ResetIndicatorClock();
+            if (_animator != null && _animator.isActiveAndEnabled &&
+                _animator.HasState(0, IdleState))
+            {
+                _locomotionState = IdleState;
+                _animator.CrossFadeInFixedTime(IdleState, 0.1f);
+            }
+        }
 
         // IndicatorStart에서 확정된 착지·공격 위치를 이펙트에 전달한다.
         public void SetAttackTargetPosition(Vector3 targetPosition)
@@ -108,7 +147,7 @@ namespace Alpha.Enemy.Boss
                 return false;
 
             _attackPlaying = true;
-            _isMoving = false;
+            _locomotionState = 0;
             _attackEntered = false;
             _attackHitSent = false;
             _indicatorStartSent = false;
@@ -129,8 +168,9 @@ namespace Alpha.Enemy.Boss
         public void IndicatorStart(AnimationEvent animationEvent)
         {
             // Attack5는 세 휘두르기마다 예고를 다시 시작한다.
-            if (!_attackPlaying ||
-                (_indicatorStartSent && _activeAttackNameHash != Attack5Name))
+            if ((!_attackPlaying && !_returnJumpPlaying) ||
+                (_indicatorStartSent &&
+                 (_returnJumpPlaying || _activeAttackNameHash != Attack5Name)))
                 return;
 
             _indicatorClockAvailable = false;
@@ -178,7 +218,8 @@ namespace Alpha.Enemy.Boss
             }
 
             _indicatorStartSent = true;
-            IndicatorStarted?.Invoke();
+            if (_attackPlaying)
+                IndicatorStarted?.Invoke();
         }
 
         // 이름을 IndicatorStar로 입력한 클립도 같은 신호로 처리한다.
@@ -188,16 +229,33 @@ namespace Alpha.Enemy.Boss
         public bool TryGetIndicatorProgress(out float progress)
         {
             progress = 0f;
-            if (!_attackPlaying || !_indicatorStartSent || !_indicatorClockAvailable ||
+            if ((!_attackPlaying && !_returnJumpPlaying) || !_indicatorStartSent ||
+                !_indicatorClockAvailable ||
                 _animator == null || !_animator.isActiveAndEnabled)
                 return false;
 
             AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
-            if (state.fullPathHash != _activeAttackStateHash)
+            int expectedState = _returnJumpPlaying ? Attack3State : _activeAttackStateHash;
+            if (state.fullPathHash != expectedState)
                 return false;
 
             progress = Mathf.Clamp01((state.normalizedTime - _indicatorStartNormalizedTime) /
                 (_indicatorHitNormalizedTime - _indicatorStartNormalizedTime));
+            return true;
+        }
+
+        public bool TryGetReturnJumpProgress(out float progress)
+        {
+            progress = 0f;
+            if (!_returnJumpPlaying || _animator == null || !_animator.isActiveAndEnabled)
+                return false;
+            if (TryGetIndicatorProgress(out progress))
+                return true;
+            // 이벤트가 누락돼도 클립 종료 시 복귀 단계가 멈추지 않게 한다.
+            AnimatorStateInfo state = _animator.GetCurrentAnimatorStateInfo(0);
+            if (state.fullPathHash != Attack3State || state.normalizedTime < 1f)
+                return false;
+            progress = 1f;
             return true;
         }
 
@@ -243,6 +301,8 @@ namespace Alpha.Enemy.Boss
                 Attack3Hit?.Invoke();
             else if (_activeAttackNameHash == Attack4Name)
                 Attack4Hit?.Invoke();
+            else if (_activeAttackNameHash == Attack6Name)
+                Attack6Hit?.Invoke();
         }
 
         // 클립 종료 후에도 남은 Hit Duration은 마지막 상태 속도로 진행한다.
@@ -300,6 +360,7 @@ namespace Alpha.Enemy.Boss
 
         public void CancelAttack()
         {
+            FinishReturnJump();
             if (!_attackPlaying)
             {
                 ResetHitClock();
@@ -318,7 +379,8 @@ namespace Alpha.Enemy.Boss
             // 사망 시 공격을 중단하고 Idle을 거치지 않고 Death로 전환한다.
             EndAttackAnimation();
             ClearAttackTracking();
-            _isMoving = false;
+            _returnJumpPlaying = false;
+            _locomotionState = 0;
 
             if (_animator == null || !_animator.isActiveAndEnabled ||
                 _animator.runtimeAnimatorController == null || !_animator.HasState(0, DeathState))
@@ -391,6 +453,8 @@ namespace Alpha.Enemy.Boss
                 Attack4Finished?.Invoke();
             else if (finishedNameHash == Attack5Name)
                 Attack5Finished?.Invoke();
+            else if (finishedNameHash == Attack6Name)
+                Attack6Finished?.Invoke();
         }
 
         private void EndAttackAnimation()
