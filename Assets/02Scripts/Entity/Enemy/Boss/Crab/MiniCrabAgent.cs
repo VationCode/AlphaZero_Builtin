@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Alpha.Enemy.Boss
 {
-    // 소환 후 이동, 접촉 감지, 수명과 단발 폭발을 미니 게 자신이 관리한다.
+    // 소환 후 이동, 접근 감지, 수명과 단발 폭발을 미니 게 자신이 관리한다.
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody), typeof(AreaDetectionModule))]
     public sealed class MiniCrabAgent : MonoBehaviour
@@ -15,7 +15,6 @@ namespace Alpha.Enemy.Boss
         private static readonly int WalkRightState = Animator.StringToHash("Base Layer.Walk_R");
 
         [SerializeField] private Rigidbody _body;
-        [SerializeField] private Collider _contactTrigger;
         [SerializeField] private Collider _bodyCollider;
         [SerializeField] private AreaDetectionModule _explosionArea;
         [SerializeField] private Transform _model;
@@ -45,7 +44,7 @@ namespace Alpha.Enemy.Boss
             _explosionArea ??= GetComponent<AreaDetectionModule>();
             if (_body == null || _explosionArea == null)
             {
-                Debug.LogError("MiniCrabAgent: 이동 또는 폭발 범위 구성 요소가 없습니다.", this);
+                Debug.LogError("MiniCrabAgent: 이동 또는 감지·폭발 영역 구성이 필요합니다.", this);
                 enabled = false;
                 return;
             }
@@ -59,7 +58,7 @@ namespace Alpha.Enemy.Boss
             _exploded = false;
         }
 
-        // 소환된 개체와 보스 사이의 물리·Trigger 충돌만 제외한다.
+        // 소환된 개체와 보스 사이의 물리 충돌을 제외한다.
         private void IgnoreBossCollisions(Collider[] bossColliders)
         {
             if (bossColliders == null)
@@ -92,6 +91,14 @@ namespace Alpha.Enemy.Boss
         {
             if (!_initialized || _exploded || _body == null)
                 return;
+
+            // 폭발 피해와 같은 감지 영역에 플레이어가 들어오면 폭발한다.
+            if (IsPlayerInExplosionArea())
+            {
+                Explode();
+                return;
+            }
+
             float elapsed = Time.time - _spawnTime - _moveStartDelay;
             float side = elapsed < 0f ? 0f :
                 (Mathf.FloorToInt(elapsed / _sideChangeInterval) % 2 == 0 ? 1f : -1f);
@@ -111,21 +118,17 @@ namespace Alpha.Enemy.Boss
             }
         }
 
-        private void OnTriggerEnter(Collider other)
+        private bool IsPlayerInExplosionArea()
         {
-            if (!_initialized || _exploded || other == null ||
-                (_contactTrigger != null && !_contactTrigger.enabled))
-                return;
-            if (other.CompareTag("Player") || other.transform.root.CompareTag("Player"))
-                Explode();
-        }
-
-        private void OnCollisionEnter(Collision collision)
-        {
-            if (_initialized && !_exploded && collision.collider != null &&
-                (collision.collider.CompareTag("Player") ||
-                 collision.collider.transform.root.CompareTag("Player")))
-                Explode();
+            int count = _explosionArea.CollectHits();
+            for (int index = 0; index < count; index++)
+            {
+                if (_explosionArea.TryGetHit(index, out DetectionAreaHit hit) &&
+                    (hit.Collider.CompareTag("Player") ||
+                     hit.Collider.transform.root.CompareTag("Player")))
+                    return true;
+            }
+            return false;
         }
 
         private void Explode()
@@ -156,8 +159,6 @@ namespace Alpha.Enemy.Boss
                 }
             }
 
-            if (_contactTrigger != null)
-                _contactTrigger.enabled = false;
             if (_bodyCollider != null)
                 _bodyCollider.enabled = false;
             if (_body != null)

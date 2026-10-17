@@ -120,6 +120,8 @@ namespace Alpha.Enemy.Boss
         [SerializeField] private Transform _attack6JumpTarget;
         [SerializeField] private MiniCrabAgent _attack6MiniCrabPrefab;
         [SerializeField, Min(1)] private int _attack6SummonCount = 5;
+        [Tooltip("Attack6 애니메이션 재생 시작부터 패턴 종료까지의 실제 시간(초)입니다. HitStart 이벤트보다 길게 설정하세요.")]
+        [SerializeField, Min(0.01f)] private float _attack6DurationSeconds = 3f;
         [Tooltip("타깃을 중심으로 소환 위치를 정하고 Scene 뷰에 표시할 범위입니다.")]
         [SerializeField] private DetectionAreaSettings _attack6Area =
             CreateDefaultAttack6Area();
@@ -149,6 +151,7 @@ namespace Alpha.Enemy.Boss
         internal bool IsAttack6Ready => _attack6MiniCrabPrefab != null &&
             _attack6GroundLayers.value != 0 && _attack6Area != null &&
             _attack6Area.Shape == EDetectionAreaShape.Radial && _attack6Area.IsValid;
+        internal float Attack6DurationSeconds => _attack6DurationSeconds;
         internal Vector3 GetAttack6JumpPosition(Vector3 fallback) =>
             _attack6JumpTarget != null ? _attack6JumpTarget.position : fallback;
         internal Vector3 GetAttack6JumpForward(Vector3 fallback) =>
@@ -548,6 +551,7 @@ namespace Alpha.Enemy.Boss
             _attack3HitDurationSeconds = Mathf.Max(0f, _attack3HitDurationSeconds);
             _attack4DashDurationSeconds = Mathf.Max(0.01f, _attack4DashDurationSeconds);
             _attack6SummonCount = Mathf.Max(1, _attack6SummonCount);
+            _attack6DurationSeconds = Mathf.Max(0.01f, _attack6DurationSeconds);
             _attack1Area ??= CreateDefaultAttack1Area();
             _attack1Damage ??= new DamageProfile();
             _attack2Area ??= CreateDefaultAttack2Area();

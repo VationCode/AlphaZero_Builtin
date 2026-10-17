@@ -103,6 +103,17 @@ namespace Alpha.Enemy.Boss
         public bool PlayAttack5() => PlayAttack(Attack5State, Attack5Name, null);
         public bool PlayAttack6() => PlayAttack(Attack6State, Attack6Name, null);
 
+        // Flow가 지정한 Attack6 종료 시점에 Idle로 전환하고 기존 종료 이벤트를 보낸다.
+        public void CompleteAttack6()
+        {
+            if (!_attackPlaying || _activeAttackNameHash != Attack6Name)
+                return;
+            if (_animator != null && _animator.isActiveAndEnabled &&
+                _animator.HasState(0, IdleState))
+                _animator.CrossFadeInFixedTime(IdleState, 0.1f, 0);
+            FinishAttack(false);
+        }
+
         // Attack3 클립의 점프 동작만 사용한다. 공격 이벤트는 _attackPlaying이 아니므로 무시된다.
         public bool PlayReturnJump()
         {
@@ -422,6 +433,10 @@ namespace Alpha.Enemy.Boss
 
             if (_attackPlaying && currentState.normalizedTime >= 1f)
             {
+                // Attack6는 설정된 종료 시간까지 클립의 마지막 포즈를 유지한다.
+                if (_activeAttackNameHash == Attack6Name)
+                    return;
+
                 if (_animator.HasState(0, IdleState))
                     _animator.CrossFadeInFixedTime(IdleState, 0.1f, 0);
 

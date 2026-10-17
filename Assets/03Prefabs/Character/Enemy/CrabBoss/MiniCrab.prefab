@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3350021788844909804}
   - component: {fileID: 5715320621666557568}
-  - component: {fileID: 5546825243547699254}
   - component: {fileID: 660000000000000004}
   - component: {fileID: 660000000000000002}
   - component: {fileID: 660000000000000003}
@@ -61,27 +60,6 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.65
   m_Center: {x: 0, y: 0.65, z: 0}
---- !u!135 &5546825243547699254
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7469957799737017516}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.9
-  m_Center: {x: 0, y: 45, z: 0}
 --- !u!54 &660000000000000004
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -128,7 +106,7 @@ MonoBehaviour:
     _yawOffset: 0
     _width: 1
     _length: 1
-    _radius: 1.5
+    _radius: 1.2
     _angle: 360
     _height: 2
     _targetLayers:
@@ -161,7 +139,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _body: {fileID: 660000000000000004}
-  _contactTrigger: {fileID: 5546825243547699254}
   _bodyCollider: {fileID: 5715320621666557568}
   _explosionArea: {fileID: 660000000000000002}
   _model: {fileID: 5311002957644665821}

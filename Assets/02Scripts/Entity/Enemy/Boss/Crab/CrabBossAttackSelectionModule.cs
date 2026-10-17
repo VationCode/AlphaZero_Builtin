@@ -19,8 +19,9 @@ namespace Alpha.Enemy.Boss
         [Header("Attack1 Selection")]
         [Tooltip("타깃이 이 거리보다 가까우면 Attack1을 선택하지 않습니다.")]
         [SerializeField, Min(0f)] private float _attack1MinSelectionDistance;
-        [Tooltip("보스 중심에서 타깃 충돌체 표면까지의 수평 거리입니다. 이 거리에서 추적을 멈춥니다.")]
-        [FormerlySerializedAs("_attack1MaxSelectionDistance")]
+        [Tooltip("Attack1을 선택할 수 있는 최대 거리입니다. 타깃 충돌체 표면까지의 수평 거리로 계산합니다.")]
+        [SerializeField, Min(0.01f)] private float _attack1MaxSelectionDistance = 23f;
+        [Tooltip("Attack1 선택 후 이 거리까지 접근한 다음 공격을 시작합니다.")]
         [SerializeField, Min(0.01f)] private float _attack1StartDistance = 23f;
         [Tooltip("보스 정면에서 타깃까지 허용하는 최대 각도입니다.")]
         [SerializeField, Range(0f, 180f)] private float _attack1MaxSelectionAngle = 55f;
@@ -29,7 +30,11 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack1Cooldown;
         [SerializeField, Min(1)] private int _attack1MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack1MaxRepeatCount = 1;
-        [Tooltip("Attack1 선택 Min/Max 거리를 Scene 뷰에 360도 원으로 표시합니다.")]
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack1UsePatternCount;
+        [SerializeField, Min(0)] private int _attack1MinCompletedPatterns = 1;
+        [SerializeField, Min(0)] private int _attack1MaxCompletedPatterns = 1;
+        [Tooltip("Attack1 선택 Min/Max 거리와 실행 거리를 Scene 뷰에 표시합니다.")]
         [FormerlySerializedAs("_showAttack1SelectionArea")]
         [SerializeField] private bool _showAttack1StartDistance = true;
         [FormerlySerializedAs("_attack1SelectionAreaColor")]
@@ -43,6 +48,10 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack2Cooldown;
         [SerializeField, Min(1)] private int _attack2MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack2MaxRepeatCount = 1;
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack2UsePatternCount;
+        [SerializeField, Min(0)] private int _attack2MinCompletedPatterns = 1;
+        [SerializeField, Min(0)] private int _attack2MaxCompletedPatterns = 1;
         [SerializeField] private bool _showAttack2SelectionArea = true;
         [SerializeField] private Color _attack2SelectionColor = new(0.15f, 0.65f, 1f, 0.7f);
 
@@ -54,6 +63,10 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack3Cooldown = 2f;
         [SerializeField, Min(1)] private int _attack3MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack3MaxRepeatCount = 1;
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack3UsePatternCount;
+        [SerializeField, Min(0)] private int _attack3MinCompletedPatterns = 1;
+        [SerializeField, Min(0)] private int _attack3MaxCompletedPatterns = 1;
         [SerializeField] private bool _showAttack3SelectionArea = true;
         [SerializeField] private Color _attack3SelectionColor = new(0.75f, 0.35f, 1f, 0.7f);
 
@@ -65,6 +78,10 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack4Cooldown = 2f;
         [SerializeField, Min(1)] private int _attack4MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack4MaxRepeatCount = 1;
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack4UsePatternCount;
+        [SerializeField, Min(0)] private int _attack4MinCompletedPatterns = 1;
+        [SerializeField, Min(0)] private int _attack4MaxCompletedPatterns = 1;
         [SerializeField] private bool _showAttack4SelectionArea = true;
         [SerializeField] private Color _attack4SelectionColor = new(1f, 0.75f, 0.1f, 0.7f);
 
@@ -76,6 +93,10 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack5Cooldown = 2f;
         [SerializeField, Min(1)] private int _attack5MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack5MaxRepeatCount = 1;
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack5UsePatternCount;
+        [SerializeField, Min(0)] private int _attack5MinCompletedPatterns = 1;
+        [SerializeField, Min(0)] private int _attack5MaxCompletedPatterns = 1;
         [SerializeField] private bool _showAttack5SelectionArea = true;
         [SerializeField] private Color _attack5SelectionColor = new(0.3f, 1f, 0.5f, 0.7f);
 
@@ -87,6 +108,10 @@ namespace Alpha.Enemy.Boss
         [SerializeField, Min(0f)] private float _attack6Cooldown = 8f;
         [SerializeField, Min(1)] private int _attack6MinRepeatCount = 1;
         [SerializeField, Min(1)] private int _attack6MaxRepeatCount = 1;
+        [Tooltip("체크하면 전투 시작 시 Min/Max 범위에서 필요 완료 횟수를 뽑습니다.")]
+        [SerializeField] private bool _attack6UsePatternCount = true;
+        [SerializeField, Min(0)] private int _attack6MinCompletedPatterns = 6;
+        [SerializeField, Min(0)] private int _attack6MaxCompletedPatterns = 7;
         [SerializeField] private bool _showAttack6SelectionArea = true;
         [SerializeField] private Color _attack6SelectionColor = new(0.75f, 0.25f, 1f, 0.7f);
 
@@ -94,36 +119,43 @@ namespace Alpha.Enemy.Boss
         private BossLocomotionModule _locomotion;
 
         internal float PreviousAttackWeightMultiplier => _previousAttackWeightMultiplier;
+        internal float Attack1StartDistance => _attack1StartDistance;
 
         internal AttackSelectionSettings Attack1 => new(
-            _attack1MinSelectionDistance, _attack1StartDistance,
+            _attack1MinSelectionDistance, _attack1MaxSelectionDistance,
             _attack1MaxSelectionAngle, _attack1SelectionWeight, _attack1Cooldown,
-            _attack1MinRepeatCount, _attack1MaxRepeatCount);
+            _attack1MinRepeatCount, _attack1MaxRepeatCount,
+            _attack1UsePatternCount, _attack1MinCompletedPatterns, _attack1MaxCompletedPatterns);
 
         internal AttackSelectionSettings Attack2 => new(
             _attack2MinSelectionDistance, _attack2MaxSelectionDistance,
             _attack2MaxSelectionAngle, _attack2SelectionWeight, _attack2Cooldown,
-            _attack2MinRepeatCount, _attack2MaxRepeatCount);
+            _attack2MinRepeatCount, _attack2MaxRepeatCount,
+            _attack2UsePatternCount, _attack2MinCompletedPatterns, _attack2MaxCompletedPatterns);
 
         internal AttackSelectionSettings Attack3 => new(
             _attack3MinSelectionDistance, _attack3MaxSelectionDistance,
             _attack3MaxSelectionAngle, _attack3SelectionWeight, _attack3Cooldown,
-            _attack3MinRepeatCount, _attack3MaxRepeatCount);
+            _attack3MinRepeatCount, _attack3MaxRepeatCount,
+            _attack3UsePatternCount, _attack3MinCompletedPatterns, _attack3MaxCompletedPatterns);
 
         internal AttackSelectionSettings Attack4 => new(
             _attack4MinSelectionDistance, _attack4MaxSelectionDistance,
             _attack4MaxSelectionAngle, _attack4SelectionWeight, _attack4Cooldown,
-            _attack4MinRepeatCount, _attack4MaxRepeatCount);
+            _attack4MinRepeatCount, _attack4MaxRepeatCount,
+            _attack4UsePatternCount, _attack4MinCompletedPatterns, _attack4MaxCompletedPatterns);
 
         internal AttackSelectionSettings Attack5 => new(
             _attack5MinSelectionDistance, _attack5MaxSelectionDistance,
             _attack5MaxSelectionAngle, _attack5SelectionWeight, _attack5Cooldown,
-            _attack5MinRepeatCount, _attack5MaxRepeatCount);
+            _attack5MinRepeatCount, _attack5MaxRepeatCount,
+            _attack5UsePatternCount, _attack5MinCompletedPatterns, _attack5MaxCompletedPatterns);
 
         internal AttackSelectionSettings Attack6 => new(
             _attack6MinSelectionDistance, _attack6MaxSelectionDistance,
             _attack6MaxSelectionAngle, _attack6SelectionWeight, _attack6Cooldown,
-            _attack6MinRepeatCount, _attack6MaxRepeatCount);
+            _attack6MinRepeatCount, _attack6MaxRepeatCount,
+            _attack6UsePatternCount, _attack6MinCompletedPatterns, _attack6MaxCompletedPatterns);
 
         public void Bind(Transform owner, BossLocomotionModule locomotion)
         {
@@ -134,9 +166,11 @@ namespace Alpha.Enemy.Boss
         private void OnValidate()
         {
             _previousAttackWeightMultiplier = Mathf.Clamp(_previousAttackWeightMultiplier, 0.01f, 1f);
-            ValidateSelection(ref _attack1MinSelectionDistance, ref _attack1StartDistance,
+            ValidateSelection(ref _attack1MinSelectionDistance, ref _attack1MaxSelectionDistance,
                 ref _attack1MaxSelectionAngle, ref _attack1SelectionWeight,
                 ref _attack1Cooldown, ref _attack1MinRepeatCount, ref _attack1MaxRepeatCount);
+            _attack1StartDistance = Mathf.Clamp(_attack1StartDistance,
+                MinimumDistanceGap, _attack1MaxSelectionDistance);
             ValidateSelection(ref _attack2MinSelectionDistance, ref _attack2MaxSelectionDistance,
                 ref _attack2MaxSelectionAngle, ref _attack2SelectionWeight,
                 ref _attack2Cooldown, ref _attack2MinRepeatCount, ref _attack2MaxRepeatCount);
@@ -152,6 +186,18 @@ namespace Alpha.Enemy.Boss
             ValidateSelection(ref _attack6MinSelectionDistance, ref _attack6MaxSelectionDistance,
                 ref _attack6MaxSelectionAngle, ref _attack6SelectionWeight,
                 ref _attack6Cooldown, ref _attack6MinRepeatCount, ref _attack6MaxRepeatCount);
+            ValidatePatternCount(ref _attack1MinCompletedPatterns, ref _attack1MaxCompletedPatterns);
+            ValidatePatternCount(ref _attack2MinCompletedPatterns, ref _attack2MaxCompletedPatterns);
+            ValidatePatternCount(ref _attack3MinCompletedPatterns, ref _attack3MaxCompletedPatterns);
+            ValidatePatternCount(ref _attack4MinCompletedPatterns, ref _attack4MaxCompletedPatterns);
+            ValidatePatternCount(ref _attack5MinCompletedPatterns, ref _attack5MaxCompletedPatterns);
+            ValidatePatternCount(ref _attack6MinCompletedPatterns, ref _attack6MaxCompletedPatterns);
+        }
+
+        private static void ValidatePatternCount(ref int minimum, ref int maximum)
+        {
+            minimum = Mathf.Max(0, minimum);
+            maximum = Mathf.Max(minimum, maximum);
         }
 
         private static void ValidateSelection(ref float minimumDistance, ref float maximumDistance,
@@ -189,8 +235,18 @@ namespace Alpha.Enemy.Boss
             forward.Normalize();
 
             if (_showAttack1StartDistance)
+            {
                 DrawSelectionAreaGizmo(position, forward, Attack1,
                     _attack1StartDistanceColor, "Attack1", 0);
+                Color previousColor = Handles.color;
+                Handles.color = _attack1StartDistanceColor;
+                Handles.DrawWireDisc(position + Vector3.up * 0.1f,
+                    Vector3.up, _attack1StartDistance);
+                Handles.Label(position + forward * _attack1StartDistance +
+                    Vector3.up * 0.8f,
+                    $"Attack1 execution / {_attack1StartDistance:0.#}m");
+                Handles.color = previousColor;
+            }
             if (_showAttack2SelectionArea)
                 DrawSelectionAreaGizmo(position, forward, Attack2,
                     _attack2SelectionColor, "Attack2", 1);
@@ -227,10 +283,10 @@ namespace Alpha.Enemy.Boss
                 center + labelDirection * settings.MaxDistance);
             Handles.Label(center + labelDirection * settings.MinDistance +
                 Vector3.up * labelHeight,
-                $"{label} pre-attack stop start / Min {settings.MinDistance:0.#}m");
+                $"{label} selection min / {settings.MinDistance:0.#}m");
             Handles.Label(center + labelDirection * settings.MaxDistance +
                 Vector3.up * labelHeight,
-                $"{label} pre-attack stop end / Max {settings.MaxDistance:0.#}m " +
+                $"{label} selection max / {settings.MaxDistance:0.#}m " +
                 $"(facing ±{settings.MaxAngle:0.#}°)");
             Handles.color = previousColor;
         }
@@ -247,10 +303,14 @@ namespace Alpha.Enemy.Boss
         internal readonly float Cooldown;
         internal readonly int MinRepeats;
         internal readonly int MaxRepeats;
+        internal readonly bool UsePatternCount;
+        internal readonly int MinCompletedPatterns;
+        internal readonly int MaxCompletedPatterns;
 
         internal AttackSelectionSettings(float minDistance, float maxDistance,
             float maxAngle, float weight, float cooldown,
-            int minRepeats, int maxRepeats)
+            int minRepeats, int maxRepeats, bool usePatternCount,
+            int minCompletedPatterns, int maxCompletedPatterns)
         {
             MinDistance = minDistance;
             MaxDistance = maxDistance;
@@ -259,6 +319,9 @@ namespace Alpha.Enemy.Boss
             Cooldown = cooldown;
             MinRepeats = minRepeats;
             MaxRepeats = maxRepeats;
+            UsePatternCount = usePatternCount;
+            MinCompletedPatterns = minCompletedPatterns;
+            MaxCompletedPatterns = maxCompletedPatterns;
         }
     }
 }

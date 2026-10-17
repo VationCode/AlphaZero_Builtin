@@ -1511,10 +1511,10 @@ MonoBehaviour:
         z: 13.57892
       Rotation:
         value:
-          x: 0.061516542
-          y: 0.65749395
-          z: 0.08566881
-          w: 0.7460417
+          x: 0.061516553
+          y: 0.65749407
+          z: 0.0856688
+          w: 0.74604166
     - Position:
         x: 22.808002
         y: 3.5
@@ -7953,7 +7953,7 @@ MonoBehaviour:
   _attack3FillAlpha: 180
   _attack3HitMode: 0
   _attack3HitDurationSeconds: 0.7
-  _showAttack3HitArea: 1
+  _showAttack3HitArea: 0
   _attack3HitAreaColor: {r: 0.75, g: 0.35, b: 1, a: 0.3137255}
   _attack3HitAreaFillOpacity: 0.08
   _attack3Damage:
@@ -8040,6 +8040,7 @@ MonoBehaviour:
   _attack6JumpTarget: {fileID: 1129872428}
   _attack6MiniCrabPrefab: {fileID: 660000000000000001, guid: 9859e86f0ea54e046bb967780e469568, type: 3}
   _attack6SummonCount: 40
+  _attack6DurationSeconds: 5
   _attack6Area:
     _shape: 2
     _localOffset: {x: 0, y: 0.5, z: 0}
@@ -12950,21 +12951,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _previousAttackWeightMultiplier: 0.01
   _attack1MinSelectionDistance: 0
+  _attack1MaxSelectionDistance: 25
   _attack1StartDistance: 17
   _attack1MaxSelectionAngle: 180
-  _attack1SelectionWeight: 0
+  _attack1SelectionWeight: 1
   _attack1Cooldown: 1
   _attack1MinRepeatCount: 1
   _attack1MaxRepeatCount: 1
+  _attack1UsePatternCount: 0
+  _attack1MinCompletedPatterns: 1
+  _attack1MaxCompletedPatterns: 1
   _showAttack1StartDistance: 1
   _attack1StartDistanceColor: {r: 0.05, g: 0.65, b: 1, a: 0.3137255}
   _attack2MinSelectionDistance: 0
   _attack2MaxSelectionDistance: 80
   _attack2MaxSelectionAngle: 180
-  _attack2SelectionWeight: 0
+  _attack2SelectionWeight: 1
   _attack2Cooldown: 1
   _attack2MinRepeatCount: 2
   _attack2MaxRepeatCount: 2
+  _attack2UsePatternCount: 0
+  _attack2MinCompletedPatterns: 1
+  _attack2MaxCompletedPatterns: 1
   _showAttack2SelectionArea: 1
   _attack2SelectionColor: {r: 0.15, g: 0.65, b: 1, a: 0.3137255}
   _attack3MinSelectionDistance: 0
@@ -12974,35 +12982,47 @@ MonoBehaviour:
   _attack3Cooldown: 1.2
   _attack3MinRepeatCount: 2
   _attack3MaxRepeatCount: 2
+  _attack3UsePatternCount: 0
+  _attack3MinCompletedPatterns: 1
+  _attack3MaxCompletedPatterns: 1
   _showAttack3SelectionArea: 1
   _attack3SelectionColor: {r: 0.75, g: 0.35, b: 1, a: 0.3137255}
   _attack4MinSelectionDistance: 0
   _attack4MaxSelectionDistance: 30
   _attack4MaxSelectionAngle: 180
-  _attack4SelectionWeight: 0
+  _attack4SelectionWeight: 1
   _attack4Cooldown: 2
   _attack4MinRepeatCount: 1
   _attack4MaxRepeatCount: 1
+  _attack4UsePatternCount: 0
+  _attack4MinCompletedPatterns: 1
+  _attack4MaxCompletedPatterns: 1
   _showAttack4SelectionArea: 1
   _attack4SelectionColor: {r: 1, g: 0.75, b: 0.1, a: 0.3137255}
   _attack5MinSelectionDistance: 0
   _attack5MaxSelectionDistance: 80
   _attack5MaxSelectionAngle: 180
-  _attack5SelectionWeight: 0
+  _attack5SelectionWeight: 1
   _attack5Cooldown: 2
   _attack5MinRepeatCount: 1
   _attack5MaxRepeatCount: 1
+  _attack5UsePatternCount: 0
+  _attack5MinCompletedPatterns: 1
+  _attack5MaxCompletedPatterns: 1
   _showAttack5SelectionArea: 1
   _attack5SelectionColor: {r: 0.3, g: 1, b: 0.5, a: 0.3137255}
   _attack6MinSelectionDistance: 0
   _attack6MaxSelectionDistance: 80
   _attack6MaxSelectionAngle: 180
-  _attack6SelectionWeight: 0
-  _attack6Cooldown: 3
+  _attack6SelectionWeight: 1
+  _attack6Cooldown: 30
   _attack6MinRepeatCount: 1
   _attack6MaxRepeatCount: 1
+  _attack6UsePatternCount: 1
+  _attack6MinCompletedPatterns: 6
+  _attack6MaxCompletedPatterns: 7
   _showAttack6SelectionArea: 1
-  _attack6SelectionColor: {r: 0.75, g: 0.25, b: 1, a: 0.7}
+  _attack6SelectionColor: {r: 0.75, g: 0.25, b: 1, a: 0.5019608}
 --- !u!1 &8701000000000601
 GameObject:
   m_ObjectHideFlags: 0

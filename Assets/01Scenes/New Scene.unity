@@ -8288,7 +8288,7 @@ Transform:
   m_GameObject: {fileID: 1905049168}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1.78}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8610,6 +8610,63 @@ MonoBehaviour:
   boneID: 98
   ikEnabled: 0
   ikWeight: 1
+--- !u!1001 &2059375982
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4657672045498940319, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5469815952215073061, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
+      propertyPath: m_Name
+      value: SciFI_Crab_Skin2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3b7b9d93c40e23b409af8e5df369bfbc, type: 3}
 --- !u!1 &2066052162 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3453672972779679868, guid: 81475205dedaa814c825c4877d1286dc, type: 3}
@@ -8916,7 +8973,7 @@ Transform:
   m_GameObject: {fileID: 2143537509}
   serializedVersion: 2
   m_LocalRotation: {x: 0.000000032351853, y: 0.9984493, z: -0.055669133, w: 0.0000005802441}
-  m_LocalPosition: {x: 0, y: 1.25, z: 2.68}
+  m_LocalPosition: {x: -0, y: 1.94, z: 8.86}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8929,3 +8986,4 @@ SceneRoots:
   - {fileID: 2143537512}
   - {fileID: 560350255}
   - {fileID: 1905049170}
+  - {fileID: 2059375982}

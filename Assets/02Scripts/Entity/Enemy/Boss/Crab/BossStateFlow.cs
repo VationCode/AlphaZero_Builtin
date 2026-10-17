@@ -30,6 +30,7 @@ namespace Alpha.Enemy.Boss
         {
             Waiting,
             Approaching,
+            ApproachingSelectedAttack1,
             Preparing,
             Returning,
             TurningHome,
@@ -76,6 +77,7 @@ namespace Alpha.Enemy.Boss
         private float _nextAttack4SelectionTime;
         private float _nextAttack5SelectionTime;
         private float _nextAttack6SelectionTime;
+        private float _attack6EndTime;
         private int _attack5WarningCount;
         private Vector3 _attack6SpawnCenter;
         private Vector3 _homePosition;
@@ -103,6 +105,9 @@ namespace Alpha.Enemy.Boss
         private AttackKind _selectedAttack;
         private AttackKind _previousAttack;
         private int _remainingAttackCount;
+        private int _completedPatternCount;
+        private readonly int[] _requiredPatternCounts =
+            new int[(int)AttackKind.Attack6 + 1];
         private bool _bound;
 
         public void Bind(Transform boss, TargetDetectionModule targetDetection,
@@ -157,6 +162,14 @@ namespace Alpha.Enemy.Boss
             _nextAttack4SelectionTime = 0f;
             _nextAttack5SelectionTime = 0f;
             _nextAttack6SelectionTime = 0f;
+            _completedPatternCount = 0;
+            for (int index = (int)AttackKind.Attack1;
+                 index <= (int)AttackKind.Attack6; index++)
+            {
+                AttackSelectionSettings settings = GetAttackSettings((AttackKind)index);
+                _requiredPatternCounts[index] = RollPatternCount(
+                    settings.MinCompletedPatterns, settings.MaxCompletedPatterns);
+            }
             _attack5WarningCount = 0;
             _selectedAttack = AttackKind.None;
             _previousAttack = AttackKind.None;
@@ -213,6 +226,7 @@ namespace Alpha.Enemy.Boss
             _selectedAttack = AttackKind.None;
             _previousAttack = AttackKind.None;
             _remainingAttackCount = 0;
+            _completedPatternCount = 0;
             _attack2TargetLocked = false;
             _attack3TargetLocked = false;
             _attack3ContactRestorePending = false;
@@ -264,6 +278,14 @@ namespace Alpha.Enemy.Boss
                 return;
             }
 
+            // Attack6의 종료는 클립 길이 대신 AttackModule의 초 단위 설정을 따른다.
+            if (_state == State.Attacking && _selectedAttack == AttackKind.Attack6 &&
+                Time.time >= _attack6EndTime)
+            {
+                _animation.CompleteAttack6();
+                return;
+            }
+
             if (!_targetDetection.TryGetTarget(out Transform target))
             {
                 // 시작된 휘두르기는 끝까지 보여주고, 다음 판단에서 타깃 상실을 처리한다.
@@ -305,6 +327,15 @@ namespace Alpha.Enemy.Boss
                         BeginSelectedAttack(selected);
                     else if (_state != State.HoldingPosition)
                         _state = State.Approaching;
+                    break;
+
+                case State.ApproachingSelectedAttack1:
+                    if (!IsWithinSelectionDistance(_target, 0f,
+                            _selection.Attack1.MaxDistance))
+                        ReturnToWaiting();
+                    else if (IsWithinSelectionDistance(_target, 0f,
+                                 _selection.Attack1StartDistance))
+                        BeginPreparation();
                     break;
 
                 case State.Preparing:
@@ -386,6 +417,34 @@ namespace Alpha.Enemy.Boss
                     if (moving)
                     {
                         _locomotion.MoveTo(_target.position, approachDistance);
+                    }
+                    else
+                    {
+                        _locomotion.Stop();
+                    }
+
+                    bool facingTarget = _locomotion.RotateTo(_target.position);
+                    _animation.SetLocomotion(moving, !facingTarget);
+                    break;
+                }
+
+                case State.ApproachingSelectedAttack1:
+                {
+                    Vector3 contactOffset = GetTargetContactPoint(_target) -
+                        _locomotion.Position;
+                    contactOffset.y = 0f;
+                    float contactDistance = contactOffset.magnitude;
+                    float startDistance = _selection.Attack1StartDistance;
+                    bool moving = contactDistance > startDistance +
+                        StartDistanceTolerance;
+                    if (moving)
+                    {
+                        Vector3 centerOffset = _target.position -
+                            _locomotion.Position;
+                        centerOffset.y = 0f;
+                        float centerStopDistance = startDistance +
+                            Mathf.Max(0f, centerOffset.magnitude - contactDistance);
+                        _locomotion.MoveTo(_target.position, centerStopDistance);
                     }
                     else
                     {
@@ -660,13 +719,17 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack4 = _selection.Attack4;
             AttackSelectionSettings attack5 = _selection.Attack5;
             AttackSelectionSettings attack6 = _selection.Attack6;
-            float attack1Weight = CanSelectAttack(target, attack1, _nextAttack1SelectionTime)
+            float attack1Weight = CanSelectAttack(AttackKind.Attack1, target,
+                    attack1, _nextAttack1SelectionTime)
                 ? AdjustWeight(AttackKind.Attack1, attack1.Weight) : 0f;
-            float attack2Weight = CanSelectAttack(target, attack2, _nextAttack2SelectionTime)
+            float attack2Weight = CanSelectAttack(AttackKind.Attack2, target,
+                    attack2, _nextAttack2SelectionTime)
                 ? AdjustWeight(AttackKind.Attack2, attack2.Weight) : 0f;
-            float attack3Weight = CanSelectAttack(target, attack3, _nextAttack3SelectionTime)
+            float attack3Weight = CanSelectAttack(AttackKind.Attack3, target,
+                    attack3, _nextAttack3SelectionTime)
                 ? AdjustWeight(AttackKind.Attack3, attack3.Weight) : 0f;
-            float attack4Weight = CanSelectAttack(target, attack4, _nextAttack4SelectionTime)
+            float attack4Weight = CanSelectAttack(AttackKind.Attack4, target,
+                    attack4, _nextAttack4SelectionTime)
                 ? AdjustWeight(AttackKind.Attack4, attack4.Weight) : 0f;
             float attack5Weight = CanSelectAttack5(target)
                 ? AdjustWeight(AttackKind.Attack5, attack5.Weight) : 0f;
@@ -715,16 +778,21 @@ namespace Alpha.Enemy.Boss
             AttackSelectionSettings attack4 = _selection.Attack4;
             AttackSelectionSettings attack5 = _selection.Attack5;
             AttackSelectionSettings attack6 = _selection.Attack6;
-            return (attack1.Weight > 0f && Time.time >= _nextAttack1SelectionTime &&
+            return (IsPatternCountReady(AttackKind.Attack1, attack1) &&
+                    attack1.Weight > 0f && Time.time >= _nextAttack1SelectionTime &&
                     IsWithinSelectionDistance(target, attack1.MinDistance, attack1.MaxDistance)) ||
-                   (attack2.Weight > 0f && Time.time >= _nextAttack2SelectionTime &&
+                   (IsPatternCountReady(AttackKind.Attack2, attack2) &&
+                    attack2.Weight > 0f && Time.time >= _nextAttack2SelectionTime &&
                     IsWithinSelectionDistance(target, attack2.MinDistance, attack2.MaxDistance)) ||
-                   (attack4.Weight > 0f && Time.time >= _nextAttack4SelectionTime &&
+                   (IsPatternCountReady(AttackKind.Attack4, attack4) &&
+                    attack4.Weight > 0f && Time.time >= _nextAttack4SelectionTime &&
                     IsWithinSelectionDistance(target, attack4.MinDistance, attack4.MaxDistance)) ||
-                   (IsAttack5Ready && attack5.Weight > 0f &&
+                   (IsAttack5Ready && IsPatternCountReady(AttackKind.Attack5, attack5) &&
+                    attack5.Weight > 0f &&
                     Time.time >= _nextAttack5SelectionTime &&
                     IsWithinSelectionDistance(target, attack5.MinDistance, attack5.MaxDistance)) ||
-                   (IsAttack6Ready && attack6.Weight > 0f &&
+                   (IsAttack6Ready && IsPatternCountReady(AttackKind.Attack6, attack6) &&
+                    attack6.Weight > 0f &&
                     Time.time >= _nextAttack6SelectionTime &&
                     IsWithinSelectionDistance(target, attack6.MinDistance, attack6.MaxDistance));
         }
@@ -754,18 +822,22 @@ namespace Alpha.Enemy.Boss
             return float.IsPositiveInfinity(distance) ? 0f : distance;
         }
 
-        // 선택은 위치와 시간만 검사한다. 실제 명중은 타격 순간 AttackModule이 판정한다.
+        // 선택은 거리·시간·완료 패턴 수를 검사한다. 실제 명중은 AttackModule이 판정한다.
         private bool CanSelectAttack1(Transform target) =>
-            CanSelectAttack(target, _selection.Attack1, _nextAttack1SelectionTime);
+            CanSelectAttack(AttackKind.Attack1, target, _selection.Attack1,
+                _nextAttack1SelectionTime);
 
         private bool CanSelectAttack2(Transform target) =>
-            CanSelectAttack(target, _selection.Attack2, _nextAttack2SelectionTime);
+            CanSelectAttack(AttackKind.Attack2, target, _selection.Attack2,
+                _nextAttack2SelectionTime);
 
         private bool CanSelectAttack3(Transform target) =>
-            CanSelectAttack(target, _selection.Attack3, _nextAttack3SelectionTime);
+            CanSelectAttack(AttackKind.Attack3, target, _selection.Attack3,
+                _nextAttack3SelectionTime);
 
         private bool CanSelectAttack4(Transform target) =>
-            CanSelectAttack(target, _selection.Attack4, _nextAttack4SelectionTime);
+            CanSelectAttack(AttackKind.Attack4, target, _selection.Attack4,
+                _nextAttack4SelectionTime);
 
         private bool IsAttack5Ready =>
             _attack != null && _attack.IsAttack5AreaConfigured &&
@@ -773,19 +845,28 @@ namespace Alpha.Enemy.Boss
 
         private bool CanSelectAttack5(Transform target) =>
             IsAttack5Ready &&
-            CanSelectAttack(target, _selection.Attack5, _nextAttack5SelectionTime);
+            CanSelectAttack(AttackKind.Attack5, target, _selection.Attack5,
+                _nextAttack5SelectionTime);
 
         private bool IsAttack6Ready => _attack != null && _attack.IsAttack6Ready;
 
         private bool CanSelectAttack6(Transform target) =>
             IsAttack6Ready &&
-            CanSelectAttack(target, _selection.Attack6, _nextAttack6SelectionTime);
+            CanSelectAttack(AttackKind.Attack6, target, _selection.Attack6,
+                _nextAttack6SelectionTime);
 
-        private bool CanSelectAttack(Transform target, AttackSelectionSettings settings,
+        private bool CanSelectAttack(AttackKind attack, Transform target,
+            AttackSelectionSettings settings,
             float nextSelectionTime) =>
             target != null && settings.Weight > 0f && Time.time >= nextSelectionTime &&
+            IsPatternCountReady(attack, settings) &&
             IsWithinSelectionArea(target, settings.MinDistance,
                 settings.MaxDistance, settings.MaxAngle);
+
+        private bool IsPatternCountReady(AttackKind attack,
+            AttackSelectionSettings settings) =>
+            !settings.UsePatternCount ||
+            _completedPatternCount >= _requiredPatternCounts[(int)attack];
 
         private bool IsWithinSelectionArea(Transform target, float minimumDistance,
             float maximumDistance, float maximumAngle)
@@ -837,22 +918,35 @@ namespace Alpha.Enemy.Boss
         private void BeginSelectedAttack(AttackKind attack)
         {
             _selectedAttack = attack;
-            AttackSelectionSettings settings = attack switch
-            {
-                AttackKind.Attack1 => _selection.Attack1,
-                AttackKind.Attack2 => _selection.Attack2,
-                AttackKind.Attack3 => _selection.Attack3,
-                AttackKind.Attack4 => _selection.Attack4,
-                AttackKind.Attack5 => _selection.Attack5,
-                AttackKind.Attack6 => _selection.Attack6,
-                _ => default
-            };
+            AttackSelectionSettings settings = GetAttackSettings(attack);
             _remainingAttackCount = attack == AttackKind.None ? 0 :
                 RollRepeatCount(settings.MinRepeats, settings.MaxRepeats);
             if (attack == AttackKind.Attack6)
                 BeginReturnJump();
+            else if (attack == AttackKind.Attack1 &&
+                     !IsWithinSelectionDistance(_target, 0f,
+                         _selection.Attack1StartDistance))
+                _state = State.ApproachingSelectedAttack1;
             else
                 BeginPreparation();
+        }
+
+        private AttackSelectionSettings GetAttackSettings(AttackKind attack) => attack switch
+        {
+            AttackKind.Attack1 => _selection.Attack1,
+            AttackKind.Attack2 => _selection.Attack2,
+            AttackKind.Attack3 => _selection.Attack3,
+            AttackKind.Attack4 => _selection.Attack4,
+            AttackKind.Attack5 => _selection.Attack5,
+            AttackKind.Attack6 => _selection.Attack6,
+            _ => default
+        };
+
+        private static int RollPatternCount(int minimum, int maximum)
+        {
+            minimum = Mathf.Max(0, minimum);
+            maximum = Mathf.Max(minimum, maximum);
+            return minimum == maximum ? minimum : Random.Range(minimum, maximum + 1);
         }
 
         private void BeginReturnJump()
@@ -928,6 +1022,8 @@ namespace Alpha.Enemy.Boss
                 return;
             }
 
+            if (_selectedAttack == AttackKind.Attack6)
+                _attack6EndTime = Time.time + _attack.Attack6DurationSeconds;
             _state = State.Attacking;
         }
 
@@ -1272,6 +1368,8 @@ namespace Alpha.Enemy.Boss
                 return;
             }
 
+            // 반복 동작을 모두 마친 공격만 패턴 1회로 센다.
+            _completedPatternCount++;
             bool holdPosition = _selectedAttack == AttackKind.Attack6;
 
             if (_selectedAttack == AttackKind.Attack1)
@@ -1312,6 +1410,7 @@ namespace Alpha.Enemy.Boss
             HideAttack6Warnings();
             _animation.CancelAttack();
             _animation.SetMoving(false);
+            _locomotion.Stop();
             _locomotion.CancelJump();
             _locomotion.CancelDash();
             _target = null;
