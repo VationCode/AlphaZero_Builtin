@@ -5,6 +5,7 @@ namespace Alpha.Enemy.Boss
 {
     public class CrabBossAnimationView : MonoBehaviour
     {
+        private static readonly int Cinematic1State = Animator.StringToHash("Base Layer.Cinematic1");
         private static readonly int Attack1State = Animator.StringToHash("Base Layer.Attack1");
         private static readonly int Attack1Name = Animator.StringToHash("Attack1");
         private static readonly int Attack2State = Animator.StringToHash("Base Layer.Attack2");
@@ -77,6 +78,18 @@ namespace Alpha.Enemy.Boss
         }
 
         public void SetMoving(bool moving) => SetLocomotion(moving, false);
+
+        // 인트로 Flow가 페이드 종료 시점에 Cinematic1을 직접 시작한다.
+        public bool PlayCinematic1()
+        {
+            if (_animator == null || !_animator.isActiveAndEnabled ||
+                _animator.runtimeAnimatorController == null || !_animator.HasState(0, Cinematic1State))
+                return false;
+
+            _locomotionState = 0;
+            _animator.Play(Cinematic1State, 0, 0f);
+            return true;
+        }
 
         // 제자리 회전은 이동보다 우선하여 Walk_B로 보여준다.
         public void SetLocomotion(bool moving, bool turning)

@@ -182,6 +182,18 @@ namespace Alpha.Enemy.Boss
             _contactClearanceActive = false;
         }
 
+        // 인트로 착지 후 복귀 패턴이 지하 초기 위치 대신 전투 위치를 사용한다.
+        public void SetHomePose(Transform home)
+        {
+            if (!_bound || home == null)
+                return;
+
+            _homePosition = home.position;
+            _homeForward = Vector3.ProjectOnPlane(home.forward, Vector3.up).normalized;
+            if (_homeForward.sqrMagnitude < 0.0001f)
+                _homeForward = Vector3.forward;
+        }
+
         public void Unbind()
         {
             CloseHitWindow();
