@@ -1,7 +1,9 @@
 using Alpha.Player;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Playables;
+using UnityEngine.UI;
 
 namespace Alpha.Enemy.Boss
 {
@@ -10,6 +12,7 @@ namespace Alpha.Enemy.Boss
     public sealed class CrabBossCinematicFlow : MonoBehaviour
     {
         [SerializeField] private PlayableDirector _director;
+        [SerializeField] private Image _fadeImage;
         [SerializeField] private GameObject _dollyCamera;
         [SerializeField] private CinemachineBrain _cameraBrain;
         [SerializeField] private Camera _gameplayCamera;
@@ -33,6 +36,7 @@ namespace Alpha.Enemy.Boss
         private bool _jumpCompleted;
         private bool _hasPlayed;
         private bool _isPlaying;
+        private bool _finishPending;
 
         private void Awake()
         {
@@ -117,7 +121,18 @@ namespace Alpha.Enemy.Boss
 
         private void Update()
         {
-            if (!_isPlaying || _jumpStarted || _director.time < _emergenceStartTime)
+            if (!_isPlaying)
+                return;
+
+            // 게임플레이 Action Map과 독립적으로 시네마틱 스킵 입력을 받는다.
+            if (Keyboard.current?.escapeKey.wasPressedThisFrame == true ||
+                Gamepad.current?.startButton.wasPressedThisFrame == true)
+            {
+                RequestSkip();
+                return;
+            }
+
+            if (_jumpStarted || _director.time < _emergenceStartTime)
                 return;
 
             // 페이드가 사라진 순간 애니메이션과 몸체 이동을 함께 시작한다.
@@ -130,6 +145,16 @@ namespace Alpha.Enemy.Boss
 
             _bossLocomotion.BeginJumpTo(_startPos.position);
             _jumpStarted = true;
+        }
+
+        // 스킵 시 마지막 프레임 직전으로 이동하고 Timeline의 자연 종료를 기다린다.
+        public void RequestSkip()
+        {
+            if (!_isPlaying)
+                return;
+
+            _director.time = System.Math.Max(0d, _director.duration - 0.001d);
+            _director.Evaluate();
         }
 
         private void FixedUpdate()
@@ -150,14 +175,26 @@ namespace Alpha.Enemy.Boss
         private void HandleDirectorStopped(PlayableDirector director)
         {
             if (director == _director)
+                _finishPending = true;
+        }
+
+        private void LateUpdate()
+        {
+            // stopped 이벤트는 Timeline의 종료 처리보다 먼저 호출되므로 이후에 정리한다.
+            if (_finishPending)
                 FinishCinematic();
         }
 
         private void FinishCinematic()
         {
+            _finishPending = false;
             if (!_isPlaying)
                 return;
 
+            // Timeline의 마지막 페이드 키가 검은색이므로 종료 후 이미지를 숨긴다.
+            if (_fadeImage != null)
+                _fadeImage.gameObject.SetActive(false);
+            _bossAnimation?.SetLocomotion(false, false);
             ReleaseBoss();
             RestoreGameplayCamera();
         }

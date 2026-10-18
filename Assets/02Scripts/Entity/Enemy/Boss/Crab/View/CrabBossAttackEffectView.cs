@@ -321,12 +321,11 @@ namespace Alpha.Enemy.Boss
             HashSet<ParticleSystem> subEmitters = new();
             foreach (ParticleSystem particle in particles)
             {
-                // 프리팹의 Play On Awake와 이전 시뮬레이션 상태를 제거한다.
+                // 자동 재생을 끄고, 수동 재생 전에 생성된 입자만 비운다.
                 ParticleSystem.MainModule main = particle.main;
                 main.playOnAwake = false;
                 particle.Stop(false,
                     ParticleSystemStopBehavior.StopEmittingAndClear);
-                particle.Simulate(0f, false, true);
 
                 ParticleSystem.SubEmittersModule module = particle.subEmitters;
                 if (!module.enabled)

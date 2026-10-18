@@ -16,20 +16,20 @@ namespace Alpha.Player.Locomotion
     // Root Motion의 활성 상태와 이동 적용 방식을 관리한다.
     public sealed class RootMotionModule
     {
-        private LocomotionMoveModule _moveModule;
+        private LocomotionModule _locomotionModule;
         private object _owner;
 
         public ERootMotionMode CurrentMode { get; private set; } = ERootMotionMode.None;
 
         public bool IsActive => CurrentMode != ERootMotionMode.None;
 
-        public bool Bind(LocomotionMoveModule p_moveModule)
+        public bool Bind(LocomotionModule p_locomotionModule)
         {
-            if (p_moveModule == null)
+            if (p_locomotionModule == null)
                 return false;
 
             ForceEnd();
-            _moveModule = p_moveModule;
+            _locomotionModule = p_locomotionModule;
             return true;
         }
 
@@ -37,7 +37,7 @@ namespace Alpha.Player.Locomotion
         public bool Begin(object p_owner, ERootMotionMode p_mode)
         {
             if (p_owner == null ||
-                _moveModule == null ||
+                _locomotionModule == null ||
                 p_mode == ERootMotionMode.None)
             {
                 return false;
@@ -72,7 +72,7 @@ namespace Alpha.Player.Locomotion
         // Animator가 계산한 프레임 이동량을 현재 Mode에 맞게 적용한다.
         public void Apply(Vector3 p_deltaPosition, float p_verticalVelocity)
         {
-            if (!IsActive || _moveModule == null)
+            if (!IsActive || _locomotionModule == null)
                 return;
 
             Vector3 moveDelta = CurrentMode switch
@@ -83,7 +83,7 @@ namespace Alpha.Player.Locomotion
                 _ => Vector3.zero
             };
 
-            _moveModule.MoveDelta(moveDelta);
+            _locomotionModule.MoveDelta(moveDelta);
         }
     }
 }

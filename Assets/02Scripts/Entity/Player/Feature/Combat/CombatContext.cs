@@ -43,7 +43,7 @@ namespace Alpha.Player.Combat
         public bool IsAiming { get; private set; }
         // 탄환 방향과 상체 Pitch가 공유하는 실제 Range 전체 조준 방향이다.
         public Vector3 AimDirection { get; private set; }
-        public bool UsesAimFacing =>
+        public bool UsesAimPresentation =>
             IsAiming ||
             IsRangePrimaryActive ||
             IsRangeAttacking ||

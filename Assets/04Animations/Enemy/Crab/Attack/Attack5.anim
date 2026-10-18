@@ -207521,6 +207521,13 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 1.1666666
+    functionName: Effect3Start
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 1.1666666
     functionName: IndicatorStart
     data: 
     objectReferenceParameter: {fileID: 0}
@@ -207548,6 +207555,13 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
+  - time: 2.1333334
+    functionName: Effect4Start
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
   - time: 2.6
     functionName: Effect1Start
     data: 
@@ -207557,6 +207571,13 @@ AnimationClip:
     messageOptions: 0
   - time: 2.6
     functionName: HitStart
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 3.0333333
+    functionName: Effect3Start
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

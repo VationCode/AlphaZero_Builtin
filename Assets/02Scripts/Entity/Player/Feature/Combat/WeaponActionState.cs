@@ -53,14 +53,14 @@ namespace Alpha.Player.Combat
                     aimDirection);
             }
 
-            // 첫 발이 실행되기 전에 Range 무기를 카메라 조준 방향으로 회전시킨다.
-            if (isRangePrimaryRequest &&
-                _Core.CombatModule.TryGetRangeFacingDirection(
-                    out Vector3 facingDirection))
+            // 무기 종류와 관계없이 행동 시작 프레임부터 카메라 정면을 바라본다.
+            Transform cameraTransform = _Core.CameraCore?.RenderCamera?.transform;
+            if (cameraTransform != null &&
+                _Core.LocomotionContext.CurrentMode == ELocomotionMode.Ground)
             {
                 _Core.LocomotionModule.FaceGroundDirection(
-                    facingDirection,
-                    _Core.CameraCore?.RenderCamera?.transform,
+                    cameraTransform.forward,
+                    cameraTransform,
                     true);
             }
 

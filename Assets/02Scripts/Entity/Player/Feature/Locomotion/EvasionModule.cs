@@ -7,7 +7,7 @@ namespace Alpha.Player.Locomotion
     // 회피 행동의 스크립트 이동, 무적 적용과 정리를 담당한다.
     public sealed class EvasionModule
     {
-        private LocomotionMoveModule _moveModule;
+        private LocomotionModule _locomotionModule;
         private DamageReceiverModule _damageReceiver;
         private Func<float> _getGroundVerticalVelocity;
 
@@ -25,18 +25,18 @@ namespace Alpha.Player.Locomotion
             IsActive && _elapsedTime >= Duration;
 
         private bool IsBound =>
-            _moveModule != null &&
+            _locomotionModule != null &&
             _damageReceiver != null &&
             _getGroundVerticalVelocity != null;
 
         public bool Bind(
-            LocomotionMoveModule p_moveModule,
+            LocomotionModule p_locomotionModule,
             DamageReceiverModule p_damageReceiver,
             Func<float> p_getGroundVerticalVelocity)
         {
             End();
 
-            _moveModule = p_moveModule;
+            _locomotionModule = p_locomotionModule;
             _damageReceiver = p_damageReceiver;
             _getGroundVerticalVelocity = p_getGroundVerticalVelocity;
 
@@ -109,7 +109,7 @@ namespace Alpha.Player.Locomotion
 
         private void ApplyScriptedMovement(float p_activeTime)
         {
-            if (_moveModule == null || p_activeTime <= 0f)
+            if (_locomotionModule == null || p_activeTime <= 0f)
                 return;
 
             float speed =
@@ -122,7 +122,7 @@ namespace Alpha.Player.Locomotion
                     _getGroundVerticalVelocity() * p_activeTime;
             }
 
-            _moveModule.MoveDelta(moveDelta);
+            _locomotionModule.MoveDelta(moveDelta);
         }
 
         private void UpdateInvulnerability()

@@ -617,6 +617,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 206571648}
   m_CullTransparentMesh: 1
+--- !u!1001 &419418105
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5212508052244783007, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8206851744915799274, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
+      propertyPath: m_Name
+      value: GameManager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a226a383c39494f4db0c74ca9d9ea4ee, type: 3}
 --- !u!1 &641119841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1628,60 +1685,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 772044717f2ed474987506448ba1f434, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _startDelay: 2
+  _startDelay: 1
   _introSequences:
   - FadeData:
     - IntroImg: {fileID: 116326965}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 206571650}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 1720951006}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 2039826087}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 2036682057}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 1820672661}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 2061285549}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 862247980}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   - FadeData:
     - IntroImg: {fileID: 2031983887}
       FadeInTime: 2
-      StayTime: 1
+      StayTime: 3
       FadeOutTime: 2
     AudioClip: {fileID: 0}
   _audioSource: {fileID: 1375801509}
@@ -2382,6 +2439,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 198668689}
   - {fileID: 1495923332}
+  - {fileID: 419418105}
   - {fileID: 1546377454}
   - {fileID: 1027967154}
   - {fileID: 1375801510}

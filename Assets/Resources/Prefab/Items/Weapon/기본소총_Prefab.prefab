@@ -250,8 +250,8 @@ MonoBehaviour:
   _weapon: {fileID: -5667958717535905402}
   _audioSource: {fileID: 0}
   _playbackMode: 0
-  _fireClip: {fileID: 8300000, guid: 7a6dabd79ef7ceb45aa223100d2443a9, type: 3}
-  _fireVolume: 1
+  _fireClip: {fileID: 8300000, guid: 1a6b96364e60f044db6b63c8a436a37f, type: 3}
+  _fireVolume: 0.6
 --- !u!1 &3905261678728798041 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4742273092080425788, guid: a77d7fe258ce65a40a4f474f442a91b1, type: 3}
@@ -310,6 +310,7 @@ MonoBehaviour:
       _knockbackDuration: 0.2
       _knockbackSettingsVersion: 1
       _recoveryDuration: 0.25
+      _damageInvulnerabilityDuration: 0.1
   _attackSettings:
     _attackType: 1
     _hitMask:

@@ -4,17 +4,25 @@ using UnityEngine;
 
 namespace Alpha.Player.Locomotion
 {
-    // Locomotion 세부 기능을 하나의 실행 흐름으로 조합한다.
-    [RequireComponent(typeof(LocomotionMoveModule), typeof(LocomotionRotationModule))]
+    [Serializable]
+    public struct MoveSpeedSet
+    {
+        [Min(0f)] public float WalkSpeed;
+        [Min(0f)] public float SprintSpeed;
+        [Min(0f)] public float CombatSpeed;
+
+        public float GetSpeed(bool isSprint, bool isCombat) =>
+            isCombat ? CombatSpeed : isSprint ? SprintSpeed : WalkSpeed;
+    }
+
+    // Player의 이동과 회전을 계산해 CharacterController와 Transform에 적용한다.
     public class LocomotionModule : MonoBehaviour, IKnockbackable
     {
         private const float DirectionEpsilon = 0.0001f;
 
         private CharacterController _controller;
 
-        // 실제 이동과 회전은 각각의 세부 Module이 담당한다.
-        private LocomotionMoveModule _moveModule;
-        private LocomotionRotationModule _rotationModule;
+        private Transform _playerTransform;
         private LocomotionContext _context;
         private readonly RootMotionModule _rootMotionModule = new();
         private readonly EvasionModule _evasionModule = new();
@@ -22,6 +30,16 @@ namespace Alpha.Player.Locomotion
         private bool _isKnockbackActive;
         private Vector3 _knockbackVelocity;
         private float _knockbackRemainingTime;
+        private float _rotationVelocity;
+
+        [Header("Move Speed")]
+        [SerializeField] private MoveSpeedSet _groundMoveSpeed;
+        [SerializeField] private MoveSpeedSet _flightMoveSpeed;
+
+        [Header("Rotation")]
+        [SerializeField, Min(0f)] private float _rotationSmoothTime = 0.1f;
+        [SerializeField, Min(0.01f)] private float _combatRotationSmoothTime = 0.05f;
+        [SerializeField, Min(0f)] private float _spatialRotationSmoothness = 10f;
 
 
         [Header("Jump")]
@@ -63,8 +81,7 @@ namespace Alpha.Player.Locomotion
         private float GroundVerticalVelocity =>
             IsGrounded ? -_groundedForce : VerticalVelocity;
 
-        // 실제 최종 이동 속도는 MoveModule이 보관한다.
-        public Vector3 Velocity => _moveModule != null ? _moveModule.Velocity : Vector3.zero;
+        public Vector3 Velocity { get; private set; }
 
         public float LandDuration => _landDuration;
         public bool UsesRootMotion => _rootMotionModule.IsActive;
@@ -85,9 +102,6 @@ namespace Alpha.Player.Locomotion
         private void Awake()
         {
             _controller = GetComponentInParent<CharacterController>();
-
-            _moveModule = GetComponent<LocomotionMoveModule>();
-            _rotationModule = GetComponent<LocomotionRotationModule>();
         }
 
         private void OnDisable()
@@ -97,33 +111,33 @@ namespace Alpha.Player.Locomotion
             CancelKnockback();
         }
 
-        // 이동 Context와 세부 이동·회전 Module을 Player Transform에 연결한다.
+        // 이동 Context와 실제 Player Transform을 연결한다.
         public void Bind(
             LocomotionContext p_context,
             Transform p_playerTransform,
             DamageReceiverModule p_damageReceiver)
         {
             if (p_context == null || p_playerTransform == null ||
-                _controller == null || _moveModule == null || _rotationModule == null)
+                _controller == null)
             {
                 Debug.LogError($"{nameof(LocomotionModule)}의 의존성이 없습니다.", this);
                 return;
             }
 
             _context = p_context;
+            _playerTransform = p_playerTransform;
             _inputLockCount = 0;
+            _rotationVelocity = 0f;
+            Velocity = Vector3.zero;
             EnsureEvasionSettings();
             _evasionModule.End();
             CancelKnockback();
 
-            _moveModule.Bind(p_context);
-            _rotationModule.Bind(p_playerTransform);
-
-            if (!_rootMotionModule.Bind(_moveModule))
+            if (!_rootMotionModule.Bind(this))
                 Debug.LogError($"{nameof(RootMotionModule)}을 연결하지 못했습니다.", this);
 
             if (!_evasionModule.Bind(
-                    _moveModule,
+                    this,
                     p_damageReceiver,
                     () => GroundVerticalVelocity))
             {
@@ -147,21 +161,21 @@ namespace Alpha.Player.Locomotion
         {
             // 이동 방향
             Vector3 moveDirection =
-                _moveModule.GetMoveDirection(
+                GetMoveDirection(
                     p_moveInput,
                     p_cameraTransform,
                     p_mode);
 
             // 속력
             float moveSpeed =
-                _moveModule.GetMoveSpeed(
+                GetMoveSpeed(
                     p_mode,
                     p_isSprint,
                     p_isCombat) * Mathf.Clamp01(p_moveSpeedMultiplier);
 
             // 속도
             Vector3 moveVelocity =
-                _moveModule.GetMoveVelocity(
+                GetMoveVelocity(
                     moveDirection,
                     moveSpeed,
                     GroundVerticalVelocity,
@@ -174,14 +188,14 @@ namespace Alpha.Player.Locomotion
                     : moveDirection;
 
             // 회전 적용
-            _rotationModule.ApplyRotation(
+            ApplyRotation(
                 rotationDirection,
                 p_cameraTransform,
                 p_mode == ELocomotionMode.Flight,
                 p_isCombat);
 
             // 실제 이동
-            _moveModule.Move(moveVelocity);
+            ApplyVelocity(moveVelocity);
         }
 
         // 전투 행동 시작 시 Player를 지정된 지상 방향으로 회전시킨다.
@@ -203,7 +217,7 @@ namespace Alpha.Player.Locomotion
             bool p_isInstant,
             bool p_isCombat = false)
         {
-            _rotationModule.ApplyRotation(
+            ApplyRotation(
                 p_direction,
                 p_cameraTransform,
                 p_mode == ELocomotionMode.Flight,
@@ -228,7 +242,7 @@ namespace Alpha.Player.Locomotion
             ELocomotionMode p_mode,
             out Vector3 p_direction)
         {
-            p_direction = _moveModule.GetMoveDirection(
+            p_direction = GetMoveDirection(
                 p_moveInput,
                 p_cameraTransform,
                 p_mode);
@@ -331,7 +345,7 @@ namespace Alpha.Player.Locomotion
             _isKnockbackActive = true;
 
             // 피격 이동 방향의 반대를 바라보며 뒤로 날아간다.
-            if (_rotationModule != null)
+            if (_playerTransform != null)
                 FaceDirection(-knockbackDirection, null, ELocomotionMode.Ground, true);
 
             return true;
@@ -344,7 +358,7 @@ namespace Alpha.Player.Locomotion
                 return false;
 
             if (!CanReceiveKnockback ||
-                _moveModule == null ||
+                _context == null ||
                 _knockbackRemainingTime <= 0f)
             {
                 CancelKnockback();
@@ -359,7 +373,7 @@ namespace Alpha.Player.Locomotion
 
             // 수평 넉백 중에도 접지력과 공중 중력은 계속 적용한다.
             deltaPosition.y = GroundVerticalVelocity * deltaTime;
-            _moveModule.MoveDelta(deltaPosition);
+            MoveDelta(deltaPosition);
 
             _knockbackRemainingTime -= activeTime;
 
@@ -378,8 +392,129 @@ namespace Alpha.Player.Locomotion
 
         // 보스 몸체와 겹쳤을 때 현재 행동이나 피해 무적 상태와 무관하게 이동한다.
         public bool TryMoveForContactClearance(Vector3 p_horizontalDisplacement) =>
-            isActiveAndEnabled && _moveModule != null &&
-            _moveModule.TryMoveForContactClearance(p_horizontalDisplacement);
+            isActiveAndEnabled && TryMoveForContactClearanceInternal(p_horizontalDisplacement);
+
+        private Vector3 GetMoveDirection(Vector2 input, Transform cameraTransform, ELocomotionMode mode)
+        {
+            if (cameraTransform == null)
+                return Vector3.zero;
+
+            Vector3 forward = cameraTransform.forward;
+            Vector3 right = cameraTransform.right;
+            if (mode != ELocomotionMode.Flight)
+            {
+                forward.y = 0f;
+                right.y = 0f;
+            }
+
+            forward.Normalize();
+            right.Normalize();
+            return Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
+        }
+
+        private float GetMoveSpeed(ELocomotionMode mode, bool isSprint, bool isCombat)
+        {
+            MoveSpeedSet speedSet = mode switch
+            {
+                ELocomotionMode.Ground => _groundMoveSpeed,
+                ELocomotionMode.Flight => _flightMoveSpeed,
+                _ => throw new NotSupportedException($"지원하지 않는 이동 Mode: {mode}")
+            };
+
+            return speedSet.GetSpeed(isSprint, isCombat);
+        }
+
+        private static Vector3 GetMoveVelocity(
+            Vector3 direction, float speed, float verticalVelocity, ELocomotionMode mode)
+        {
+            Vector3 velocity = direction * speed;
+            if (mode == ELocomotionMode.Ground)
+                velocity.y = verticalVelocity;
+            return velocity;
+        }
+
+        private void ApplyVelocity(Vector3 velocity)
+        {
+            if (_controller == null || _context == null)
+                return;
+
+            ApplyMovement(velocity, velocity * Time.deltaTime);
+        }
+
+        // 회피·Root Motion·넉백도 이 경로로 이동 결과를 기록한다.
+        internal void MoveDelta(Vector3 deltaPosition)
+        {
+            if (_controller == null || _context == null)
+                return;
+
+            float deltaTime = Mathf.Max(Time.deltaTime, 0.0001f);
+            ApplyMovement(deltaPosition / deltaTime, deltaPosition);
+        }
+
+        private void ApplyMovement(Vector3 velocity, Vector3 deltaPosition)
+        {
+            Velocity = velocity;
+            _context.Velocity = velocity;
+            _controller.Move(deltaPosition);
+        }
+
+        private bool TryMoveForContactClearanceInternal(Vector3 horizontalDisplacement)
+        {
+            if (_controller == null || !_controller.enabled || _context == null)
+                return false;
+
+            horizontalDisplacement.y = 0f;
+            if (horizontalDisplacement.sqrMagnitude <= DirectionEpsilon)
+                return false;
+
+            Vector3 before = _controller.transform.position;
+            _controller.Move(horizontalDisplacement);
+            Vector3 actual = _controller.transform.position - before;
+            actual.y = 0f;
+            return actual.sqrMagnitude > DirectionEpsilon;
+        }
+
+        private void ApplyRotation(
+            Vector3 direction, Transform cameraTransform,
+            bool isSpatial = false, bool isCombat = false, bool isInstant = false)
+        {
+            if (_playerTransform == null)
+                return;
+
+            Vector3 forward = direction;
+            if (!isSpatial)
+                forward.y = 0f;
+            if (forward.sqrMagnitude < DirectionEpsilon)
+                return;
+
+            Vector3 up = isSpatial && cameraTransform != null
+                ? cameraTransform.up
+                : Vector3.up;
+            Quaternion currentRotation = _playerTransform.rotation;
+            Quaternion targetRotation = Quaternion.LookRotation(forward.normalized, up);
+
+            if (isInstant)
+            {
+                _rotationVelocity = 0f;
+                _playerTransform.rotation = targetRotation;
+                return;
+            }
+
+            if (isSpatial)
+            {
+                float ratio = 1f - Mathf.Exp(-_spatialRotationSmoothness * Time.deltaTime);
+                _playerTransform.rotation = Quaternion.Slerp(currentRotation, targetRotation, ratio);
+                return;
+            }
+
+            float smoothTime = isCombat ? _combatRotationSmoothTime : _rotationSmoothTime;
+            float yaw = Mathf.SmoothDampAngle(
+                currentRotation.eulerAngles.y,
+                targetRotation.eulerAngles.y,
+                ref _rotationVelocity,
+                smoothTime);
+            _playerTransform.rotation = Quaternion.Euler(0f, yaw, 0f);
+        }
 
 
 
@@ -391,18 +526,18 @@ namespace Alpha.Player.Locomotion
         {
             // 이동 방향
             Vector3 moveDirection =
-                _moveModule.GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
+                GetMoveDirection(p_moveInput, p_cameraTransform, ELocomotionMode.Ground);
 
             // 속력
             float moveSpeed =
-                _moveModule.GetMoveSpeed(ELocomotionMode.Ground, p_isSprint, p_isCombat);
+                GetMoveSpeed(ELocomotionMode.Ground, p_isSprint, p_isCombat);
 
             // 공중 State가 계속 사용할 방향과 속도를 Context에 저장한다.
             _context.LockedMoveDirection = moveDirection;
             _airMoveSpeed = moveSpeed;
 
             // 점프 시작 시 이동 방향으로 즉시 회전한다.
-            _rotationModule.ApplyRotation(moveDirection, p_cameraTransform, false, false, true);
+            ApplyRotation(moveDirection, p_cameraTransform, false, false, true);
 
             VerticalVelocity = Mathf.Sqrt(2f * _gravity * _jumpHeight);
         }
@@ -415,8 +550,7 @@ namespace Alpha.Player.Locomotion
 
             velocity.y = VerticalVelocity;
 
-            // 공중 이동도 최종적으로 MoveModule을 사용한다.
-            _moveModule.Move(velocity);
+            ApplyVelocity(velocity);
         }
         #endregion ======================================== /Jump
 
@@ -425,7 +559,7 @@ namespace Alpha.Player.Locomotion
         public void StartFall()
         {
             // 마지막 지상 이동 속도를 기준으로 공중 이동을 유지한다.
-            Vector3 horizontalVelocity = Vector3.ProjectOnPlane(_moveModule.Velocity, Vector3.up);
+            Vector3 horizontalVelocity = Vector3.ProjectOnPlane(Velocity, Vector3.up);
 
             _airMoveSpeed = horizontalVelocity.magnitude;
 
@@ -496,6 +630,15 @@ namespace Alpha.Player.Locomotion
 
         private void OnValidate()
         {
+            _groundMoveSpeed.WalkSpeed = Mathf.Max(0f, _groundMoveSpeed.WalkSpeed);
+            _groundMoveSpeed.SprintSpeed = Mathf.Max(0f, _groundMoveSpeed.SprintSpeed);
+            _groundMoveSpeed.CombatSpeed = Mathf.Max(0f, _groundMoveSpeed.CombatSpeed);
+            _flightMoveSpeed.WalkSpeed = Mathf.Max(0f, _flightMoveSpeed.WalkSpeed);
+            _flightMoveSpeed.SprintSpeed = Mathf.Max(0f, _flightMoveSpeed.SprintSpeed);
+            _flightMoveSpeed.CombatSpeed = Mathf.Max(0f, _flightMoveSpeed.CombatSpeed);
+            _rotationSmoothTime = Mathf.Max(0f, _rotationSmoothTime);
+            _combatRotationSmoothTime = Mathf.Max(0.01f, _combatRotationSmoothTime);
+            _spatialRotationSmoothness = Mathf.Max(0f, _spatialRotationSmoothness);
             _jumpHeight = Mathf.Max(0f, _jumpHeight);
             _landDuration = Mathf.Max(0f, _landDuration);
             _dashDistance = Mathf.Max(0f, _dashDistance);

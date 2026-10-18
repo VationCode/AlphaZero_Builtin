@@ -26,15 +26,28 @@ namespace Alpha.Player.Locomotion
         protected override void Tick()
         {
             ELocomotionMode mode = _Core.LocomotionContext.CurrentMode;
+            Transform cameraTransform = _Core.CameraCore?.RenderCamera?.transform;
+            bool isCombatStance = _Core.CombatContext.IsCombatStanceActive;
 
             if (_Core.LocomotionModule.BlocksInput)
             {
+                // 공격의 Root Motion으로 이동이 잠겨도 전투 중 몸체 회전은 계속 갱신한다.
+                if (isCombatStance && cameraTransform != null)
+                {
+                    _Core.LocomotionModule.FaceDirection(
+                        cameraTransform.forward,
+                        cameraTransform,
+                        mode,
+                        false,
+                        true);
+                }
+
                 if (mode == ELocomotionMode.Ground)
                 {
                     _Core.AnimationView.PlayGroundLocomotion(
                         Vector2.zero,
                         false,
-                        _Core.CombatContext.IsCombatStanceActive);
+                        isCombatStance);
                 }
 
                 return;
@@ -50,19 +63,19 @@ namespace Alpha.Player.Locomotion
             if (mode == ELocomotionMode.Ground && TryChangeGroundState())
                 return;
 
-            Transform cameraTransform = _Core.CameraCore?.RenderCamera.transform;
             bool isSprint = _Input.IsSprint;
             Vector2 moveInput = _Input.MoveInput;
-            bool isCombatStance = _Core.CombatContext.IsCombatStanceActive;
 
-            Vector3 facingDirection = Vector3.zero;
-            bool isAimFacing = mode == ELocomotionMode.Ground &&
-                               TryResolveAimFacingDirection(out facingDirection);
+            bool hasRangeAim = mode == ELocomotionMode.Ground &&
+                               TryUpdateRangeAimPresentation();
+            Vector3 facingDirection = isCombatStance && cameraTransform != null
+                ? cameraTransform.forward
+                : Vector3.zero;
 
             if (mode != ELocomotionMode.Ground)
                 ClearRangeAimPresentation();
 
-            float rangeMoveSpeedMultiplier = isAimFacing
+            float rangeMoveSpeedMultiplier = hasRangeAim
                 ? _Core.CombatModule.CurrentRangeWeapon?
                     .FireResponseSettings?.MoveSpeedMultiplier ?? 1f
                 : 1f;
@@ -142,13 +155,11 @@ namespace Alpha.Player.Locomotion
                 1f);
         }
 
-        private bool TryResolveAimFacingDirection(
-            out Vector3 p_facingDirection)
+        private bool TryUpdateRangeAimPresentation()
         {
-            p_facingDirection = Vector3.zero;
             CombatContext context = _Core.CombatContext;
 
-            if (!_Core.CanUseCombat || !context.UsesAimFacing)
+            if (!_Core.CanUseCombat || !context.UsesAimPresentation)
             {
                 ClearRangeAimPresentation();
                 return false;
@@ -164,18 +175,7 @@ namespace Alpha.Player.Locomotion
             context.SetAimDirection(aimDirection);
             _Core.RigView?.SetAimDirection(aimDirection);
 
-            if (!context.HasAimDirection)
-                return false;
-
-            p_facingDirection = Vector3.ProjectOnPlane(
-                context.AimDirection,
-                Vector3.up);
-
-            if (p_facingDirection.sqrMagnitude <= 0.0001f)
-                return false;
-
-            p_facingDirection.Normalize();
-            return true;
+            return context.HasAimDirection;
         }
 
         private void ClearRangeAimPresentation()
