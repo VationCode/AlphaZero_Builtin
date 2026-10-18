@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ea61696583e3a204f8821d4f5b7bfc63
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303121
+  packageName: Female Rifle Animset - Free Run&Sprint
+  packageVersion: 1.2
+  assetPath: Assets/FemaleRunnerAnimset/Controllers/Rifle/Movements/Sprint/R_Sprint_Turns.controller
+  uploadId: 893656

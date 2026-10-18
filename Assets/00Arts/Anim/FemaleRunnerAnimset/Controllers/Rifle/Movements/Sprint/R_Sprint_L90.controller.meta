@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3fa6a44757d6f024ab8d5285ea68602c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 303121
+  packageName: Female Rifle Animset - Free Run&Sprint
+  packageVersion: 1.2
+  assetPath: Assets/FemaleRunnerAnimset/Controllers/Rifle/Movements/Sprint/R_Sprint_L90.controller
+  uploadId: 893656
